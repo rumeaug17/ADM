@@ -83,9 +83,10 @@ def synthese():
     total_apps = len(data)
     scored_apps = [app for app in data if app["score"] is not None]
     avg_score = round(sum(app["score"] for app in scored_apps) / len(scored_apps), 2) if scored_apps else 0
-    apps_above_50 = len([app for app in scored_apps if app["score"] > 50])
+    apps_above_30 = len([app for app in scored_apps if app["percentage"] > 30])
+    apps_above_60 = len([app for app in scored_apps if app["percentage"] > 60])
     
-    return render_template("synthese.html", applications=data, total_apps=total_apps, avg_score=avg_score, apps_above_50=apps_above_50)
+    return render_template("synthese.html", applications=data, total_apps=total_apps, avg_score=avg_score, apps_above_30=apps_above_30, apps_above_60=apps_above_60)
 
 if __name__ == '__main__':
     app.run(debug=True)
