@@ -1,20 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoring - {{ application.name }}</title>
 </head>
 <body>
-    <h2>Scoring de {{ application.name }}</h2>
+    <h2>Scoring de l'application : {{ application.name }}</h2>
     <form method="post">
-        <label>Documentation complète :</label>
+        <label>Documentation complète et à jour :</label>
         <select name="doc">
             <option value="Oui total">Oui total</option>
             <option value="Partiel">Partiel</option>
             <option value="Insuffisant">Insuffisant</option>
             <option value="Non">Non</option>
+            <option value="Non applicable">Non applicable</option>
         </select>
-        <button type="submit">Calculer Score</button>
+        <br>
+
+        <label>Équipe clairement identifiée :</label>
+        <select name="team">
+            <option value="Oui total">Oui total</option>
+            <option value="Partiel">Partiel</option>
+            <option value="Insuffisant">Insuffisant</option>
+            <option value="Non">Non</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Technologies obsolètes :</label>
+        <select name="tech_obsolete">
+            <option value="Non">Non</option>
+            <option value="Partiellement">Partiellement</option>
+            <option value="Majoritairement">Majoritairement</option>
+            <option value="Totalement">Totalement</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Maintien en condition opérationnelle difficile :</label>
+        <select name="mco">
+            <option value="Non">Non</option>
+            <option value="Partiellement">Partiellement</option>
+            <option value="Majoritairement">Majoritairement</option>
+            <option value="Totalement">Totalement</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Alignement avec l’état de l’art :</label>
+        <select name="etat_art">
+            <option value="Oui total">Oui total</option>
+            <option value="Partiel">Partiel</option>
+            <option value="Insuffisant">Insuffisant</option>
+            <option value="Non">Non</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Code source maintenable et documenté :</label>
+        <select name="code_source">
+            <option value="Oui total">Oui total</option>
+            <option value="Partiel">Partiel</option>
+            <option value="Insuffisant">Insuffisant</option>
+            <option value="Non">Non</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Conformité aux exigences de sécurité :</label>
+        <select name="securite">
+            <option value="Oui total">Oui total</option>
+            <option value="Partiel">Partiel</option>
+            <option value="Insuffisant">Insuffisant</option>
+            <option value="Non">Non</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Vulnérabilités connues non corrigées :</label>
+        <select name="vulnerabilites">
+            <option value="Non">Non</option>
+            <option value="Partiellement">Partiellement</option>
+            <option value="Majoritairement">Majoritairement</option>
+            <option value="Totalement">Totalement</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Incidents récurrents :</label>
+        <select name="incidents">
+            <option value="Non">Non</option>
+            <option value="Partiellement">Partiellement</option>
+            <option value="Majoritairement">Majoritairement</option>
+            <option value="Totalement">Totalement</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Performances satisfaisantes :</label>
+        <select name="performances">
+            <option value="Oui total">Oui total</option>
+            <option value="Partiel">Partiel</option>
+            <option value="Insuffisant">Insuffisant</option>
+            <option value="Non">Non</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Couverture des besoins métier :</label>
+        <select name="besoins_metier">
+            <option value="Oui total">Oui total</option>
+            <option value="Partiel">Partiel</option>
+            <option value="Insuffisant">Insuffisant</option>
+            <option value="Non">Non</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <label>Évolutivité pour nouvelles demandes métier :</label>
+        <select name="evolutivite">
+            <option value="Oui total">Oui total</option>
+            <option value="Partiel">Partiel</option>
+            <option value="Insuffisant">Insuffisant</option>
+            <option value="Non">Non</option>
+            <option value="Non applicable">Non applicable</option>
+        </select>
+        <br>
+
+        <button type="submit">Calculer le Score</button>
     </form>
-    <a href="/">Retour</a>
+    <br>
+    <a href="/">Retour à la liste des applications</a>
 </body>
 </html>
