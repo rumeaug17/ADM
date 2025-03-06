@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une application</title>
+</head>
+<body>
+    <h2>Ajouter une application</h2>
+    <form method="post">
+        <label>Nom de l'application :</label>
+        <input type="text" name="name" required>
+        <br>
+
+        <label>Disponibilité :</label>
+        <select name="disponibilite">
+            <option value="D1">Faible</option>
+            <option value="D2">Moyenne</option>
+            <option value="D3">Élevée</option>
+            <option value="D4">Critique</option>
+        </select>
+        <br>
+
+        <label>Intégrité :</label>
+        <select name="integrite">
+            <option value="I1">Faible</option>
+            <option value="I2">Moyenne</option>
+            <option value="I3">Élevée</option>
+            <option value="I4">Critique</option>
+        </select>
+        <br>
+
+        <label>Confidentialité :</label>
+        <select name="confidentialite">
+            <option value="C1">Faible</option>
+            <option value="C2">Moyenne</option>
+            <option value="C3">Élevée</option>
+            <option value="C4">Critique</option>
+        </select>
+        <br>
+
+        <label>Pérennité :</label>
+        <select name="perennite">
+            <option value="P1">Faible</option>
+            <option value="P2">Moyenne</option>
+            <option value="P3">Élevée</option>
+            <option value="P4">Critique</option>
+        </select>
+        <br>
+
+        <button type="submit">Ajouter</button>
+    </form>
+
+    <br>
+    <a href="/">Retour</a>
+</body>
+</html>
