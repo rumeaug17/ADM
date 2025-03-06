@@ -16,7 +16,7 @@
         <tr>
             <td>{{ app.name }}</td>
             <td>{{ app.score or "Non évaluée" }}</td>
-            <td>{{ app.percentage if app.percentage is not None else "N/A" }}%</td>
+            <td>{{ app.percentage or "N/A" }}%</td>
             <td>
                 <a href="/score/{{ app.name }}">Évaluer</a>
                 <form action="/delete/{{ app.name }}" method="post" style="display:inline;">
