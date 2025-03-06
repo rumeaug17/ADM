@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scoring - {{ application.name }}</title>
+</head>
+<body>
+    <h2>Scoring de {{ application.name }}</h2>
+    <form method="post">
+        <label>Documentation complète :</label>
+        <select name="doc">
+            <option value="Oui total">Oui total</option>
+            <option value="Partiel">Partiel</option>
+            <option value="Insuffisant">Insuffisant</option>
+            <option value="Non">Non</option>
+        </select>
+        <button type="submit">Calculer Score</button>
+    </form>
+    <a href="/">Retour</a>
+</body>
+</html>
