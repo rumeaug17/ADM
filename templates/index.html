@@ -14,7 +14,7 @@
         {% for app in applications %}
         <tr>
             <td>{{ app.name }}</td>
-            <td>{{ app.score if app.score is not None else "Non évaluée" }}</td>
+            <td>{{ app.score or "Non évaluée" }}</td>
             <td>
                 <a href="/score/{{ app.name }}">Évaluer</a>
                 <form action="/delete/{{ app.name }}" method="post" style="display:inline;">
