@@ -21,6 +21,16 @@ def save_data(data):
 @app.route('/')
 def index():
     applications = load_data()
+    for app in applications:
+        if "score" in app and app["score"] is not None:
+            max_score = 12 * 3  # 12 questions, chaque réponse peut aller jusqu'à 3
+            percentage = round((app["score"] / max_score) * 100, 2)
+            app["max_score"] = max_score
+            app["percentage"] = percentage
+        else:
+            app["max_score"] = None
+            app["percentage"] = None
+            
     return render_template("index.html", applications=applications)
 
 @app.route('/add', methods=['GET', 'POST'])
