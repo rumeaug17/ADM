@@ -5,6 +5,7 @@ import os
 app = Flask(__name__)
 DATA_FILE = "applications.json"
 
+# Chargement des données
 if not os.path.exists(DATA_FILE):
     with open(DATA_FILE, "w") as f:
         json.dump([], f)
@@ -22,20 +23,22 @@ def index():
     applications = load_data()
     return render_template("index.html", applications=applications)
 
-@app.route('/add', methods=['POST'])
+@app.route('/add', methods=['GET', 'POST'])
 def add_application():
-    data = load_data()
-    new_app = {
-        "name": request.form["name"],
-        "disponibilite": request.form["disponibilite"],
-        "integrite": request.form["integrite"],
-        "confidentialite": request.form["confidentialite"],
-        "perennite": request.form["perennite"],
-        "score": None
-    }
-    data.append(new_app)
-    save_data(data)
-    return redirect(url_for("index"))
+    if request.method == 'POST':
+        data = load_data()
+        new_app = {
+            "name": request.form["name"],
+            "disponibilite": request.form["disponibilite"],
+            "integrite": request.form["integrite"],
+            "confidentialite": request.form["confidentialite"],
+            "perennite": request.form["perennite"],
+            "score": None
+        }
+        data.append(new_app)
+        save_data(data)
+        return redirect(url_for("index"))
+    return render_template("add.html")
 
 @app.route('/delete/<name>', methods=['POST'])
 def delete_application(name):
