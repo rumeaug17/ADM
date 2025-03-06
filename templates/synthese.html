@@ -7,11 +7,12 @@
     <h2>Synthèse du catalogue</h2>
     <p>Total d’applications : {{ total_apps }}</p>
     <p>Score moyen : {{ avg_score }}</p>
-    <p>Applications > 50% : {{ apps_above_50 }}</p>
+    <p>Applications > 30% : {{ apps_above_30 }}</p>
+    <p>Applications > 60% : {{ apps_above_60 }}</p>
     <table border="1">
         <tr><th>Application</th><th>Score</th></tr>
         {% for app in applications %}
-        <tr><td>{{ app.name }}</td><td>{{ app.score if app.score is not None else "Non évaluée" }}</td></tr>
+        <tr><td>{{ app.name }}</td><td>{{ app.score or "Non évaluée" }}</td></tr>
         {% endfor %}
     </table>
     <a href="/">Retour</a>
