@@ -36,133 +36,137 @@
     <h2 class="text-center text-primary">✅ Scoring de l'application : <strong>{{ application.name }}</strong></h2>
 
     <form method="post">
+        <!-- Organisation -->
         <div class="card p-4 my-3">
             <h3>📁 Organisation</h3>
-            <label>Documentation complète et à jour :</label>
-            <select name="doc" class="form-select">
-                <option value="Oui total">Oui total</option>
-                <option value="Partiel">Partiel</option>
-                <option value="Insuffisant">Insuffisant</option>
-                <option value="Non">Non</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
-
-            <label>Équipe clairement identifiée :</label>
-            <select name="team" class="form-select">
-                <option value="Oui total">Oui total</option>
-                <option value="Partiel">Partiel</option>
-                <option value="Insuffisant">Insuffisant</option>
-                <option value="Non">Non</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
+            {% set questions = {
+                'doc': 'Documentation complète et à jour',
+                'team': 'Équipe clairement identifiée'
+            } %}
+            {% for key, label in questions.items() %}
+                <label>{{ label }} :</label>
+                <select name="{{ key }}" class="form-select">
+                    {% set value = application.responses.get(key, '') %}
+                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                </select>
+            {% endfor %}
         </div>
 
+        <!-- Obsolescence -->
         <div class="card p-4 my-3">
             <h3>⚠️ Obsolescence</h3>
-            <label>Technologies obsolètes :</label>
-            <select name="tech_obsolete" class="form-select">
-                <option value="Non">Non</option>
-                <option value="Partiellement">Partiellement</option>
-                <option value="Majoritairement">Majoritairement</option>
-                <option value="Totalement">Totalement</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
-
-            <label>Maintien en condition opérationnelle difficile :</label>
-            <select name="mco" class="form-select">
-                <option value="Non">Non</option>
-                <option value="Partiellement">Partiellement</option>
-                <option value="Majoritairement">Majoritairement</option>
-                <option value="Totalement">Totalement</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
+            {% set questions = {
+                'tech_obsolete': 'Technologies obsolètes',
+                'mco': 'Maintien en condition opérationnelle difficile'
+            } %}
+            {% for key, label in questions.items() %}
+                <label>{{ label }} :</label>
+                <select name="{{ key }}" class="form-select">
+                    {% set value = application.responses.get(key, '') %}
+                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
+                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
+                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                </select>
+            {% endfor %}
         </div>
 
+        <!-- Qualité et Développement -->
         <div class="card p-4 my-3">
             <h3>🛠️ Qualité et Développement</h3>
-            <label>Alignement avec l’état de l’art :</label>
-            <select name="etat_art" class="form-select">
-                <option value="Oui total">Oui total</option>
-                <option value="Partiel">Partiel</option>
-                <option value="Insuffisant">Insuffisant</option>
-                <option value="Non">Non</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
-
-            <label>Code source maintenable et documenté :</label>
-            <select name="code_source" class="form-select">
-                <option value="Oui total">Oui total</option>
-                <option value="Partiel">Partiel</option>
-                <option value="Insuffisant">Insuffisant</option>
-                <option value="Non">Non</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
+            {% set questions = {
+                'etat_art': "Alignement avec l’état de l’art",
+                'code_source': "Code source maintenable et documenté"
+            } %}
+            {% for key, label in questions.items() %}
+                <label>{{ label }} :</label>
+                <select name="{{ key }}" class="form-select">
+                    {% set value = application.responses.get(key, '') %}
+                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                </select>
+            {% endfor %}
         </div>
 
+        <!-- Sécurité et Conformité -->
         <div class="card p-4 my-3">
             <h3>🔐 Sécurité et Conformité</h3>
-            <label>Conformité aux exigences de sécurité :</label>
-            <select name="securite" class="form-select">
-                <option value="Oui total">Oui total</option>
-                <option value="Partiel">Partiel</option>
-                <option value="Insuffisant">Insuffisant</option>
-                <option value="Non">Non</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
-
-            <label>Vulnérabilités connues non corrigées :</label>
-            <select name="vulnerabilites" class="form-select">
-                <option value="Non">Non</option>
-                <option value="Partiellement">Partiellement</option>
-                <option value="Majoritairement">Majoritairement</option>
-                <option value="Totalement">Totalement</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
-        </div>
-
+				<label>Conformité aux exigences de sécurité :</label>
+                <select name="securite" class="form-select">
+                    {% set value = application.responses.get('securite', '') %}
+                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                </select>
+				<label>Vulnérabilités connues non corrigées :</label>
+                <select name="vulnerabilites" class="form-select">
+                    {% set value = application.responses.get('vulnerabilites', '') %}
+                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
+                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
+                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                </select>
+          </div>
+		
+		<!-- Exploitation et Performance -->
         <div class="card p-4 my-3">
             <h3>🚀 Exploitation et Performance</h3>
-            <label>Incidents récurrents :</label>
-            <select name="incidents" class="form-select">
-                <option value="Non">Non</option>
-                <option value="Partiellement">Partiellement</option>
-                <option value="Majoritairement">Majoritairement</option>
-                <option value="Totalement">Totalement</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
-
-            <label>Performances satisfaisantes :</label>
-            <select name="performances" class="form-select">
-                <option value="Oui total">Oui total</option>
-                <option value="Partiel">Partiel</option>
-                <option value="Insuffisant">Insuffisant</option>
-                <option value="Non">Non</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
+            {% set questions = {
+                'incidents': "Incidents récurrents",
+                'performances': "Performances satisfaisantes"
+            } %}
+				<label>Incidents récurrents :</label>
+                <select name="incidents" class="form-select">
+                    {% set value = application.responses.get('incidents', '') %}
+                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
+                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
+                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+               </select>
+				<label>Performances satisfaisantes :</label>
+                <select name="performances" class="form-select">
+                    {% set value = application.responses.get('performances', '') %}
+                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                 </select>
         </div>
-
+		
+        <!-- Fonctionnel -->
         <div class="card p-4 my-3">
             <h3>📈 Fonctionnel</h3>
-            <label>Couverture des besoins métier :</label>
-            <select name="besoins_metier" class="form-select">
-                <option value="Oui total">Oui total</option>
-                <option value="Partiel">Partiel</option>
-                <option value="Insuffisant">Insuffisant</option>
-                <option value="Non">Non</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
-
-            <label>Évolutivité pour nouvelles demandes métier :</label>
-            <select name="evolutivite" class="form-select">
-                <option value="Oui total">Oui total</option>
-                <option value="Partiel">Partiel</option>
-                <option value="Insuffisant">Insuffisant</option>
-                <option value="Non">Non</option>
-                <option value="Non applicable">Non applicable</option>
-            </select>
+            {% set questions = {
+                'besoins_metier': "Couverture des besoins métier",
+                'evolutivite': "Évolutivité pour nouvelles demandes métier"
+            } %}
+            {% for key, label in questions.items() %}
+                <label>{{ label }} :</label>
+                <select name="{{ key }}" class="form-select">
+                    {% set value = application.responses.get(key, '') %}
+                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                </select>
+            {% endfor %}
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">📊 Calculer le Score</button>
+        <button type="submit" class="btn btn-primary w-100">📊 Mettre à jour le Score</button>
     </form>
 
     <div class="text-center my-3">
