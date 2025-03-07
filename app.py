@@ -46,7 +46,8 @@ def add_application():
             "perennite": request.form["perennite"],
             "score": None,
             "answered_questions": 0,
-            "last_evaluation": None
+            "last_evaluation": None,
+            "responses": {}  # Stocker les réponses individuelles
         }
         data.append(new_app)
         save_data(data)
@@ -72,9 +73,11 @@ def score_application(name):
         scoring_map = {"Oui total": 0, "Non": 0, "Partiel": 1, "Partiellement": 1, "Insuffisant": 2, "Majoritairement": 2, "Non applicable": None, "Totalement": 3}
         
         for key, value in responses.items():
-            if value in scoring_map and scoring_map[value] is not None:
-                score += scoring_map[value]
-                answered_questions += 1
+            if value in scoring_map:
+                if scoring_map[value] is not None:
+                    score += scoring_map[value]
+                    answered_questions += 1
+                application["responses"][key] = value  # Enregistrer chaque réponse
         
         application["score"] = score
         application["answered_questions"] = answered_questions
