@@ -77,7 +77,13 @@
             {% for app in applications %}
             <tr>
                 <td><strong>{{ app.name }}</strong></td>
-                <td>{{ app.score or "Non évaluée" }}</td>
+                <td>
+					{% if app.score is none %}
+						Non évaluée
+					{% else %}
+						{{ app.score }}
+					{% endif %}
+				</td>
                 <td>{{ app.max_score or "N/A" }}</td>
                 <td>
                     {% if app.percentage is not none %}
