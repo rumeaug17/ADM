@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 import matplotlib.pyplot as plt
+import numpy as np
 import io
 import base64
 
@@ -33,7 +34,7 @@ def calculate_axis_scores(data):
     }
     
     axis_scores = {key: [] for key in categories}
-    scoring_map = {"Oui total": 0, "Non": 0, "Partiel": 1, "Partiellement": 1, "Insuffisant": 2, "Majoritairement": 2, "Non applicable": None, "Totalement": 3}
+    scoring_map = {"Oui total": 0, "Non": 0, "Partiel": 1, "Partiellement": 1, "Insuffisant": 2, "Majoritairement": 2, "Non applicable": None, "Totalement": 3, "Non total": 3}
     
     for app in data:
         if "responses" in app:
@@ -52,7 +53,7 @@ def generate_chart(avg_axis_scores):
     plt.figure(figsize=(8, 5))
     plt.barh(categories, scores, color=['blue', 'green', 'orange', 'red', 'purple', 'cyan'])
     plt.xlabel("Note Moyenne")
-    plt.xlim(-3, 3)
+    plt.xlim(-1, 3)
     plt.axvline(x=0, color='black', linestyle='--')
     
     buf = io.BytesIO()
@@ -62,6 +63,35 @@ def generate_chart(avg_axis_scores):
     buf.close()
     return chart_data
 
+def generate_radar_chart(avg_axis_scores):
+    categories = list(avg_axis_scores.keys())
+    scores = list(avg_axis_scores.values())
+    
+    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
+    scores += scores[:1]
+    angles += angles[:1]
+    
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={"projection": "polar"})
+    ax.set_theta_offset(np.pi / 2)
+    ax.set_theta_direction(-1)
+    
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(categories)
+    
+    ax.set_ylim(-1, 3)
+    ax.set_yticks([-1, 0, 1, 2, 3])
+    ax.set_yticklabels(["-1", "0", "1", "2", "3"])
+    ax.axhline(y=0, color='black', linestyle='--')
+    
+    ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid')
+    ax.fill(angles, scores, color='blue', alpha=0.25)
+    
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    chart_data = base64.b64encode(buf.getvalue()).decode('utf-8')
+    buf.close()
+    return chart_data
 
 @app.route('/')
 def index():
@@ -114,7 +144,7 @@ def score_application(name):
         responses = request.form.to_dict()
         score = 0
         answered_questions = 0
-        scoring_map = {"Oui total": 0, "Non": 0, "Partiel": 1, "Partiellement": 1, "Insuffisant": 2, "Majoritairement": 2, "Non applicable": None, "Totalement": 3}
+        scoring_map = {"Oui total": 0, "Non": 0, "Partiel": 1, "Partiellement": 1, "Insuffisant": 2, "Majoritairement": 2, "Non applicable": None, "Totalement": 3, "Non total": 3}
         
         for key, value in responses.items():
             if value in scoring_map:
@@ -150,7 +180,8 @@ def synthese():
     apps_above_30 = len([app for app in scored_apps if app["percentage"] > 30])
     apps_above_60 = len([app for app in scored_apps if app["percentage"] > 60])
     avg_axis_scores = calculate_axis_scores(data)
-    chart_data = generate_chart(avg_axis_scores)
+    # chart_data = generate_chart(avg_axis_scores)
+    chart_data = generate_radar_chart(avg_axis_scores)
     
     return render_template("synthese.html", applications=data, total_apps=total_apps, avg_score=avg_score, apps_above_30=apps_above_30, apps_above_60=apps_above_60, avg_axis_scores=avg_axis_scores, chart_data=chart_data)
 
