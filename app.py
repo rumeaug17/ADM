@@ -86,7 +86,7 @@ def score_application(name):
 @app.route('/synthese')
 def synthese():
     data = load_data()
-    for app in applications:
+    for app in data:
         if "score" in app and app["score"] is not None and "answered_questions" in app and app["answered_questions"] > 0:
             max_score = app["answered_questions"] * 3  # Nombre de questions renseignées * score max par question
             percentage = round((app["score"] / max_score) * 100, 2)
