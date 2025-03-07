@@ -1,60 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue des Applications</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-    .badge {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 10px;
-        color: white;
-        font-weight: bold;
-    }
-    .d1, .i1, .c1, .p1 { background-color: green; }   /* Faible */
-    .d2, .i2, .c2, .p2 { background-color: yellow; }  /* Moyenne */
-    .d3, .i3, .c3, .p3 { background-color: orange; }  /* Élevée */
-    .d4, .i4, .c4, .p4 { background-color: red; }     /* Critique */
-</style>
-    <title>Gestion des Applications</title>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        .badge-d1, .badge-i1, .badge-c1, .badge-p1 { background-color: #198754; }  /* Vert */
+        .badge-d2, .badge-i2, .badge-c2, .badge-p2 { background-color: #ffc107; }  /* Jaune */
+        .badge-d3, .badge-i3, .badge-c3, .badge-p3 { background-color: #fd7e14; }  /* Orange */
+        .badge-d4, .badge-i4, .badge-c4, .badge-p4 { background-color: #dc3545; }  /* Rouge */
+        table {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        th {
+            background-color: #0d6efd;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+    </style>
 </head>
 <body>
-    <h2>Liste des Applications</h2>
-    <table border="1">
-        <tr>
-            <th>Nom</th>
-            <th>Score</th>
-            <th>%</th>
-            <th>Dernière évaluation</th>
-            <th>Disponibilité</th>
-            <th>Intégrité</th>
-            <th>Confidentialité</th>
-            <th>Pérennité</th>
-            <th>Actions</th>
-        </tr>
-        {% for app in applications %}
-        <tr>
-            <td>{{ app.name }}</td>
-            <td>{{ app.score or "Non évaluée" }}</td>
-            <td style="
-            {% if app.percentage and app.percentage > 60 %} background-color: red; 
-            {% elif app.percentage and app.percentage > 30 %} background-color: yellow; 
-            {% endif %}">{{ app.percentage or "N/A" }}%</td>
-            <td>{{ app.last_evaluation or "Non évaluée" }}</td>
-            <td><span class="badge {{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span></td>
-            <td><span class="badge {{ app.integrite.lower() }}">{{ app.integrite }}</span></td>
-            <td><span class="badge {{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span></td>
-            <td><span class="badge {{ app.perennite.lower() }}">{{ app.perennite }}</span></td>
-            <td>
-                <a href="/score/{{ app.name }}">Évaluer</a>
-                <form action="/delete/{{ app.name }}" method="post" style="display:inline;">
-                    <button type="submit">Supprimer</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    <a href="/synthese">Voir Synthèse</a>
-<p/>
-    <a href="/add"><button>Ajouter une application</button></a>
 
+<div class="container">
+    <h2 class="text-center text-primary">📋 Catalogue des Applications</h2>
+    <div class="d-flex justify-content-between my-3">
+        <a href="/add" class="btn btn-primary">➕ Ajouter une application</a>
+        <a href="/synthese" class="btn btn-outline-primary">📊 Voir Synthèse</a>
+    </div>
+
+    <table class="table table-bordered text-center">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Disponibilité</th>
+                <th>Intégrité</th>
+                <th>Confidentialité</th>
+                <th>Pérennité</th>
+                <th>Score</th>
+                <th>Score max</th>
+                <th>%</th>
+                <th>Dernière évaluation</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr>
+                <td><strong>{{ app.name }}</strong></td>
+                <td><span class="badge badge-{{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span></td>
+                <td><span class="badge badge-{{ app.integrite.lower() }}">{{ app.integrite }}</span></td>
+                <td><span class="badge badge-{{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span></td>
+                <td><span class="badge badge-{{ app.perennite.lower() }}">{{ app.perennite }}</span></td>
+                <td>{{ app.score or "Non évaluée" }}</td>
+                <td>{{ app.max_score or "N/A" }}</td>
+                <td>
+                    {% if app.percentage is not none %}
+                        <span class="badge {% if app.percentage > 60 %} bg-danger {% elif app.percentage > 30 %} bg-warning {% else %} bg-success {% endif %}">
+                            {{ app.percentage }}%
+                        </span>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ app.last_evaluation or "Non évaluée" }}</td>
+                <td>
+                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success">✅ Évaluer</a>
+                    <form action="/delete/{{ app.name }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">❌ Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
