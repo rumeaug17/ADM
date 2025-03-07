@@ -30,13 +30,13 @@
             <th>Actions</th>
         </tr>
         {% for app in applications %}
-        <tr style="
-            {% if app.percentage and app.percentage > 60 %} background-color: red; 
-            {% elif app.percentage and app.percentage > 30 %} background-color: yellow; 
-            {% endif %}">
+        <tr>
             <td>{{ app.name }}</td>
             <td>{{ app.score or "Non évaluée" }}</td>
-            <td>{{ app.percentage or "N/A" }}%</td>
+            <td style="
+            {% if app.percentage and app.percentage > 60 %} background-color: red; 
+            {% elif app.percentage and app.percentage > 30 %} background-color: yellow; 
+            {% endif %}">{{ app.percentage or "N/A" }}%</td>
             <td><span class="badge {{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span></td>
             <td><span class="badge {{ app.integrite.lower() }}">{{ app.integrite }}</span></td>
             <td><span class="badge {{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span></td>
