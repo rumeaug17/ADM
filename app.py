@@ -2,6 +2,9 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 import json
 import os
 from datetime import datetime
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 DATA_FILE = "applications.json"
@@ -18,6 +21,47 @@ def load_data():
 def save_data(data):
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
+
+def calculate_axis_scores(data):
+    categories = {
+        "Organisation": ["doc", "team"],
+        "Obsolescence": ["tech_obsolete", "mco"],
+        "Qualité et Développement": ["etat_art", "code_source"],
+        "Sécurité et Conformité": ["securite", "vulnerabilites"],
+        "Exploitation et Performance": ["incidents", "performances"],
+        "Fonctionnel": ["besoins_metier", "evolutivite"]
+    }
+    
+    axis_scores = {key: [] for key in categories}
+    scoring_map = {"Oui total": 0, "Non": 0, "Partiel": 1, "Partiellement": 1, "Insuffisant": 2, "Majoritairement": 2, "Non applicable": None, "Totalement": 3}
+    
+    for app in data:
+        if "responses" in app:
+            for category, questions in categories.items():
+                scores = [scoring_map[app["responses"].get(q, "Non applicable")] for q in questions if app["responses"].get(q, "Non applicable") in scoring_map and scoring_map[app["responses"].get(q, "Non applicable")] is not None]
+                if scores:
+                    axis_scores[category].append(sum(scores) / len(scores))
+    
+    avg_axis_scores = {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
+    return avg_axis_scores
+    
+def generate_chart(avg_axis_scores):
+    categories = list(avg_axis_scores.keys())
+    scores = list(avg_axis_scores.values())
+    
+    plt.figure(figsize=(8, 5))
+    plt.barh(categories, scores, color=['blue', 'green', 'orange', 'red', 'purple', 'cyan'])
+    plt.xlabel("Note Moyenne")
+    plt.xlim(-3, 3)
+    plt.axvline(x=0, color='black', linestyle='--')
+    
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    chart_data = base64.b64encode(buf.getvalue()).decode('utf-8')
+    buf.close()
+    return chart_data
+
 
 @app.route('/')
 def index():
@@ -105,8 +149,10 @@ def synthese():
     avg_score = round(sum(app["score"] for app in scored_apps) / len(scored_apps), 2) if scored_apps else 0
     apps_above_30 = len([app for app in scored_apps if app["percentage"] > 30])
     apps_above_60 = len([app for app in scored_apps if app["percentage"] > 60])
+    avg_axis_scores = calculate_axis_scores(data)
+    chart_data = generate_chart(avg_axis_scores)
     
-    return render_template("synthese.html", applications=data, total_apps=total_apps, avg_score=avg_score, apps_above_30=apps_above_30, apps_above_60=apps_above_60)
+    return render_template("synthese.html", applications=data, total_apps=total_apps, avg_score=avg_score, apps_above_30=apps_above_30, apps_above_60=apps_above_60, avg_axis_scores=avg_axis_scores, chart_data=chart_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
