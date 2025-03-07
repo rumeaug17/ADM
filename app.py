@@ -22,8 +22,8 @@ def save_data(data):
 def index():
     applications = load_data()
     for app in applications:
-        if "score" in app and app["score"] is not None:
-            max_score = 12 * 3  # 12 questions, chaque réponse peut aller jusqu'à 3
+        if "score" in app and app["score"] is not None and "answered_questions" in app and app["answered_questions"] > 0:
+            max_score = app["answered_questions"] * 3  # Nombre de questions renseignées * score max par question
             percentage = round((app["score"] / max_score) * 100, 2)
             app["max_score"] = max_score
             app["percentage"] = percentage
@@ -43,7 +43,8 @@ def add_application():
             "integrite": request.form["integrite"],
             "confidentialite": request.form["confidentialite"],
             "perennite": request.form["perennite"],
-            "score": None
+            "score": None,
+            "answered_questions": 0
         }
         data.append(new_app)
         save_data(data)
@@ -65,13 +66,16 @@ def score_application(name):
     if request.method == 'POST':
         responses = request.form.to_dict()
         score = 0
+        answered_questions = 0
         scoring_map = {"Oui total": 0, "Non": 0, "Partiel": 1, "Partiellement": 1, "Insuffisant": 2, "Majoritairement": 2, "Non applicable": None, "Totalement": 3}
         
         for key, value in responses.items():
             if value in scoring_map and scoring_map[value] is not None:
                 score += scoring_map[value]
+                answered_questions += 1
         
         application["score"] = score
+        application["answered_questions"] = answered_questions
         save_data(data)
         return redirect(url_for("index"))
     
@@ -81,7 +85,7 @@ def score_application(name):
 def synthese():
     data = load_data()
     total_apps = len(data)
-    scored_apps = [app for app in data if app["score"] is not None]
+    scored_apps = [app for app in data if app["score"] is not None  and app["answered_questions"] > 0]
     avg_score = round(sum(app["score"] for app in scored_apps) / len(scored_apps), 2) if scored_apps else 0
     apps_above_30 = len([app for app in scored_apps if app["percentage"] > 30])
     apps_above_60 = len([app for app in scored_apps if app["percentage"] > 60])
