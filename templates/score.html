@@ -8,6 +8,7 @@
 <body>
     <h2>Scoring de l'application : {{ application.name }}</h2>
     <form method="post">
+	<h3>Organisation</h3>
         <label>Documentation complète et à jour :</label>
         <select name="doc">
             <option value="Oui total">Oui total</option>
@@ -28,6 +29,7 @@
         </select>
         <br>
 
+	<h3>Obsolescence</h3>
         <label>Technologies obsolètes :</label>
         <select name="tech_obsolete">
             <option value="Non">Non</option>
@@ -48,6 +50,7 @@
         </select>
         <br>
 
+	<h3>Qualité et développement</h3>
         <label>Alignement avec l’état de l’art :</label>
         <select name="etat_art">
             <option value="Oui total">Oui total</option>
@@ -68,6 +71,7 @@
         </select>
         <br>
 
+	<h3>Sécurité et conformité</h3>
         <label>Conformité aux exigences de sécurité :</label>
         <select name="securite">
             <option value="Oui total">Oui total</option>
@@ -88,6 +92,7 @@
         </select>
         <br>
 
+	<h3>Exploitation et performance</h3>
         <label>Incidents récurrents :</label>
         <select name="incidents">
             <option value="Non">Non</option>
@@ -108,6 +113,7 @@
         </select>
         <br>
 
+	<h3>Fonctionnel</h3>
         <label>Couverture des besoins métier :</label>
         <select name="besoins_metier">
             <option value="Oui total">Oui total</option>
