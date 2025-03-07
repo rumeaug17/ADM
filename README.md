@@ -5,6 +5,7 @@ Il s'agit d'uner petite application toute simple (très primitive) servant à ex
 # INSTALL and RUN:
 ```
 pip install -r requirements.txt
+% --proxy=http://USER:PWD@PROXY:PORT
 python app.py
 http://127.0.0.1:5000/
 ```
