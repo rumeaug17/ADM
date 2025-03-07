@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <style>
+    .badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 10px;
+        color: white;
+        font-weight: bold;
+    }
+    .d1, .i1, .c1, .p1 { background-color: green; }   /* Faible */
+    .d2, .i2, .c2, .p2 { background-color: yellow; }  /* Moyenne */
+    .d3, .i3, .c3, .p3 { background-color: orange; }  /* Élevée */
+    .d4, .i4, .c4, .p4 { background-color: red; }     /* Critique */
+</style>
     <title>Gestion des Applications</title>
 </head>
 <body>
@@ -24,6 +37,10 @@
             <td>{{ app.name }}</td>
             <td>{{ app.score or "Non évaluée" }}</td>
             <td>{{ app.percentage or "N/A" }}%</td>
+            <td><span class="badge {{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span></td>
+            <td><span class="badge {{ app.integrite.lower() }}">{{ app.integrite }}</span></td>
+            <td><span class="badge {{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span></td>
+            <td><span class="badge {{ app.perennite.lower() }}">{{ app.perennite }}</span></td>
             <td>
                 <a href="/score/{{ app.name }}">Évaluer</a>
                 <form action="/delete/{{ app.name }}" method="post" style="display:inline;">
