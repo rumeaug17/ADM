@@ -4,139 +4,152 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoring - {{ application.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-select {
+            width: 100%;
+        }
+        h3 {
+            background-color: #0d6efd;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        button {
+            margin-top: 15px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Scoring de l'application : {{ application.name }}</h2>
+
+<div class="container">
+    <h2 class="text-center text-primary">✅ Scoring de l'application : <strong>{{ application.name }}</strong></h2>
+
     <form method="post">
-	<h3>Organisation</h3>
-        <label>Documentation complète et à jour :</label>
-        <select name="doc">
-            <option value="Oui total">Oui total</option>
-            <option value="Partiel">Partiel</option>
-            <option value="Insuffisant">Insuffisant</option>
-            <option value="Non">Non</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+        <div class="card p-4 my-3">
+            <h3>📁 Organisation</h3>
+            <label>Documentation complète et à jour :</label>
+            <select name="doc" class="form-select">
+                <option value="Oui total">Oui total</option>
+                <option value="Partiel">Partiel</option>
+                <option value="Insuffisant">Insuffisant</option>
+                <option value="Non">Non</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
 
-        <label>Équipe clairement identifiée :</label>
-        <select name="team">
-            <option value="Oui total">Oui total</option>
-            <option value="Partiel">Partiel</option>
-            <option value="Insuffisant">Insuffisant</option>
-            <option value="Non">Non</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+            <label>Équipe clairement identifiée :</label>
+            <select name="team" class="form-select">
+                <option value="Oui total">Oui total</option>
+                <option value="Partiel">Partiel</option>
+                <option value="Insuffisant">Insuffisant</option>
+                <option value="Non">Non</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
+        </div>
 
-	<h3>Obsolescence</h3>
-        <label>Technologies obsolètes :</label>
-        <select name="tech_obsolete">
-            <option value="Non">Non</option>
-            <option value="Partiellement">Partiellement</option>
-            <option value="Majoritairement">Majoritairement</option>
-            <option value="Totalement">Totalement</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+        <div class="card p-4 my-3">
+            <h3>⚠️ Obsolescence</h3>
+            <label>Technologies obsolètes :</label>
+            <select name="tech_obsolete" class="form-select">
+                <option value="Non">Non</option>
+                <option value="Partiellement">Partiellement</option>
+                <option value="Majoritairement">Majoritairement</option>
+                <option value="Totalement">Totalement</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
 
-        <label>Maintien en condition opérationnelle difficile :</label>
-        <select name="mco">
-            <option value="Non">Non</option>
-            <option value="Partiellement">Partiellement</option>
-            <option value="Majoritairement">Majoritairement</option>
-            <option value="Totalement">Totalement</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+            <label>Maintien en condition opérationnelle difficile :</label>
+            <select name="mco" class="form-select">
+                <option value="Non">Non</option>
+                <option value="Partiellement">Partiellement</option>
+                <option value="Majoritairement">Majoritairement</option>
+                <option value="Totalement">Totalement</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
+        </div>
 
-	<h3>Qualité et développement</h3>
-        <label>Alignement avec l’état de l’art :</label>
-        <select name="etat_art">
-            <option value="Oui total">Oui total</option>
-            <option value="Partiel">Partiel</option>
-            <option value="Insuffisant">Insuffisant</option>
-            <option value="Non">Non</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+        <div class="card p-4 my-3">
+            <h3>🛠️ Qualité et Développement</h3>
+            <label>Alignement avec l’état de l’art :</label>
+            <select name="etat_art" class="form-select">
+                <option value="Oui total">Oui total</option>
+                <option value="Partiel">Partiel</option>
+                <option value="Insuffisant">Insuffisant</option>
+                <option value="Non">Non</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
 
-        <label>Code source maintenable et documenté :</label>
-        <select name="code_source">
-            <option value="Oui total">Oui total</option>
-            <option value="Partiel">Partiel</option>
-            <option value="Insuffisant">Insuffisant</option>
-            <option value="Non">Non</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+            <label>Code source maintenable et documenté :</label>
+            <select name="code_source" class="form-select">
+                <option value="Oui total">Oui total</option>
+                <option value="Partiel">Partiel</option>
+                <option value="Insuffisant">Insuffisant</option>
+                <option value="Non">Non</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
+        </div>
 
-	<h3>Sécurité et conformité</h3>
-        <label>Conformité aux exigences de sécurité :</label>
-        <select name="securite">
-            <option value="Oui total">Oui total</option>
-            <option value="Partiel">Partiel</option>
-            <option value="Insuffisant">Insuffisant</option>
-            <option value="Non">Non</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+        <div class="card p-4 my-3">
+            <h3>🔐 Sécurité et Conformité</h3>
+            <label>Conformité aux exigences de sécurité :</label>
+            <select name="securite" class="form-select">
+                <option value="Oui total">Oui total</option>
+                <option value="Partiel">Partiel</option>
+                <option value="Insuffisant">Insuffisant</option>
+                <option value="Non">Non</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
 
-        <label>Vulnérabilités connues non corrigées :</label>
-        <select name="vulnerabilites">
-            <option value="Non">Non</option>
-            <option value="Partiellement">Partiellement</option>
-            <option value="Majoritairement">Majoritairement</option>
-            <option value="Totalement">Totalement</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+            <label>Vulnérabilités connues non corrigées :</label>
+            <select name="vulnerabilites" class="form-select">
+                <option value="Non">Non</option>
+                <option value="Partiellement">Partiellement</option>
+                <option value="Majoritairement">Majoritairement</option>
+                <option value="Totalement">Totalement</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
+        </div>
 
-	<h3>Exploitation et performance</h3>
-        <label>Incidents récurrents :</label>
-        <select name="incidents">
-            <option value="Non">Non</option>
-            <option value="Partiellement">Partiellement</option>
-            <option value="Majoritairement">Majoritairement</option>
-            <option value="Totalement">Totalement</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+        <div class="card p-4 my-3">
+            <h3>🚀 Exploitation et Performance</h3>
+            <label>Incidents récurrents :</label>
+            <select name="incidents" class="form-select">
+                <option value="Non">Non</option>
+                <option value="Partiellement">Partiellement</option>
+                <option value="Majoritairement">Majoritairement</option>
+                <option value="Totalement">Totalement</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
 
-        <label>Performances satisfaisantes :</label>
-        <select name="performances">
-            <option value="Oui total">Oui total</option>
-            <option value="Partiel">Partiel</option>
-            <option value="Insuffisant">Insuffisant</option>
-            <option value="Non">Non</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+            <label>Performances satisfaisantes :</label>
+            <select name="performances" class="form-select">
+                <option value="Oui total">Oui total</option>
+                <option value="Partiel">Partiel</option>
+                <option value="Insuffisant">Insuffisant</option>
+                <option value="Non">Non</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
+        </div>
 
-	<h3>Fonctionnel</h3>
-        <label>Couverture des besoins métier :</label>
-        <select name="besoins_metier">
-            <option value="Oui total">Oui total</option>
-            <option value="Partiel">Partiel</option>
-            <option value="Insuffisant">Insuffisant</option>
-            <option value="Non">Non</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
+        <div class="card p-4 my-3">
+            <h3>📈 Fonctionnel</h3>
+            <label>Couverture des besoins métier :</label>
+            <select name="besoins_metier" class="form-select">
+                <option value="Oui total">Oui total</option>
+                <option value="Partiel">Partiel</option>
+                <option value="Insuffisant">Insuffisant</option>
+                <option value="Non">Non</option>
+                <option value="Non applicable">Non applicable</option>
+            </select>
 
-        <label>Évolutivité pour nouvelles demandes métier :</label>
-        <select name="evolutivite">
-            <option value="Oui total">Oui total</option>
-            <option value="Partiel">Partiel</option>
-            <option value="Insuffisant">Insuffisant</option>
-            <option value="Non">Non</option>
-            <option value="Non applicable">Non applicable</option>
-        </select>
-        <br>
-
-        <button type="submit">Calculer le Score</button>
-    </form>
-    <br>
-    <a href="/">Retour à la liste des applications</a>
-</body>
-</html>
+            <label>Évolutivité pour nouvel
