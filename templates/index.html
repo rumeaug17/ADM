@@ -71,7 +71,13 @@
                 <td><span class="badge badge-{{ app.integrite.lower() }}">{{ app.integrite }}</span></td>
                 <td><span class="badge badge-{{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span></td>
                 <td><span class="badge badge-{{ app.perennite.lower() }}">{{ app.perennite }}</span></td>
-                <td>{{ app.score or "Non évaluée" }}</td>
+                <td>
+					{% if app.score is none %}
+						Non évaluée
+					{% else %}
+						{{ app.score }}
+					{% endif %}
+				</td>
                 <td>{{ app.max_score or "N/A" }}</td>
                 <td>
                     {% if app.percentage is not none %}
