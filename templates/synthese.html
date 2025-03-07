@@ -20,6 +20,10 @@
             font-size: 1rem;
             padding: 8px 12px;
         }
+		.bg-score-high {
+			background-color: red !important;
+			color: white !important;
+		}
         .table {
             background-color: white;
             border-radius: 10px;
@@ -41,32 +45,32 @@
     <h2 class="text-center text-primary">📊 Synthèse des Applications</h2>
     
     <!-- Section des KPI -->
-    <div class="row my-4">
-        <div class="col-md-4">
-            <div class="card text-center text-white bg-primary p-3">
-                <h4>📌 Nombre total d'applications</h4>
-                <h2>{{ total_apps }}</h2>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center text-white bg-success p-3">
-                <h4>⭐ Score moyen</h4>
-                <h2>{{ avg_score }}</h2>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center text-white bg-warning p-3">
-                <h4>✅ Applications > 30%</h4>
-                <h2>{{ apps_above_30 }}</h2>
-            </div>
-        </div>
-		<div class="col-md-4">
-            <div class="card text-center text-white bg-warning p-3">
-                <h4>✅ Applications > 60%</h4>
-                <h2>{{ apps_above_60 }}</h2>
-            </div>
+    <div class="row my-4 text-center">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary p-3">
+            <h4>📌 Nombre total d'applications</h4>
+            <h2>{{ total_apps }}</h2>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success p-3">
+            <h4>⭐ Score moyen</h4>
+            <h2>{{ avg_score }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning p-3">
+            <h4>✅ Applications > 30%</h4>
+            <h2>{{ apps_above_30 }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-score-high p-3">
+            <h4>🔥 Applications > 60%</h4>
+            <h2>{{ apps_above_60 }}</h2>
+        </div>
+    </div>
+</div>
 
     <!-- Tableau des applications -->
     <table class="table table-bordered text-center">
