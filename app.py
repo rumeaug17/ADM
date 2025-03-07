@@ -44,7 +44,8 @@ def add_application():
             "confidentialite": request.form["confidentialite"],
             "perennite": request.form["perennite"],
             "score": None,
-            "answered_questions": 0
+            "answered_questions": 0,
+            "last_evaluation": None
         }
         data.append(new_app)
         save_data(data)
@@ -76,6 +77,7 @@ def score_application(name):
         
         application["score"] = score
         application["answered_questions"] = answered_questions
+        application["last_evaluation"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         save_data(data)
         return redirect(url_for("index"))
     
