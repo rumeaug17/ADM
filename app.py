@@ -140,6 +140,12 @@ def score_application(name):
     data = load_data()
     application = next((app for app in data if app["name"] == name), None)
     
+    if application is None:
+        return "Application non trouvée", 404
+
+    if "comments" not in application:
+        application["comments"] = {}  # Initialise le champ des commentaires si absent
+        
     if request.method == 'POST':
         responses = request.form.to_dict()
         score = 0
@@ -147,7 +153,9 @@ def score_application(name):
         scoring_map = {"Oui total": 0, "Non": 0, "Partiel": 1, "Partiellement": 1, "Insuffisant": 2, "Majoritairement": 2, "Non applicable": None, "Totalement": 3, "Non total": 3}
         
         for key, value in responses.items():
-            if value in scoring_map:
+            if key.endswith("_comment"):
+                application["comments"][key] = value  # Enregistrer le commentaire
+            elif value in scoring_map:
                 if scoring_map[value] is not None:
                     score += scoring_map[value]
                     answered_questions += 1
