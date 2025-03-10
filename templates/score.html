@@ -243,6 +243,13 @@
         // Charger les textes des infobulles depuis un fichier JSON
         $.getJSON("{{ url_for('static', filename='info_texts.json') }}", function(data) {
 			infoTexts = data;
+    
+			// Convertir les valeurs en chaînes de caractères si elles sont des tableaux
+			Object.keys(infoTexts).forEach(function(key) {
+				if (Array.isArray(infoTexts[key])) {
+					infoTexts[key] = infoTexts[key].join("");
+				}
+			});
 		});
 		
 	
