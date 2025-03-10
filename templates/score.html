@@ -41,7 +41,7 @@
             <h3>📁 Organisation</h3>
             {% set questions = {
                 'doc': 'Documentation complète et à jour',
-                'team': 'Équipe clairement identifiée'
+                'team': 'Équipe clairement identifiée',
             } %}
             {% for key, label in questions.items() %}
                 <label>{{ label }} :</label>
@@ -85,6 +85,7 @@
             <h3>🛠️ Qualité et Développement</h3>
             {% set questions = {
                 'etat_art': "Alignement avec l’état de l’art",
+		'respect' : 'Respect des standards et des principes d'architecture',
                 'code_source': "Code source maintenable et documenté"
             } %}
             {% for key, label in questions.items() %}
@@ -169,6 +170,7 @@
             <h3>📈 Fonctionnel</h3>
             {% set questions = {
                 'besoins_metier': "Couverture des besoins métier",
+		'recouvrement' : 'Périmètre applicatif spécifique identifié',
                 'evolutivite': "Évolutivité pour nouvelles demandes métier"
             } %}
             {% for key, label in questions.items() %}
