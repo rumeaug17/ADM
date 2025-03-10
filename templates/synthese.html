@@ -76,6 +76,11 @@
 </div>
 
     <!-- Tableau des applications -->
+	<div class="btn-group" role="group">
+    <a href="?filter_score=all" class="btn btn-secondary {% if filter_score == 'all' %}active{% endif %}">Tous</a>
+    <a href="?filter_score=above_30" class="btn btn-warning {% if filter_score == 'above_30' %}active{% endif %}">> 30%</a>
+    <a href="?filter_score=above_60" class="btn btn-danger {% if filter_score == 'above_60' %}active{% endif %}">> 60%</a>
+</div>
     <table class="table table-bordered text-center">
         <thead>
             <tr>
