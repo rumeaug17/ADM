@@ -1,0 +1,5 @@
+{
+    "doc": "<strong>Pourquoi c'est important ?</strong><br>Une documentation claire et à jour permet d'assurer la bonne compréhension et maintenance de l'application.<br><br><strong>Exemples :</strong><ul><li>Manuels utilisateurs</li><li>Diagrammes d'architecture</li><li>Instructions de déploiement</li></ul>",
+    "tech_obsolete": "<strong>Pourquoi c'est important ?</strong><br>L'utilisation de technologies dépassées peut engendrer des failles de sécurité et des difficultés de maintenance.<br><br><strong>Exemples :</strong><ul><li>Versions non supportées de logiciels</li><li>Librairies abandonnées</li><li>Matériel incompatible</li></ul>",
+	"securite" : "L'application est conforme vis-à-vis des obligations réglementaires (RGPD, DORA). Elle respecte les principes de construction security by design."
+}
