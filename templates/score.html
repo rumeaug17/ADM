@@ -69,7 +69,9 @@
                 'team': 'Équipe clairement identifiée',
             } %}
             {% for key, label in questions.items() %}
-                <label class="label">{{ label }} :</label>
+				<label class="label">{{ label }} :
+					<span class="info-icon" data-key="{{ key }}">?</span>
+				</label>
                 <select name="{{ key }}" class="form-select">
                     {% set value = application.responses.get(key, '') %}
                     <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
@@ -91,7 +93,9 @@
                 'mco': 'Maintien en condition opérationnelle difficile'
             } %}
             {% for key, label in questions.items() %}
-                <label class="label">{{ label }} :</label>
+				<label class="label">{{ label }} :
+					<span class="info-icon" data-key="{{ key }}">?</span>
+				</label>
                 <select name="{{ key }}" class="form-select">
                     {% set value = application.responses.get(key, '') %}
                     <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
@@ -114,7 +118,9 @@
                 'code_source': "Code source maintenable et documenté"
             } %}
             {% for key, label in questions.items() %}
-                <label class="label">{{ label }} :</label>
+				<label class="label">{{ label }} :
+					<span class="info-icon" data-key="{{ key }}">?</span>
+				</label>
                 <select name="{{ key }}" class="form-select">
                     {% set value = application.responses.get(key, '') %}
                     <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
@@ -162,10 +168,6 @@
 		<!-- Exploitation et Performance -->
         <div class="card p-4 my-3">
             <h3>🚀 Exploitation et Performance</h3>
-            {% set questions = {
-                'incidents': "Incidents récurrents",
-                'performances': "Performances satisfaisantes"
-            } %}
 				<label class="label">Incidents récurrents :</label>
                 <select name="incidents" class="form-select">
                     {% set value = application.responses.get('incidents', '') %}
@@ -188,7 +190,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="incidents_comment" class="form-control" required>{{ application.comments.get('incidents_comment', '') }}</textarea>
+				<textarea name="performances_comment" class="form-control" required>{{ application.comments.get('performances_comment', '') }}</textarea>
 
         </div>
 		
@@ -201,7 +203,9 @@
                 'evolutivite': "Évolutivité pour nouvelles demandes métier"
             } %}
             {% for key, label in questions.items() %}
-                <label class="label">{{ label }} :</label>
+				<label class="label">{{ label }} :
+					<span class="info-icon" data-key="{{ key }}">?</span>
+				</label>
                 <select name="{{ key }}" class="form-select">
                     {% set value = application.responses.get(key, '') %}
                     <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
