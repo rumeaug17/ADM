@@ -24,7 +24,11 @@
             color: white;
             padding: 10px;
             border-radius: 5px;
+			font-weight: bold;
         }
+		.label {
+			font-weight: bold;
+		}
         button {
             margin-top: 15px;
         }
@@ -44,7 +48,7 @@
                 'team': 'Équipe clairement identifiée',
             } %}
             {% for key, label in questions.items() %}
-                <label>{{ label }} :</label>
+                <label class="label">{{ label }} :</label>
                 <select name="{{ key }}" class="form-select">
                     {% set value = application.responses.get(key, '') %}
                     <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
@@ -53,7 +57,7 @@
                     <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
-				<label>Commentaire :</label>
+				<label class="comment">Commentaire :</label>
 				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
             {% endfor %}
         </div>
@@ -66,7 +70,7 @@
                 'mco': 'Maintien en condition opérationnelle difficile'
             } %}
             {% for key, label in questions.items() %}
-                <label>{{ label }} :</label>
+                <label class="label">{{ label }} :</label>
                 <select name="{{ key }}" class="form-select">
                     {% set value = application.responses.get(key, '') %}
                     <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
@@ -75,7 +79,7 @@
                     <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
-				<label>Commentaire :</label>
+				<label class="comment">Commentaire :</label>
 				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
             {% endfor %}
         </div>
@@ -89,7 +93,7 @@
                 'code_source': "Code source maintenable et documenté"
             } %}
             {% for key, label in questions.items() %}
-                <label>{{ label }} :</label>
+                <label class="label">{{ label }} :</label>
                 <select name="{{ key }}" class="form-select">
                     {% set value = application.responses.get(key, '') %}
                     <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
@@ -98,7 +102,7 @@
                     <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
-				<label>Commentaire :</label>
+				<label class="comment">Commentaire :</label>
 				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
             {% endfor %}
         </div>
@@ -106,7 +110,7 @@
         <!-- Sécurité et Conformité -->
         <div class="card p-4 my-3">
             <h3>🔐 Sécurité et Conformité</h3>
-				<label>Conformité aux exigences de sécurité :</label>
+				<label class="label">Conformité aux exigences de sécurité :</label>
                 <select name="securite" class="form-select">
                     {% set value = application.responses.get('securite', '') %}
                     <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
@@ -115,10 +119,10 @@
                     <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
-				<label>Commentaire :</label>
+				<label class="comment">Commentaire :</label>
 				<textarea name="securite_comment" class="form-control" required>{{ application.comments.get('securite_comment', '') }}</textarea>
 
-				<label>Vulnérabilités connues non corrigées :</label>
+				<label class="label">Vulnérabilités connues non corrigées :</label>
                 <select name="vulnerabilites" class="form-select">
                     {% set value = application.responses.get('vulnerabilites', '') %}
                     <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
@@ -127,7 +131,7 @@
                     <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
-				<label>Commentaire :</label>
+				<label class="comment">Commentaire :</label>
 				<textarea name="vulnerabilites_comment" class="form-control" required>{{ application.comments.get('vulnerabilites_comment', '') }}</textarea>
 
           </div>
@@ -139,7 +143,7 @@
                 'incidents': "Incidents récurrents",
                 'performances': "Performances satisfaisantes"
             } %}
-				<label>Incidents récurrents :</label>
+				<label class="label">Incidents récurrents :</label>
                 <select name="incidents" class="form-select">
                     {% set value = application.responses.get('incidents', '') %}
                     <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
@@ -148,10 +152,10 @@
                     <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
-			    <label>Commentaire :</label>
+			    <label class="comment">Commentaire :</label>
 				<textarea name="incidents_comment" class="form-control" required>{{ application.comments.get('incidents_comment', '') }}</textarea>
 
-				<label>Performances satisfaisantes :</label>
+				<label class="label">Performances satisfaisantes :</label>
                 <select name="performances" class="form-select">
                     {% set value = application.responses.get('performances', '') %}
                     <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
@@ -160,7 +164,7 @@
                     <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
-				<label>Commentaire :</label>
+				<label class="comment">Commentaire :</label>
 				<textarea name="incidents_comment" class="form-control" required>{{ application.comments.get('incidents_comment', '') }}</textarea>
 
         </div>
@@ -174,7 +178,7 @@
                 'evolutivite': "Évolutivité pour nouvelles demandes métier"
             } %}
             {% for key, label in questions.items() %}
-                <label>{{ label }} :</label>
+                <label class="label">{{ label }} :</label>
                 <select name="{{ key }}" class="form-select">
                     {% set value = application.responses.get(key, '') %}
                     <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
@@ -183,7 +187,7 @@
                     <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
-				<label>Commentaire :</label>
+				<label class="comment">Commentaire :</label>
 				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
 
             {% endfor %}
