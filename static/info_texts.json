@@ -1,5 +1,7 @@
 {
-    "doc": "<strong>Pourquoi c'est important ?</strong><br>Une documentation claire et à jour permet d'assurer la bonne compréhension et maintenance de l'application.<br><br><strong>Exemples :</strong><ul><li>Manuels utilisateurs</li><li>Diagrammes d'architecture</li><li>Instructions de déploiement</li></ul>",
+    "doc": "<strong>L’application dispose-t-elle d’une documentation complète et à jour ?</strong><br>Une documentation insuffisante rend difficile la maintenance et l’évolution de l’application.<br><br><strong>Éléments à vérifier :</strong><ul><li>Manuels d’utilisation</li><li>guides techniques</li><li>schémas d’architecture</li><li>Mise à jour récente</li></ul>",	
+    "team" : "<strong>L’équipe en charge de l’application est-elle clairement identifiée ?</strong><br>L’absence de responsabilité claire entraîne des difficultés de support et d’évolution.<br><br><strong>Éléments à vérifier :</strong><ul><li>Existence d’une équipe référencée</li><li>rôles définis</li><li>contacts accessibles</li></ul>",
+	
     "tech_obsolete": "<strong>Pourquoi c'est important ?</strong><br>L'utilisation de technologies dépassées peut engendrer des failles de sécurité et des difficultés de maintenance.<br><br><strong>Exemples :</strong><ul><li>Versions non supportées de logiciels</li><li>Librairies abandonnées</li><li>Matériel incompatible</li></ul>",
-	"securite" : "L'application est conforme vis-à-vis des obligations réglementaires (RGPD, DORA). Elle respecte les principes de construction security by design."
+    "securite" : "L'application est conforme vis-à-vis des obligations réglementaires (RGPD, DORA). Elle respecte les principes de construction security by design."
 }
