@@ -172,6 +172,8 @@ def score_application(name):
 @app.route('/synthese')
 def synthese():
     data = load_data()
+    filter_score = request.args.get("filter_score", "above_30")
+    
     for app in data:
         if "score" in app and app["score"] is not None and "answered_questions" in app and app["answered_questions"] > 0:
             max_score = app["answered_questions"] * 3  # Nombre de questions renseignées * score max par question
@@ -184,14 +186,25 @@ def synthese():
             
     total_apps = len(data)
     scored_apps = [app for app in data if app["score"] is not None  and app["answered_questions"] > 0]
-    avg_score = round(sum(app["score"] for app in scored_apps) / len(scored_apps), 2) if scored_apps else 0
-    apps_above_30 = len([app for app in scored_apps if app["percentage"] > 30])
-    apps_above_60 = len([app for app in scored_apps if app["percentage"] > 60])
+
+     # Filtrage des applications en fonction du score
+    if filter_score == "above_30":
+        scored_apps = [app for app in data if app["percentage"] > 30]
+    elif filter_score == "above_60":
+        scored_apps = [app for app in data if app["percentage"] > 60]
+
+    avg_score = round(sum(app["score"] for app in data) / len(data), 2) if data else 0
+    apps_above_30 = len([app for app in data if app["percentage"] > 30])
+    apps_above_60 = len([app for app in data if app["percentage"] > 60])
     avg_axis_scores = calculate_axis_scores(data)
     # chart_data = generate_chart(avg_axis_scores)
     chart_data = generate_radar_chart(avg_axis_scores)
     
-    return render_template("synthese.html", applications=data, total_apps=total_apps, avg_score=avg_score, apps_above_30=apps_above_30, apps_above_60=apps_above_60, avg_axis_scores=avg_axis_scores, chart_data=chart_data)
+    
+    # Tri décroissant par score
+    scored_apps.sort(key=lambda app: app["score"], reverse=True)
+    
+    return render_template("synthese.html", applications=scored_apps, total_apps=total_apps, avg_score=avg_score, apps_above_30=apps_above_30, apps_above_60=apps_above_60, filter_score=filter_score, avg_axis_scores=avg_axis_scores, chart_data=chart_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
