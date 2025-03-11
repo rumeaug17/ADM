@@ -53,11 +53,8 @@
             <tr>
                 <th>Nom</th>
                 <th>type</th>
-				<th>RDA</th>
-                <th>Disponibilité</th>
-                <th>Intégrité</th>
-                <th>Confidentialité</th>
-                <th>Pérennité</th>
+		<th>RDA</th>
+                <th>Classification (DICP)</th>
                 <th>Score</th>
                 <th>Score max</th>
                 <th>%</th>
@@ -72,10 +69,11 @@
                 <td><strong>{{ app.name }}</strong></td>
                 <td>{{ app.type }}</td>
                 <td>{{ app.rda }}</td>
-                <td><span class="badge badge-{{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span></td>
-                <td><span class="badge badge-{{ app.integrite.lower() }}">{{ app.integrite }}</span></td>
-                <td><span class="badge badge-{{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span></td>
-                <td><span class="badge badge-{{ app.perennite.lower() }}">{{ app.perennite }}</span></td>
+                <td>
+			<span class="badge badge-{{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span>
+                	<span class="badge badge-{{ app.integrite.lower() }}">{{ app.integrite }}</span>
+                	<span class="badge badge-{{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span>
+                	<span class="badge badge-{{ app.perennite.lower() }}">{{ app.perennite }}</span></td>
                 <td>
 					{% if app.score is none %}
 						Non évaluée
