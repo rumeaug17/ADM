@@ -73,12 +73,13 @@
             <label>Nom de l'évaluateur :</label>
             <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
         </div>
+	    
         <!-- Urbanisation -->
         <div class="card p-4 my-3">
             <h3>📁 Urbanisation</h3>
             {% set questions = {
-                'couplage': 'Faible couplage de l'application dans le SI',
-                'decommissionnement': 'Existence d'une procédure de décommissionnement',
+                'couplage': "Faible couplage de l'application dans le SI",
+                'decommissionnement': "Existence d'une procédure de décommissionnement"
             } %}
             {% for key, label in questions.items() %}
 				<label class="label">{{ label }} :
