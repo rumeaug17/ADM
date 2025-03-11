@@ -97,6 +97,7 @@
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
                     <a href="/score/{{ app.name }}" class="btn btn-sm btn-success">✅ Évaluer</a>
+		    <a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary">✏️ Modifier</a>
                     <form action="/delete/{{ app.name }}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-danger">❌ Supprimer</button>
                     </form>
