@@ -68,6 +68,11 @@
     <h2 class="text-center text-primary">✅ Scoring de l'application : <strong>{{ application.name }}</strong></h2>
 
     <form method="post">
+		<div class="card p-4 my-3">
+            <h3>👤 Évaluateur</h3>
+            <label>Nom de l'évaluateur :</label>
+            <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
+        </div>
         <!-- Organisation -->
         <div class="card p-4 my-3">
             <h3>📁 Organisation</h3>
