@@ -114,6 +114,7 @@ def add_application():
         data = load_data()
         new_app = {
             "name": request.form["name"],
+            "rda": request.form["rda"],
             "disponibilite": request.form["disponibilite"],
             "integrite": request.form["integrite"],
             "confidentialite": request.form["confidentialite"],
