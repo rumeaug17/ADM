@@ -1,4 +1,18 @@
 {
+	"_comment_" : "Urbanisation",
+    "couplage": [
+		"<strong>L’application est-elle faiblement couplée avec le reste du SI ?</strong>",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Cartographie applicative</li><li>interfaces de l'application</li><li>schémas d’architecture</li><li>impacts en cas d'indisponibilité</li></ul>"
+		],
+	"decommissionnement": [
+		"<strong>Une procédure de décommissionnement ou de remplacement de l'application existe ?</strong>",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Cartographie applicative</li><li>procédures et contrats</li></ul>"
+		],
+	
 	"_comment_" : "Organisation",
     "doc": [
 		"<strong>L’application dispose-t-elle d’une documentation complète et à jour ?</strong>",
