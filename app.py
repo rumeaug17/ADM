@@ -165,6 +165,7 @@ def score_application(name):
         application["score"] = score
         application["answered_questions"] = answered_questions
         application["last_evaluation"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        application["evaluator_name"] = responses["evaluator_name"]
         save_data(data)
         return redirect(url_for("index"))
     
