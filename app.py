@@ -129,6 +129,28 @@ def add_application():
         save_data(data)
         return redirect(url_for("index"))
     return render_template("add.html")
+    
+@app.route('/edit/<name>', methods=['GET', 'POST'])
+def edit_application(name):
+    data = load_data()
+    # Recherche de l'application par son nom
+    app_to_edit = next((app for app in data if app["name"] == name), None)
+    if not app_to_edit:
+        return "Application non trouvée", 404
+
+    if request.method == "POST":
+        # Mettre à jour les champs de l'application
+        app_to_edit["name"] = request.form["name"]
+        app_to_edit["rda"] = request.form["rda"]
+        app_to_edit["type"] = request.form["type"]
+        app_to_edit["disponibilite"] = request.form["disponibilite"]
+        app_to_edit["integrite"] = request.form["integrite"]
+        app_to_edit["confidentialite"] = request.form["confidentialite"]
+        app_to_edit["perennite"] = request.form["perennite"]
+        save_data(data)
+        return redirect(url_for("index"))
+    
+    return render_template("edit.html", application=app_to_edit)
 
 @app.route('/delete/<name>', methods=['POST'])
 def delete_application(name):
