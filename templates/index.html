@@ -52,6 +52,7 @@
         <thead>
             <tr>
                 <th>Nom</th>
+				<th>RDA</th>
                 <th>Disponibilité</th>
                 <th>Intégrité</th>
                 <th>Confidentialité</th>
@@ -67,6 +68,7 @@
             {% for app in applications %}
             <tr>
                 <td><strong>{{ app.name }}</strong></td>
+                <td>{{ app.rda }}</td>
                 <td><span class="badge badge-{{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span></td>
                 <td><span class="badge badge-{{ app.integrite.lower() }}">{{ app.integrite }}</span></td>
                 <td><span class="badge badge-{{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span></td>
