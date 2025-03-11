@@ -56,7 +56,6 @@
 		<th>RDA</th>
                 <th>Classification (DICP)</th>
                 <th>Score</th>
-                <th>Score max</th>
                 <th>%</th>
                 <th>Dernière évaluation</th>
 				<th>Évaluateur</th>
@@ -78,10 +77,9 @@
 					{% if app.score is none %}
 						Non évaluée
 					{% else %}
-						{{ app.score }}
+						{{ app.score }} / {{ app.max_score or "N/A" }}
 					{% endif %}
-				</td>
-                <td>{{ app.max_score or "N/A" }}</td>
+		</td>
                 <td>
                     {% if app.percentage is not none %}
                         <span class="badge {% if app.percentage > 60 %} bg-danger {% elif app.percentage > 30 %} bg-warning {% else %} bg-success {% endif %}">
