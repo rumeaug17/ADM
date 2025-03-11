@@ -73,6 +73,30 @@
             <label>Nom de l'évaluateur :</label>
             <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
         </div>
+        <!-- Urbanisation -->
+        <div class="card p-4 my-3">
+            <h3>📁 Urbanisation</h3>
+            {% set questions = {
+                'couplage': 'Faible couplage de l'application dans le SI',
+                'decommissionnement': 'Existence d'une procédure de décommissionnement',
+            } %}
+            {% for key, label in questions.items() %}
+				<label class="label">{{ label }} :
+					<span class="info-icon" data-key="{{ key }}">?</span>
+				</label>
+                <select name="{{ key }}" class="form-select">
+                    {% set value = application.responses.get(key, '') %}
+                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
+                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                </select>
+				<label class="comment">Commentaire :</label>
+				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+            {% endfor %}
+        </div>
+
         <!-- Organisation -->
         <div class="card p-4 my-3">
             <h3>📁 Organisation</h3>
