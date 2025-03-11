@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modifier une application</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      margin-top: 30px;
+    }
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center text-primary mb-4">✏️ Modifier une application</h2>
+    <div class="card p-4">
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Nom de l'application :</label>
+          <input type="text" name="name" class="form-control" required value="{{ application.name }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Nom du RDA :</label>
+          <input type="text" name="rda" class="form-control" required value="{{ application.rda }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Type d'application :</label>
+          <select name="type" class="form-select">
+            <option value="Interne" {% if application.type == "Interne" %} selected {% endif %}>Interne</option>
+            <option value="Interne cloud" {% if application.type == "Interne cloud" %} selected {% endif %}>Interne cloud</option>
+            <option value="Editeur onPrem" {% if application.type == "Editeur onPrem" %} selected {% endif %}>Editeur onPrem</option>
+            <option value="Editeur cloud" {% if application.type == "Editeur cloud" %} selected {% endif %}>Editeur cloud</option>
+            <option value="SaaS" {% if application.type == "SaaS" %} selected {% endif %}>SaaS</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Disponibilité :</label>
+          <select name="disponibilite" class="form-select">
+            <option value="D1" {% if application.disponibilite == "D1" %} selected {% endif %}>Faible</option>
+            <option value="D2" {% if application.disponibilite == "D2" %} selected {% endif %}>Moyenne</option>
+            <option value="D3" {% if application.disponibilite == "D3" %} selected {% endif %}>Élevée</option>
+            <option value="D4" {% if application.disponibilite == "D4" %} selected {% endif %}>Critique</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Intégrité :</label>
+          <select name="integrite" class="form-select">
+            <option value="I1" {% if application.integrite == "I1" %} selected {% endif %}>Faible</option>
+            <option value="I2" {% if application.integrite == "I2" %} selected {% endif %}>Moyenne</option>
+            <option value="I3" {% if application.integrite == "I3" %} selected {% endif %}>Élevée</option>
+            <option value="I4" {% if application.integrite == "I4" %} selected {% endif %}>Critique</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Confidentialité :</label>
+          <select name="confidentialite" class="form-select">
+            <option value="C1" {% if application.confidentialite == "C1" %} selected {% endif %}>Faible</option>
+            <option value="C2" {% if application.confidentialite == "C2" %} selected {% endif %}>Moyenne</option>
+            <option value="C3" {% if application.confidentialite == "C3" %} selected {% endif %}>Élevée</option>
+            <option value="C4" {% if application.confidentialite == "C4" %} selected {% endif %}>Critique</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Pérennité :</label>
+          <select name="perennite" class="form-select">
+            <option value="P1" {% if application.perennite == "P1" %} selected {% endif %}>Faible</option>
+            <option value="P2" {% if application.perennite == "P2" %} selected {% endif %}>Moyenne</option>
+            <option value="P3" {% if application.perennite == "P3" %} selected {% endif %}>Élevée</option>
+            <option value="P4" {% if application.perennite == "P4" %} selected {% endif %}>Critique</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Mettre à jour</button>
+      </form>
+    </div>
+    <div class="text-center mt-3">
+      <a href="/" class="btn btn-outline-primary">🏠 Retour</a>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
