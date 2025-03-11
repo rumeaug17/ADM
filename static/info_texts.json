@@ -1,4 +1,5 @@
 {
+	"_comment_" : "Organisation",
     "doc": [
 		"<strong>L’application dispose-t-elle d’une documentation complète et à jour ?</strong>",
 		"<br>Une documentation insuffisante rend difficile la maintenance et l’évolution de l’application.<br>",
@@ -11,7 +12,124 @@
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Existence d’une équipe référencée</li><li>rôles définis</li><li>contacts accessibles</li></ul>"
 		],
+    "roadmap": [
+		"<strong>Existe-t-il une roadmap claire pour l’évolution de l’application ?</strong>",
+		"<br>Une roadmap absente ou floue peut indiquer un manque de vision stratégique et indique un manque de visibilité sur la pérennité de l'application.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Présence de plans d’évolution</li><li>backlog de développement</li><li>alignement avec la stratégie et le SDSI</li></ul>"
+		],
 
-    "tech_obsolete": "<strong>Pourquoi c'est important ?</strong><br>L'utilisation de technologies dépassées peut engendrer des failles de sécurité et des difficultés de maintenance.<br><br><strong>Exemples :</strong><ul><li>Versions non supportées de logiciels</li><li>Librairies abandonnées</li><li>Matériel incompatible</li></ul>",
-	"securite" : "L'application est conforme vis-à-vis des obligations réglementaires (RGPD, DORA). Elle respecte les principes de construction security by design."
+	"_comment_" : "Obsolescence",
+    "tech_obsolete": [
+		"<strong>L’application repose-t-elle sur des technologies obsolètes ?</strong>",
+		"<br>Les technologies obsolètes sont difficiles à maintenir et exposent à des risques de sécurité.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Versions des langages et frameworks utilisés</li><li>fin de support par les éditeurs</li></ul>"
+		],
+    "mco": [
+		"<strong>Le maintien en condition opérationnelle de l’application est-il difficile ?</strong>",
+		"<br>Une maintenance complexe peut entraîner une augmentation des coûts et des risques opérationnels.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Disponibilité des compétences</li><li>fréquence des mises à jour</li><li>facilité de déploiement</li></ul>"
+		],
+    "support": [
+		"<strong>L’application repose-t-elle sur des composants tiers non supportés ?</strong>",
+		"<br>Un composant tiers non maintenu représente un risque élevé en termes de sécurité et de pérennité.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Bibliothèques et dépendances utilisées</li><li>support officiel disponible</li></ul>"
+		],
+
+	"_comment_" : "Qualité et Développement",
+    "etat_art": [
+		"<strong>L’application est-elle alignée avec l’état de l’art ?</strong>",
+		"<br>Une application trop en retard sur les bonnes pratiques entraîne une dette technique accrue.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Adoption des patterns modernes</li><li>architecture modulaire</li></ul>"
+		],
+    "respect": [
+		"<strong>L’application et son code respectent-ils les standards et principes d’architecture de l’organisation ?</strong>",
+		"<br> Un non-alignement peut entraîner des incompatibilités et des coûts supplémentaires, ainsi qu'un manque d'homogénéité dans le SI.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Conformité aux principes et aux standards</li><li>conformité aux décisions d'architecture</li><li>audit de code</li></ul>"
+		],
+    "code_source": [
+		"<strong>Le code source est-il maintenable et documenté ?</strong>",
+		"<br>Un code non maintenable augmente la complexité des évolutions et des corrections.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Présence de commentaires</li><li>structure modulaire</li><li>normes de codage respectées</li></ul>"
+		],
+    "tests": [
+		"<strong>Des tests automatisés sont-ils en place ?</strong>",
+		"<br>L’absence de tests automatisés complique les évolutions et augmente le risque de régressions.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Couverture des tests</li><li>intégration continue</li><li>tests unitaires et fonctionnels</li></ul>"
+		],
+
+	"_comment_" : "Sécurité et Conformité",
+    "securite": [
+		"<strong>L’application est-elle conforme aux exigences de sécurité ?</strong>",
+		"<br>Un défaut de conformité expose l’entreprise à des cyberattaques et des sanctions réglementaires.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Tests de sécurité</li><li>audits</li><li>respect des normes et des règlements (DORA, RGPD, etc.)</li></ul>"
+		],
+    "vulnerabilites": [
+		"<strong>Des vulnérabilités connues sont-elles non corrigées ?</strong>",
+		"<br>Des failles non corrigées augmentent considérablement les risques de cyberattaques.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Résultats d’analyses de vulnérabilités</li><li>fréquence des correctifs appliqués</li></ul>"
+		],
+    "surveillance": [
+		"<strong>Des mécanismes de surveillance et d’alerte en cas d’incident de sécurité sont-ils en place ?</strong>",
+		"<br>L’absence de surveillance empêche la détection rapide des attaques.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Logs</li><li>SIEM</li><li>alertes en cas d’anomalies</li><li>audit de sécurité</li></ul>"
+		],
+
+	"_comment_" : "Exploitation et Performance",
+    "incidents": [
+		"<strong>L’application présente-t-elle des incidents récurrents ?</strong>",
+		"<br>Un taux élevé d’incidents réduit la disponibilité et la satisfaction des utilisateurs.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Statistiques de tickets</li><li>temps moyen de résolution</li><li>impact des incidents</li></ul>"
+		],
+    "performances": [
+		"<strong>Les performances de l’application sont-elles satisfaisantes ?</strong>",
+		"<br>Une application lente nuit à l’expérience utilisateur et à la productivité.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Temps de réponse</li><li>taux d’erreur</li><li>monitoring des performances</li></ul>"
+		],
+    "scalable": [
+		"<strong>L’application est-elle scalable ?</strong>",
+		"<br>Une application non scalable devient rapidement un goulot d’étranglement en cas de montée en charge.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture distribuée</li><li>support du cloud</li><li>capacité d’auto-scaling</li></ul>"
+		],
+
+	"_comment_" : "Fonctionnel",
+    "besoins_metier": [
+		"<strong>L’application couvre-t-elle efficacement les besoins métier ?</strong>",
+		"<br>Une application mal adaptée entraîne une perte d’efficacité et une démultiplication des outils.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li> Retour des utilisateurs</li><li>adéquation avec les processus métier</li></ul>"
+		],
+    "recouvrement": [
+		"<strong>Le périmètre de l’application est-il clairement identifié et n’entre pas en conflit avec d’autres applications ?</strong>",
+		"<br>Un chevauchement fonctionnel complique la gestion du SI et augmente la dette applicative.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Cartographie du SI</li><li>analyse des interactions entre applications</li></ul>"
+		],
+    "evolutivite": [
+		"<strong>L’application est-elle facilement évolutive pour répondre aux nouvelles demandes métier ?</strong>",
+		"<br>Une application rigide empêche l’innovation et nécessite des développements coûteux.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Modularité de l’architecture</li><li>facilité d’ajout de nouvelles fonctionnalités</li></ul>"
+		],
+    "fonctions": [
+		"<strong>Existe-t-il des fonctionnalités obsolètes ou inutilisées ?</strong>",
+		"<br>Le maintien de fonctionnalités inutiles alourdit l’application et accroît les coûts de maintenance.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Analyse des usages</li><li>désactivation des modules non utilisés</li></ul>"
+		],
+
+	"_" : ""
 }
