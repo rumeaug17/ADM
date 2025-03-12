@@ -203,7 +203,7 @@ def radar_chart(name):
         return "Application non trouvée", 404
         
     # Calculez les scores par axe pour cette application
-    avg_axis_scores = calculate_axis_scores(data)
+    avg_axis_scores = calculate_axis_scores([app_item])
     chart_data = generate_radar_chart(avg_axis_scores)
     import base64
     from flask import Response
