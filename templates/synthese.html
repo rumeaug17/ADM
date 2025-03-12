@@ -89,6 +89,7 @@
                 <th>Score max</th>
                 <th>%</th>
                 <th>Dernière évaluation</th>
+		<th>&nbsp;</th>
             </tr>
         </thead>
         <tbody>
@@ -113,6 +114,7 @@
                     {% endif %}
                 </td>
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
+		<td>Radar...</td>
             </tr>
             {% endfor %}
         </tbody>
