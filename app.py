@@ -195,6 +195,22 @@ def score_application(name):
     
     return render_template("score.html", application=application)
 
+@app.route('/radar/<name>')
+def radar_chart(name):
+    data = load_data()
+    app_item = next((app for app in data if app["name"] == name), None)
+    if not app_item:
+        return "Application non trouvée", 404
+        
+    # Calculez les scores par axe pour cette application
+    avg_axis_scores = calculate_axis_scores(data)
+    chart_data = generate_radar_chart(avg_axis_scores)
+    import base64
+    from flask import Response
+    # Décode le résultat et renvoie l'image PNG
+    img_bytes = base64.b64decode(chart_data)
+    return Response(img_bytes, mimetype='image/png')
+
 @app.route('/synthese')
 def synthese():
     data = load_data()
