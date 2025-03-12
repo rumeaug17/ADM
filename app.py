@@ -16,6 +16,7 @@ Améliorations apportées :
 """
 
 import os
+import shutil
 import json
 import io
 import base64
@@ -28,6 +29,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, a
 
 app = Flask(__name__)
 app.config["DATA_FILE"] = "applications.json"
+app.config["BACKUP_FILE"] = "applications-prec.json"
+
 
 # Constantes
 SCORING_MAP: Dict[str, Optional[int]] = {
@@ -65,8 +68,15 @@ def load_data() -> List[Dict[str, Any]]:
 
 
 def save_data(data: List[Dict[str, Any]]) -> None:
-    """Enregistre la liste des applications dans le fichier JSON."""
-    with open(app.config["DATA_FILE"], "w") as f:
+    """
+    Enregistre la liste des applications dans le fichier JSON.
+    Avant d'écrire, une sauvegarde du fichier existant est réalisée sous le nom applications-prec.json.
+    """
+    data_file = app.config["DATA_FILE"]
+    # Si le fichier existe, en faire une sauvegarde
+    if os.path.exists(data_file):
+        shutil.copyfile(data_file, app.config["BACKUP_FILE"])
+    with open(data_file, "w") as f:
         json.dump(data, f, indent=4)
 
 
