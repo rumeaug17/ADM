@@ -123,5 +123,39 @@
 	<div class="text-center my-3">
         <a href="/" class="btn btn-outline-primary">🏠 Retour à la liste</a>
     </div>
+
+	<!-- Modal pour afficher le graphique radar d'une application -->
+<div class="modal fade" id="radarModal" tabindex="-1" aria-labelledby="radarModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="radarModalLabel">Radar de l'application : <span id="modalAppName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="radarChartImg" src="" alt="Radar Chart" class="img-fluid">
+      </div>
+    </div>
+  </div>
+</div>
+
+	<!-- Inclusion des scripts Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Lorsque le modal de radar est sur le point d'être affiché,
+  // mettre à jour son contenu en fonction de l'application sélectionnée.
+  var radarModal = document.getElementById('radarModal');
+  radarModal.addEventListener('show.bs.modal', function(event) {
+    // Bouton qui a déclenché l'ouverture du modal
+    var button = event.relatedTarget;
+    var appName = button.getAttribute('data-appname');
+    // Mettre à jour le titre du modal
+    document.getElementById('modalAppName').textContent = appName;
+    // Définir la source de l'image avec l'endpoint qui génère le graphique radar pour l'application
+    // Par exemple, si vous avez créé une route /radar/<app_name> qui renvoie l'image en PNG.
+    document.getElementById('radarChartImg').src = "/radar/" + encodeURIComponent(appName);
+  });
+</script>
+	
 </body>
 </html>
