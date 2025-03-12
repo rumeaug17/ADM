@@ -255,8 +255,7 @@ def delete_application(name: str):
     data = load_data()
     data = [app for app in data if app["name"] != name]
     save_data(data)
-    return jsonify({"success": True})
-
+    return redirect(url_for("index"))
 
 @app.route('/score/<name>', methods=['GET', 'POST'])
 def score_application(name: str):
