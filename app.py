@@ -25,12 +25,13 @@ def save_data(data):
 
 def calculate_axis_scores(data):
     categories = {
-        "Organisation": ["doc", "team"],
-        "Obsolescence": ["tech_obsolete", "mco"],
-        "Qualité et Développement": ["etat_art", "code_source"],
-        "Sécurité et Conformité": ["securite", "vulnerabilites"],
-        "Exploitation et Performance": ["incidents", "performances"],
-        "Fonctionnel": ["besoins_metier", "evolutivite"]
+        "Urbanisation": ["couplage", "decommissionnement"],
+        "Organisation": ["doc", "team", "roadmap"],
+        "Obsolescence": ["tech_obsolete", "mco", "support"],
+        "Qualité et Développement": ["etat_art", "code_source", "respect", "tests"],
+        "Sécurité et Conformité": ["securite", "vulnerabilites", "surveillance"],
+        "Exploitation et Performance": ["incidents", "performances", "scalable"],
+        "Fonctionnel": ["besoins_metier", "evolutivite", "recouvrement"]
     }
     
     axis_scores = {key: [] for key in categories}
