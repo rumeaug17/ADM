@@ -114,7 +114,15 @@
                     {% endif %}
                 </td>
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
-		<td>Radar...</td>
+		<td>
+			<button type="button"
+                  class="btn btn-sm btn-info"
+                  data-bs-toggle="modal"
+                  data-bs-target="#radarModal"
+                  data-appname="{{ app.name }}">
+            Radar...
+          </button>
+		</td>
             </tr>
             {% endfor %}
         </tbody>
