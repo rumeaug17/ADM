@@ -376,16 +376,16 @@ def synthese():
     total_apps = len(data)
     # Filtrer selon le pourcentage
     if filter_score == "above_30":
-        scored_apps = [app for app in data if app.get("percentage", 0) > 30]
+        scored_apps = [app for app in data if app.get("percentage") is not None and app.get("percentage") > 30]
     elif filter_score == "above_60":
-        scored_apps = [app for app in data if app.get("percentage", 0) > 60]
+        scored_apps = [app for app in data if app.get("percentage") is not None and app.get("percentage") > 60]
     else:
         scored_apps = data.copy()
     
     avg_score = round(sum(app["score"] for app in data if app.get("score") is not None) / len(data), 2) if data else 0
-    apps_above_30 = len([app for app in data if app.get("percentage", 0) > 30])
-    apps_above_60 = len([app for app in data if app.get("percentage", 0) > 60])
-    
+    apps_above_30 = len([app for app in data if app.get("percentage") is not None and app.get("percentage") > 30])
+    apps_above_60 = len([app for app in data if app.get("percentage") is not None and app.get("percentage") > 60])
+        
     # Calcul global des scores moyens par axe pour le graphique radar global
     avg_axis_scores = calculate_axis_scores(data)
     chart_data = generate_radar_chart(avg_axis_scores)
