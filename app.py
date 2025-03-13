@@ -25,12 +25,15 @@ from typing import List, Dict, Any, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
-from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, Response
+
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, Response, session, flash
 
 app = Flask(__name__)
 app.config["DATA_FILE"] = "applications.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
-
+app.secret_user = "user" # À modifier pour une clé réelle
+app.secret_key = "S3cr3tK3y"  # À modifier pour une clé réelle
 
 # Constantes
 SCORING_MAP: Dict[str, Optional[int]] = {
@@ -60,7 +63,14 @@ if not os.path.exists(app.config["DATA_FILE"]):
     with open(app.config["DATA_FILE"], "w") as f:
         json.dump([], f)
 
-
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+    
 def load_data() -> List[Dict[str, Any]]:
     """Charge et retourne la liste des applications depuis le fichier JSON."""
     with open(app.config["DATA_FILE"], "r") as f:
@@ -181,8 +191,30 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     plt.close()
     return chart_data
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get("username")
+        password = request.form.get("password")
+        # Identifiants fixes pour cette authentification minimale
+        if username == app.secret_user and password == app.secret_key:
+            session['logged_in'] = True
+            flash("Connexion réussie.", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("Identifiants incorrects.", "danger")
+    return render_template("login.html")
+
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    flash("Vous êtes déconnecté.", "info")
+    return redirect(url_for("login"))
+
 
 @app.route('/')
+@login_required
 def index():
     """
     Affiche la page d'accueil avec la liste des applications.
@@ -194,6 +226,7 @@ def index():
 
 
 @app.route('/add', methods=['GET', 'POST'])
+@login_required
 def add_application():
     """
     Route pour ajouter une nouvelle application.
@@ -222,6 +255,7 @@ def add_application():
 
 
 @app.route('/edit/<name>', methods=['GET', 'POST'])
+@login_required
 def edit_application(name: str):
     """
     Route pour modifier une application existante.
@@ -249,6 +283,7 @@ def edit_application(name: str):
 
 
 @app.route('/delete/<name>', methods=['POST'])
+@login_required
 def delete_application(name: str):
     """
     Supprime l'application dont le nom correspond à 'name'.
@@ -260,6 +295,7 @@ def delete_application(name: str):
     return redirect(url_for("index"))
 
 @app.route('/score/<name>', methods=['GET', 'POST'])
+@login_required
 def score_application(name: str):
     """
     Route pour évaluer une application.
@@ -298,6 +334,7 @@ def score_application(name: str):
 
 
 @app.route('/radar/<name>')
+@login_required
 def radar_chart(name: str):
     """
     Génère et retourne un graphique radar pour l'application spécifiée.
@@ -316,6 +353,7 @@ def radar_chart(name: str):
 
 
 @app.route('/synthese')
+@login_required
 def synthese():
     """
     Affiche la synthèse des applications avec :
