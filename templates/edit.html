@@ -92,7 +92,9 @@
 		  </select>
 		</div>
         <div class="mb-3">
-          <label class="form-label">Disponibilité :</label>
+          <label class="form-label">Disponibilité :
+			<span class="info-icon" data-key="app-disponibilite">?</span>
+		  </label>
           <select name="disponibilite" class="form-select">
             <option value="D1" {% if application.disponibilite == "D1" %} selected {% endif %}>Faible</option>
             <option value="D2" {% if application.disponibilite == "D2" %} selected {% endif %}>Moyenne</option>
@@ -101,7 +103,9 @@
           </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">Intégrité :</label>
+          <label class="form-label">Intégrité :
+			<span class="info-icon" data-key="app-integrite">?</span>
+		  </label>
           <select name="integrite" class="form-select">
             <option value="I1" {% if application.integrite == "I1" %} selected {% endif %}>Faible</option>
             <option value="I2" {% if application.integrite == "I2" %} selected {% endif %}>Moyenne</option>
@@ -110,7 +114,9 @@
           </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">Confidentialité :</label>
+          <label class="form-label">Confidentialité :
+			<span class="info-icon" data-key="app-confidentialite">?</span>
+		  </label>
           <select name="confidentialite" class="form-select">
             <option value="C1" {% if application.confidentialite == "C1" %} selected {% endif %}>Faible</option>
             <option value="C2" {% if application.confidentialite == "C2" %} selected {% endif %}>Moyenne</option>
@@ -119,7 +125,9 @@
           </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">Pérennité :</label>
+          <label class="form-label">Pérennité :
+			<span class="info-icon" data-key="app-perennite">?</span>
+		  </label>
           <select name="perennite" class="form-select">
             <option value="P1" {% if application.perennite == "P1" %} selected {% endif %}>Faible</option>
             <option value="P2" {% if application.perennite == "P2" %} selected {% endif %}>Moyenne</option>
