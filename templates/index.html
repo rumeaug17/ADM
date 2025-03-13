@@ -111,14 +111,14 @@
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
-                    	<a href="/score/{{ app.name }}" class="btn btn-sm btn-success">✅ Évaluer</a>
-			<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
-				♻️&nbsp;
-			</button>
-			<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary">✏️&nbsp;</a>
-			<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
-				❌&nbsp;
-			</button>
+                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
+					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
+						♻️
+					</button>
+					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application">✏️</a>
+					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
+						❌
+					</button>
                 </td>
             </tr>
             {% endfor %}
@@ -205,6 +205,14 @@ var resetModal = document.getElementById('confirmResetModal');
     // Met à jour l'action du formulaire pour réinitialiser la bonne application
     var form = document.getElementById('confirmResetForm');
     form.action = "/reset/" + encodeURIComponent(appName);
+  });
+</script>
+
+<script>
+  // Initialisation des tooltips Bootstrap
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
   });
 </script>
 
