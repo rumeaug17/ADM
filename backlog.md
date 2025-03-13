@@ -5,8 +5,6 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 ---
 
 ## Epic 0 : Correction des bugs 
-### Bugs
-- **BG1** : *La Synthèse ne s'affiche pas quand une application n'est pas évaluée*
 
 ## Epic 1 : Classification 
 ### User Stories
