@@ -111,14 +111,14 @@
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
-                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success">✅ Évaluer</a>
-					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
-						♻️ Reset
-					</button>
-					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary">✏️ </a>
-					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
-						❌&nbsp; 
-					</button>
+                    	<a href="/score/{{ app.name }}" class="btn btn-sm btn-success">✅ Évaluer</a>
+			<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
+				♻️&nbsp;
+			</button>
+			<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary">✏️&nbsp;</a>
+			<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
+				❌&nbsp;
+			</button>
                 </td>
             </tr>
             {% endfor %}
