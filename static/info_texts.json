@@ -33,6 +33,14 @@
 		"</ul></li></ul>",
 		""
 	],
+	"app-disponibilite" : [
+	],
+	"app-integrite" : [
+	],
+	"app-confidentialite" : [
+	],
+	"app-perennite" : [
+	],
 	
 	"_comment_" : "Urbanisation",
     "couplage": [
