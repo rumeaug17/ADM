@@ -34,7 +34,3 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 ### User Stories
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage
-- **US4.2** : *Mode brouillon*  
-  Pouvoir sauvegarder en mode brouillon une évaluation, sans pour autant la valider et avec des zones pas encore remplies.
-  Dans ce cas le score ne doit pas être calculé.
-
