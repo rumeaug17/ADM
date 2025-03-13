@@ -317,23 +317,43 @@ def score_application(name: str):
         
     if request.method == 'POST':
         responses = request.form.to_dict()
-        score = 0
-        answered_questions = 0
         
-        for key, value in responses.items():
-            if key.endswith("_comment"):
-                application["comments"][key] = value  # Enregistrement du commentaire
-            elif value in SCORING_MAP:
-                if SCORING_MAP[value] is not None:
-                    score += SCORING_MAP[value]
-                    answered_questions += 1
-                application["responses"][key] = value  # Enregistrement de la réponse
-        
-        application["score"] = score
-        application["answered_questions"] = answered_questions
-        application["last_evaluation"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        application["evaluator_name"] = responses.get("evaluator_name", "")
-        save_data(data)
+        # Si le formulaire contient le champ 'save_draft', on enregistre en brouillon sans calcul du score.
+        if "save_draft" in request.form:
+            for key, value in responses.items():
+                if key.endswith("_comment"):
+                    application["comments"][key] = value  # Enregistrement du commentaire
+                elif value in SCORING_MAP:
+                    application["responses"][key] = value  # Enregistrement de la réponse
+            # On peut mettre à jour l'évaluateur mais pas la date
+            application["evaluator_name"] = responses.get("evaluator_name", "")
+            # On laisse score, answered_questions et last_evaluation inchangés
+            save_data(data)
+            flash("Brouillon enregistré.", "success")
+        else:
+            # Pour l'évaluation finale, vérifier que tous les commentaires sont non vides
+            for key, value in responses.items():
+                if key.endswith("_comment"):
+                    if not value.strip():
+                        flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
+                        return render_template("score.html", application=application)
+            # Calcul du score
+            score = 0
+            answered_questions = 0
+            for key, value in responses.items():
+                if key.endswith("_comment"):
+                    application["comments"][key] = value  # Enregistrement du commentaire
+                elif value in SCORING_MAP:
+                    if SCORING_MAP[value] is not None:
+                        score += SCORING_MAP[value]
+                        answered_questions += 1
+                    application["responses"][key] = value  # Enregistrement de la réponse
+            application["score"] = score
+            application["answered_questions"] = answered_questions
+            application["last_evaluation"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            application["evaluator_name"] = responses.get("evaluator_name", "")
+            save_data(data)
+            
         return redirect(url_for("index"))
     
     return render_template("score.html", application=application)
@@ -392,7 +412,7 @@ def synthese():
     
     # Tri décroissant par score pour le tableau
     scored_apps.sort(key=lambda app: app["score"] if app.get("score") is not None else 0, reverse=True)
-
+    
     return render_template(
         "synthese.html",
         applications=scored_apps,
