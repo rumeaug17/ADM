@@ -358,6 +358,25 @@ def score_application(name: str):
     
     return render_template("score.html", application=application)
 
+@app.route('/reset/<name>', methods=['POST'])
+@login_required
+def reset_evaluation(name: str):
+    data = load_data()
+    # Recherche de l'application par son nom
+    app_to_reset = next((app for app in data if app["name"] == name), None)
+    if app_to_reset is None:
+        abort(404, description="Application non trouvée")
+    
+    # Réinitialiser les champs d'évaluation sans toucher aux réponses et commentaires
+    app_to_reset["score"] = None
+    app_to_reset["answered_questions"] = 0
+    app_to_reset["last_evaluation"] = None
+    app_to_reset["evaluator_name"] = ""
+    
+    save_data(data)
+    flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
+    return redirect(url_for("index"))
+
 
 @app.route('/radar/<name>')
 @login_required
