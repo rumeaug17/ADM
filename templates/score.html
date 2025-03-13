@@ -1,405 +1,396 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoring - {{ application.name }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            margin-top: 30px;
-        }
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .form-select {
-            width: 100%;
-        }
-        h3 {
-            background-color: #0d6efd;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-			font-weight: bold;
-        }
-		.label {
-			font-weight: bold;
-		}
-        button {
-            margin-top: 15px;
-        }
-		.info-icon {
-            color: white;
-            background-color: #0d6efd;
-            cursor: pointer;
-            margin-left: 5px;
-            font-weight: bold;
-            border-radius: 50%;
-            padding: 4px 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            font-size: 14px;
-            text-align: center;
-        }
-        .info-tooltip {
-            display: none;
-            background-color: white;
-            border: 1px solid #0d6efd;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            z-index: 1000;
-            width: 250px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Évaluation Interactive – {{ application.name }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+    .card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1rem;
+    }
+    .accordion-button::after {
+      font-size: 1.2rem;
+    }
+    .info-icon {
+      color: #0d6efd;
+      cursor: pointer;
+      font-size: 1.1rem;
+      margin-left: 5px;
+    }
+    .info-tooltip {
+      display: none;
+      background-color: #fff;
+      border: 1px solid #0d6efd;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      position: absolute;
+      z-index: 1000;
+      width: 250px;
+    }
+    .accordion-item {
+      border: none;
+    }
+    .accordion-button {
+      background-color: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+    }
+    .accordion-button:not(.collapsed) {
+      background-color: #e9ecef;
+    }
+    .form-label {
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
-
-<div class="container">
-    <h2 class="text-center text-primary">✅ Scoring de l'application : <strong>{{ application.name }}</strong></h2>
-
-    <form method="post">
-		<div class="card p-4 my-3">
-            <h3>👤 Évaluateur</h3>
-            <label>Nom de l'évaluateur :</label>
-            <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
+  <div class="container my-5">
+    <div class="card p-4">
+      <h2 class="mb-4 text-center">Évaluation Interactive: <strong>{{ application.name }}</strong></h2>
+      <form method="post" id="scoreForm">
+        <div class="mb-4">
+          <label class="form-label">Nom de l'évaluateur :</label>
+          <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
         </div>
-	    
-        <!-- Urbanisation -->
-        <div class="card p-4 my-3">
-            <h3>📁 Urbanisation</h3>
-            {% set questions = {
-                'couplage': "Faible couplage de l'application dans le SI",
-                'decommissionnement': "Existence d'une procédure de décommissionnement"
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-        </div>
-
-        <!-- Organisation -->
-        <div class="card p-4 my-3">
-            <h3>📁 Organisation</h3>
-            {% set questions = {
-                'doc': 'Documentation complète et à jour',
-                'team': 'Équipe clairement identifiée',
-				'roadmap' : 'Roadmap claire'
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-        </div>
-
-        <!-- Obsolescence -->
-        <div class="card p-4 my-3">
-            <h3>⚠️ Obsolescence</h3>
-            {% set questions = {
-                'tech_obsolete': 'Technologies obsolètes',
-                'mco': 'Maintien en condition opérationnelle difficile',
-				'support': 'Composants tiers non supportés'
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
-                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
-                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
-                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-        </div>
-
-        <!-- Qualité et Développement -->
-        <div class="card p-4 my-3">
-            <h3>🛠️ Qualité et Développement</h3>
-            {% set questions = {
-                'etat_art': "Alignement avec l’état de l’art",
-				'respect' : "Respect des standards et des principes d'architecture",
-                'code_source': "Code source maintenable et documenté",
-				'tests': "Tests automatisés"
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-        </div>
-
-        <!-- Sécurité et Conformité -->
-        <div class="card p-4 my-3">
-            <h3>🔐 Sécurité et Conformité</h3>
-				<label class="label">Conformité aux exigences de sécurité :
-					<span class="info-icon" data-key="securite">?</span>
-				</label>
-                <select name="securite" class="form-select">
-                    {% set value = application.responses.get('securite', '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="securite_comment" class="form-control" >{{ application.comments.get('securite_comment', '') }}</textarea>
-
-				<label class="label">Vulnérabilités connues non corrigées :
-					<span class="info-icon" data-key="vulnerabilites">?</span>
-				</label>
-                <select name="vulnerabilites" class="form-select">
-                    {% set value = application.responses.get('vulnerabilites', '') %}
-                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
-                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
-                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
-                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="vulnerabilites_comment" class="form-control" >{{ application.comments.get('vulnerabilites_comment', '') }}</textarea>
-
-				<label class="label">Mécanismes de surveillance et d’alerte :
-					<span class="info-icon" data-key="surveillance">?</span>
-				</label>
-                <select name="surveillance" class="form-select">
-                    {% set value = application.responses.get('surveillance', '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="surveillance_comment" class="form-control" >{{ application.comments.get('surveillance_comment', '') }}</textarea>
+        <div class="accordion" id="evaluationAccordion">
+          <!-- Urbanisation -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingUrbanisation">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUrbanisation" aria-expanded="true" aria-controls="collapseUrbanisation">
+                📁 Urbanisation
+              </button>
+            </h2>
+            <div id="collapseUrbanisation" class="accordion-collapse collapse show" aria-labelledby="headingUrbanisation" data-bs-parent="#evaluationAccordion">
+              <div class="accordion-body">
+                {% set questions = {
+                  'couplage': "Faible couplage de l'application dans le SI",
+                  'decommissionnement': "Existence d'une procédure de décommissionnement"
+                } %}
+                {% for key, label in questions.items() %}
+                  <div class="mb-3">
+                    <label class="form-label">
+                      {{ label }}
+                      <span class="info-icon" data-key="{{ key }}">&#9432;</span>
+                    </label>
+                    <select name="{{ key }}" class="form-select">
+                      {% set value = application.responses.get(key, '') %}
+                      <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                      <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                      <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                      <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
+                      <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                    </select>
+                    <label class="form-label mt-2">Commentaire :</label>
+                    <textarea name="{{ key }}_comment" class="form-control" rows="2" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
           </div>
-		
-		<!-- Exploitation et Performance -->
-        <div class="card p-4 my-3">
-            <h3>🚀 Exploitation et Performance</h3>
-				<label class="label">Incidents récurrents :
-					<span class="info-icon" data-key="incidents">?</span>
-				</label>
-                <select name="incidents" class="form-select">
-                    {% set value = application.responses.get('incidents', '') %}
-                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
-                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
-                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
-                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-			    <label class="comment">Commentaire :</label>
-				<textarea name="incidents_comment" class="form-control" >{{ application.comments.get('incidents_comment', '') }}</textarea>
-				<label class="label">Performances satisfaisantes :
-					<span class="info-icon" data-key="performances">?</span>				
-				</label>
-                <select name="performances" class="form-select">
-                    {% set value = application.responses.get('performances', '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="performances_comment" class="form-control" >{{ application.comments.get('performances_comment', '') }}</textarea>
-				<label class="label">Application scalable :
-					<span class="info-icon" data-key="scalable">?</span>				
-				</label>
-                <select name="scalable" class="form-select">
-                    {% set value = application.responses.get('performances', '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="scalable_comment" class="form-control" >{{ application.comments.get('scalable_comment', '') }}</textarea>
-
+          <!-- Organisation -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOrganisation">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOrganisation" aria-expanded="false" aria-controls="collapseOrganisation">
+                📁 Organisation
+              </button>
+            </h2>
+            <div id="collapseOrganisation" class="accordion-collapse collapse" aria-labelledby="headingOrganisation" data-bs-parent="#evaluationAccordion">
+              <div class="accordion-body">
+                {% set questions = {
+                  'doc': "Documentation complète et à jour",
+                  'team': "Équipe clairement identifiée",
+                  'roadmap': "Roadmap claire"
+                } %}
+                {% for key, label in questions.items() %}
+                  <div class="mb-3">
+                    <label class="form-label">
+                      {{ label }}
+                      <span class="info-icon" data-key="{{ key }}">&#9432;</span>
+                    </label>
+                    <select name="{{ key }}" class="form-select">
+                      {% set value = application.responses.get(key, '') %}
+                      <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                      <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                      <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                      <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
+                      <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                    </select>
+                    <label class="form-label mt-2">Commentaire :</label>
+                    <textarea name="{{ key }}_comment" class="form-control" rows="2" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <!-- Obsolescence -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingObsolescence">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseObsolescence" aria-expanded="false" aria-controls="collapseObsolescence">
+                ⚠️ Obsolescence
+              </button>
+            </h2>
+            <div id="collapseObsolescence" class="accordion-collapse collapse" aria-labelledby="headingObsolescence" data-bs-parent="#evaluationAccordion">
+              <div class="accordion-body">
+                {% set questions = {
+                  'tech_obsolete': "Technologies obsolètes",
+                  'mco': "Maintien en condition opérationnelle difficile",
+                  'support': "Composants tiers non supportés"
+                } %}
+                {% for key, label in questions.items() %}
+                  <div class="mb-3">
+                    <label class="form-label">
+                      {{ label }}
+                      <span class="info-icon" data-key="{{ key }}">&#9432;</span>
+                    </label>
+                    <select name="{{ key }}" class="form-select">
+                      {% set value = application.responses.get(key, '') %}
+                      <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
+                      <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
+                      <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
+                      <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
+                      <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                    </select>
+                    <label class="form-label mt-2">Commentaire :</label>
+                    <textarea name="{{ key }}_comment" class="form-control" rows="2" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <!-- Qualité et Développement -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingQualite">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQualite" aria-expanded="false" aria-controls="collapseQualite">
+                🛠️ Qualité et Développement
+              </button>
+            </h2>
+            <div id="collapseQualite" class="accordion-collapse collapse" aria-labelledby="headingQualite" data-bs-parent="#evaluationAccordion">
+              <div class="accordion-body">
+                {% set questions = {
+                  'etat_art': "Alignement avec l’état de l’art",
+                  'respect': "Respect des standards et des principes d'architecture",
+                  'code_source': "Code source maintenable et documenté",
+                  'tests': "Tests automatisés"
+                } %}
+                {% for key, label in questions.items() %}
+                  <div class="mb-3">
+                    <label class="form-label">
+                      {{ label }}
+                      <span class="info-icon" data-key="{{ key }}">&#9432;</span>
+                    </label>
+                    <select name="{{ key }}" class="form-select">
+                      {% set value = application.responses.get(key, '') %}
+                      <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                      <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                      <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                      <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
+                      <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                    </select>
+                    <label class="form-label mt-2">Commentaire :</label>
+                    <textarea name="{{ key }}_comment" class="form-control" rows="2" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <!-- Sécurité et Conformité -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingSecurite">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecurite" aria-expanded="false" aria-controls="collapseSecurite">
+                🔐 Sécurité et Conformité
+              </button>
+            </h2>
+            <div id="collapseSecurite" class="accordion-collapse collapse" aria-labelledby="headingSecurite" data-bs-parent="#evaluationAccordion">
+              <div class="accordion-body">
+                {% set questions = {
+                  'securite': "Conformité aux exigences de sécurité",
+                  'vulnerabilites': "Vulnérabilités connues non corrigées",
+                  'surveillance': "Mécanismes de surveillance et d’alerte"
+                } %}
+                {% for key, label in questions.items() %}
+                  <div class="mb-3">
+                    <label class="form-label">
+                      {{ label }}
+                      <span class="info-icon" data-key="{{ key }}">&#9432;</span>
+                    </label>
+                    <select name="{{ key }}" class="form-select">
+                      {% set value = application.responses.get(key, '') %}
+                      <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                      <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                      <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                      <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
+                      <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                    </select>
+                    <label class="form-label mt-2">Commentaire :</label>
+                    <textarea name="{{ key }}_comment" class="form-control" rows="2" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <!-- Exploitation et Performance -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingExploitation">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExploitation" aria-expanded="false" aria-controls="collapseExploitation">
+                🚀 Exploitation et Performance
+              </button>
+            </h2>
+            <div id="collapseExploitation" class="accordion-collapse collapse" aria-labelledby="headingExploitation" data-bs-parent="#evaluationAccordion">
+              <div class="accordion-body">
+                {% set questions = {
+                  'incidents': "Incidents récurrents",
+                  'performances': "Performances satisfaisantes",
+                  'scalable': "Application scalable"
+                } %}
+                {% for key, label in questions.items() %}
+                  <div class="mb-3">
+                    <label class="form-label">
+                      {{ label }}
+                      <span class="info-icon" data-key="{{ key }}">&#9432;</span>
+                    </label>
+                    <select name="{{ key }}" class="form-select">
+                      {% if key == 'incidents' or key == 'scalable' %}
+                        {% set options = ["Non", "Partiellement", "Majoritairement", "Totalement", "Non applicable"] %}
+                      {% else %}
+                        {% set options = ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"] %}
+                      {% endif %}
+                      {% for opt in options %}
+                        <option value="{{ opt }}" {% if application.responses.get(key, '') == opt %} selected {% endif %}>{{ opt }}</option>
+                      {% endfor %}
+                    </select>
+                    <label class="form-label mt-2">Commentaire :</label>
+                    <textarea name="{{ key }}_comment" class="form-control" rows="2" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <!-- Fonctionnel -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFonctionnel">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFonctionnel" aria-expanded="false" aria-controls="collapseFonctionnel">
+                📈 Fonctionnel
+              </button>
+            </h2>
+            <div id="collapseFonctionnel" class="accordion-collapse collapse" aria-labelledby="headingFonctionnel" data-bs-parent="#evaluationAccordion">
+              <div class="accordion-body">
+                {% set questions = {
+                  'besoins_metier': "Couverture des besoins métier",
+                  'recouvrement': "Périmètre applicatif spécifique identifié",
+                  'evolutivite': "Évolutivité pour nouvelles demandes métier",
+                  'fonctions': "Fonctionnalités obsolètes ou inutilisées"
+                } %}
+                {% for key, label in questions.items() %}
+                  <div class="mb-3">
+                    <label class="form-label">
+                      {{ label }}
+                      <span class="info-icon" data-key="{{ key }}">&#9432;</span>
+                    </label>
+                    <select name="{{ key }}" class="form-select">
+                      {% set value = application.responses.get(key, '') %}
+                      <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
+                      <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
+                      <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
+                      <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
+                      <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
+                    </select>
+                    <label class="form-label mt-2">Commentaire :</label>
+                    <textarea name="{{ key }}_comment" class="form-control" rows="2" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
         </div>
-		
-        <!-- Fonctionnel -->
-        <div class="card p-4 my-3">
-            <h3>📈 Fonctionnel</h3>
-            {% set questions = {
-                'besoins_metier': "Couverture des besoins métier",
-				'recouvrement' : "Périmètre applicatif spécifique identifié",
-                'evolutivite': "Évolutivité pour nouvelles demandes métier"
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-			
-				<label class="label">Fonctionnalités obsolètes ou inutilisées :
-					<span class="info-icon" data-key="fonctions">?</span>
-				</label>
-                <select name="fonctions" class="form-select">
-                    {% set value = application.responses.get('fonctions', '') %}
-                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
-                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
-                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
-                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-			    <label class="comment">Commentaire :</label>
-				<textarea name="fonctions_comment" class="form-control" >{{ application.comments.get('fonctions_comment', '') }}</textarea>
-
-        </div>
-
-        <button type="submit" id="submitEval" class="btn btn-primary w-100">📊 Mettre à jour le Score</button>
-		<!-- Bouton pour enregistrer le brouillon -->
-		<button type="submit" name="save_draft" value="true" class="btn btn-secondary w-100 mt-2">📝 Enregistrer brouillon</button>
-    </form>
-
-    <div class="text-center my-3">
-        <a href="/" class="btn btn-outline-primary">🏠 Retour à la liste</a>
+        <!-- Boutons de soumission -->
+        <div class="mt-4 d-flex gap-2">
+          <button type="submit" id="submitEval" class="btn btn-primary flex-grow-1">📊 Mettre à jour le Score</button>
+          <button type="submit" name="save_draft" value="true" class="btn btn-secondary flex-grow-1">📝 Enregistrer brouillon</button>
+		  <a href="/" class="btn btn-outline-secondary">🏠 Retour à la liste</a>
+		</div>
+      </form>
     </div>
-	
-</div>
-
-<script>
-  // Lors du clic sur le bouton d'évaluation finale
-  $('#submitEval').click(function(e) {
-      var emptyComment = null;
-      // Parcourt toutes les zones de commentaires dont le nom se termine par _comment
-      $('textarea[name$="_comment"]').each(function() {
-         var val = $(this).val().trim();
-         if (val === "") {
-             // Si c'est la première zone vide, la retenir
-             if(emptyComment === null) {
-                emptyComment = $(this);
-             }
-             // Met en évidence la zone en rose
-             $(this).css('background-color', '#ffc0cb'); 
-         } else {
-             // Réinitialise la couleur si la zone est remplie
-             $(this).css('background-color', '');
-         }
-      });
-      // Si au moins une zone est vide, empêcher la soumission et afficher un message
-      if (emptyComment !== null) {
-         alert("Tous les commentaires sont obligatoires pour l'évaluation.");
-         emptyComment.focus();
-         e.preventDefault();
-         return false;
-      }
-  });
-</script>
-
-<script>
+  </div>
+  
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Chargement des textes d'aide depuis info_texts.json
     $(document).ready(function() {
-		let infoTexts = {};
-
-        // Charger les textes des infobulles depuis un fichier JSON
-        $.getJSON("{{ url_for('static', filename='info_texts.json') }}", function(data) {
-			infoTexts = data;
-    
-			// Convertir les valeurs en chaînes de caractères si elles sont des tableaux
-			Object.keys(infoTexts).forEach(function(key) {
-				if (Array.isArray(infoTexts[key])) {
-					infoTexts[key] = infoTexts[key].join("");
-				}
-			});
-		});
-		
-	
-        $('.info-icon').click(function(event) {
-            event.stopPropagation();
-
-            // Supprime les infobulles existantes
-            $('.info-tooltip').remove();
-
-			// Récupération de la clé et du texte associé
-            var key = $(this).attr('data-key');
-            var infoText = infoTexts[key] || "Information non disponible.";
-			
-            // Création et ajout de l'infobulle
-            var tooltip = $('<div class="info-tooltip">' + infoText + '</div>');
-            $('body').append(tooltip);
-
-            // Positionnement dynamique sous l'icône
-            var iconPosition = $(this).offset();
-            tooltip.css({
-                top: iconPosition.top + 25,
-                left: iconPosition.left,
-                position: 'absolute'
-            }).fadeIn();
+      var infoTexts = {};
+      $.getJSON("{{ url_for('static', filename='info_texts.json') }}", function(data) {
+        infoTexts = data;
+        // Si une aide est stockée sous forme de tableau, la convertir en chaîne
+        $.each(infoTexts, function(key, value) {
+          if ($.isArray(value)) {
+            infoTexts[key] = value.join("");
+          }
         });
+      });
 
-        // Ferme l'infobulle si on clique ailleurs
-        $(document).click(function() {
-            $('.info-tooltip').fadeOut(function() {
-                $(this).remove();
-            });
-        });
+      // Afficher l'aide lorsque l'info-icon est cliquée
+      $('.info-icon').click(function(event) {
+        event.stopPropagation();
+        // Supprimer les info-bulles existantes
+        $('.info-tooltip').remove();
 
-        // Empêche la fermeture immédiate si on clique sur l'infobulle
-        $(document).on('click', '.info-tooltip', function(event) {
-            event.stopPropagation();
+        var key = $(this).attr('data-key');
+        var infoText = infoTexts[key] || "Information non disponible.";
+        var tooltip = $('<div class="info-tooltip">' + infoText + '</div>');
+        $('body').append(tooltip);
+
+        // Positionnement de l'aide sous l'icône
+        var iconPosition = $(this).offset();
+        tooltip.css({
+          top: iconPosition.top + 25,
+          left: iconPosition.left,
+          position: 'absolute'
+        }).fadeIn();
+      });
+
+      // Fermer l'aide si on clique ailleurs
+      $(document).click(function() {
+        $('.info-tooltip').fadeOut(function() {
+          $(this).remove();
         });
+      });
+      
+      // Empêcher la fermeture immédiate si on clique sur l'aide
+      $(document).on('click', '.info-tooltip', function(event) {
+        event.stopPropagation();
+      });
     });
-</script>
 
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    // Validation pour les commentaires obligatoires (mode évaluation finale)
+    $('#submitEval').click(function(e) {
+      var emptyComment = null;
+      $('textarea[name$="_comment"]').each(function() {
+        var val = $(this).val().trim();
+        if (val === "") {
+          if(emptyComment === null) {
+            emptyComment = $(this);
+          }
+          $(this).css('background-color', '#ffc0cb');
+        } else {
+          $(this).css('background-color', '');
+        }
+      });
+      if (emptyComment !== null) {
+        alert("Tous les commentaires sont obligatoires pour l'évaluation.");
+        emptyComment.focus();
+        e.preventDefault();
+        return false;
+      }
+    });
+  </script>
 </body>
 </html>
