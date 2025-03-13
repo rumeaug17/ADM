@@ -10,9 +10,6 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 
 ## Epic 1 : Classification 
 ### User Stories
-- **US1.1** : *Classification de l'application cohérente*  
-  Modifier la classification de la criticité de l'application pour être cohérente avec les usages dans l'entreprise.
-
 - **US1.2** : *Bulles d'aide*  
   Proposer des bulles d'aide pour la spécification de la classification.
 
