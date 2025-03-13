@@ -32,8 +32,15 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, a
 app = Flask(__name__)
 app.config["DATA_FILE"] = "applications.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
-app.secret_user = "user" # À modifier pour une clé réelle
-app.secret_key = "S3cr3tK3y"  # À modifier pour une clé réelle
+app.config["CONFIG"] = "config.json"
+
+def load_config() -> List[Dict[str, Any]]:
+    """Charge et retourne la liste des clés de configuration depuis le fichier JSON."""
+    with open(app.config["CONFIG"], "r") as f:
+        return json.load(f)
+
+config = load_config()
+app.secret_key = config["secret_key"]
 
 # Constantes
 SCORING_MAP: Dict[str, Optional[int]] = {
@@ -75,7 +82,6 @@ def load_data() -> List[Dict[str, Any]]:
     """Charge et retourne la liste des applications depuis le fichier JSON."""
     with open(app.config["DATA_FILE"], "r") as f:
         return json.load(f)
-
 
 def save_data(data: List[Dict[str, Any]]) -> None:
     """
@@ -197,7 +203,7 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
         # Identifiants fixes pour cette authentification minimale
-        if username == app.secret_user and password == app.secret_key:
+        if username == config["user"] and password == config["pwd"]:
             session['logged_in'] = True
             flash("Connexion réussie.", "success")
             return redirect(url_for("index"))
