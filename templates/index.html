@@ -57,7 +57,7 @@
       {% endfor %}
     </div>
   {% endif %}
-{% endwith %}	
+{% endwith %}
     <h2 class="text-center text-primary">📋 Catalogue des Applications</h2>
     <div class="d-flex justify-content-between my-3">
         <a href="/add" class="btn btn-primary">➕ Ajouter une application</a>
@@ -123,16 +123,16 @@
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
-			<div class="d-flex flex-nowrap gap-2">
-                    			<a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
-					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
+					<div class="d-flex flex-nowrap gap-2">
+                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
+					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" title="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
 						♻️
 					</button>
 					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application">✏️</a>
-					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
+					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" title="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
 						❌
 					</button>
-			</div>
+					</div>
                 </td>
             </tr>
             {% endfor %}
@@ -220,11 +220,9 @@ var resetModal = document.getElementById('confirmResetModal');
     var form = document.getElementById('confirmResetForm');
     form.action = "/reset/" + encodeURIComponent(appName);
   });
-</script>
 
-<script>
   // Initialisation des tooltips Bootstrap
-  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl)
   });
