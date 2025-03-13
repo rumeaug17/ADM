@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ajouter une application</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     body {
       background-color: #f8f9fa;
@@ -16,11 +17,50 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
+		.info-icon {
+            color: white;
+            background-color: #0d6efd;
+            cursor: pointer;
+            margin-left: 5px;
+            font-weight: bold;
+            border-radius: 50%;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .info-tooltip {
+            display: none;
+            background-color: white;
+            border: 1px solid #0d6efd;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            z-index: 1000;
+            width: 1050px;
+        }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2 class="text-center text-primary mb-4">➕ Ajouter une application</h2>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mt-2">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}    
+	<h2 class="text-center text-primary mb-4">➕ Ajouter une application</h2>
     <div class="card p-4">
       <form method="post">
         <div class="mb-3">
@@ -42,7 +82,9 @@
           </select>
         </div>
 		<div class="mb-3">
-		  <label class="form-label">Criticité :</label>
+		  <label class="form-label">Criticité :
+			<span class="info-icon" data-key="app-criticite">?</span>
+		  </label>
 		  <select name="criticite" class="form-select">
 			<option value="1">Solution critique majeure (Criticité très élevée)</option>
 			<option value="2">Solution stratégique (Criticité élevée)</option>
@@ -93,6 +135,61 @@
       <a href="/" class="btn btn-outline-primary">🏠 Retour</a>
     </div>
   </div>
+
+<script>
+    $(document).ready(function() {
+		let infoTexts = {};
+
+        // Charger les textes des infobulles depuis un fichier JSON
+        $.getJSON("{{ url_for('static', filename='info_texts.json') }}", function(data) {
+			infoTexts = data;
+    
+			// Convertir les valeurs en chaînes de caractères si elles sont des tableaux
+			Object.keys(infoTexts).forEach(function(key) {
+				if (Array.isArray(infoTexts[key])) {
+					infoTexts[key] = infoTexts[key].join("");
+				}
+			});
+		});
+		
+	
+        $('.info-icon').click(function(event) {
+            event.stopPropagation();
+
+            // Supprime les infobulles existantes
+            $('.info-tooltip').remove();
+
+			// Récupération de la clé et du texte associé
+            var key = $(this).attr('data-key');
+            var infoText = infoTexts[key] || "Information non disponible.";
+			
+            // Création et ajout de l'infobulle
+            var tooltip = $('<div class="info-tooltip">' + infoText + '</div>');
+            $('body').append(tooltip);
+
+            // Positionnement dynamique sous l'icône
+            var iconPosition = $(this).offset();
+            tooltip.css({
+                top: iconPosition.top + 25,
+                left: iconPosition.left,
+                position: 'absolute'
+            }).fadeIn();
+        });
+
+        // Ferme l'infobulle si on clique ailleurs
+        $(document).click(function() {
+            $('.info-tooltip').fadeOut(function() {
+                $(this).remove();
+            });
+        });
+
+        // Empêche la fermeture immédiate si on clique sur l'infobulle
+        $(document).on('click', '.info-tooltip', function(event) {
+            event.stopPropagation();
+        });
+    });
+</script>
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
