@@ -94,7 +94,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
             {% endfor %}
         </div>
 
@@ -119,7 +119,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
             {% endfor %}
         </div>
 
@@ -144,7 +144,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
             {% endfor %}
         </div>
 
@@ -170,7 +170,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
             {% endfor %}
         </div>
 
@@ -189,7 +189,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="securite_comment" class="form-control" required>{{ application.comments.get('securite_comment', '') }}</textarea>
+				<textarea name="securite_comment" class="form-control" >{{ application.comments.get('securite_comment', '') }}</textarea>
 
 				<label class="label">Vulnérabilités connues non corrigées :
 					<span class="info-icon" data-key="vulnerabilites">?</span>
@@ -203,7 +203,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="vulnerabilites_comment" class="form-control" required>{{ application.comments.get('vulnerabilites_comment', '') }}</textarea>
+				<textarea name="vulnerabilites_comment" class="form-control" >{{ application.comments.get('vulnerabilites_comment', '') }}</textarea>
 
 				<label class="label">Mécanismes de surveillance et d’alerte :
 					<span class="info-icon" data-key="surveillance">?</span>
@@ -217,7 +217,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="surveillance_comment" class="form-control" required>{{ application.comments.get('surveillance_comment', '') }}</textarea>
+				<textarea name="surveillance_comment" class="form-control" >{{ application.comments.get('surveillance_comment', '') }}</textarea>
           </div>
 		
 		<!-- Exploitation et Performance -->
@@ -235,7 +235,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 			    <label class="comment">Commentaire :</label>
-				<textarea name="incidents_comment" class="form-control" required>{{ application.comments.get('incidents_comment', '') }}</textarea>
+				<textarea name="incidents_comment" class="form-control" >{{ application.comments.get('incidents_comment', '') }}</textarea>
 				<label class="label">Performances satisfaisantes :
 					<span class="info-icon" data-key="performances">?</span>				
 				</label>
@@ -248,7 +248,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="performances_comment" class="form-control" required>{{ application.comments.get('performances_comment', '') }}</textarea>
+				<textarea name="performances_comment" class="form-control" >{{ application.comments.get('performances_comment', '') }}</textarea>
 				<label class="label">Application scalable :
 					<span class="info-icon" data-key="scalable">?</span>				
 				</label>
@@ -261,7 +261,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="scalable_comment" class="form-control" required>{{ application.comments.get('scalable_comment', '') }}</textarea>
+				<textarea name="scalable_comment" class="form-control" >{{ application.comments.get('scalable_comment', '') }}</textarea>
 
         </div>
 		
@@ -286,7 +286,7 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" required>{{ application.comments.get(key + '_comment', '') }}</textarea>
+				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
             {% endfor %}
 			
 				<label class="label">Fonctionnalités obsolètes ou inutilisées :
@@ -301,18 +301,49 @@
                     <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
                 </select>
 			    <label class="comment">Commentaire :</label>
-				<textarea name="fonctions_comment" class="form-control" required>{{ application.comments.get('fonctions_comment', '') }}</textarea>
+				<textarea name="fonctions_comment" class="form-control" >{{ application.comments.get('fonctions_comment', '') }}</textarea>
 
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">📊 Mettre à jour le Score</button>
+        <button type="submit" id="submitEval" class="btn btn-primary w-100">📊 Mettre à jour le Score</button>
+		<!-- Bouton pour enregistrer le brouillon -->
+		<button type="submit" name="save_draft" value="true" class="btn btn-secondary w-100 mt-2">📝 Enregistrer brouillon</button>
     </form>
 
     <div class="text-center my-3">
         <a href="/" class="btn btn-outline-primary">🏠 Retour à la liste</a>
     </div>
+	
 </div>
 
+<script>
+  // Lors du clic sur le bouton d'évaluation finale
+  $('#submitEval').click(function(e) {
+      var emptyComment = null;
+      // Parcourt toutes les zones de commentaires dont le nom se termine par _comment
+      $('textarea[name$="_comment"]').each(function() {
+         var val = $(this).val().trim();
+         if (val === "") {
+             // Si c'est la première zone vide, la retenir
+             if(emptyComment === null) {
+                emptyComment = $(this);
+             }
+             // Met en évidence la zone en rose
+             $(this).css('background-color', '#ffc0cb'); 
+         } else {
+             // Réinitialise la couleur si la zone est remplie
+             $(this).css('background-color', '');
+         }
+      });
+      // Si au moins une zone est vide, empêcher la soumission et afficher un message
+      if (emptyComment !== null) {
+         alert("Tous les commentaires sont obligatoires pour l'évaluation.");
+         emptyComment.focus();
+         e.preventDefault();
+         return false;
+      }
+  });
+</script>
 
 <script>
     $(document).ready(function() {
