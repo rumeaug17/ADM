@@ -34,6 +34,12 @@
 		""
 	],
 	"app-disponibilite" : [
+		"<strong>Définit le niveau d’accessibilité requis pour l’application afin d’assurer la continuité des opérations.</strong>",
+		"<ul><li><strong>D1 - Faible : </strong>Interruption acceptable sans impact significatif (ex. applications non critiques, reporting non temps réel).</li>",
+		"<li><strong>D2 - Moyenne : </strong>Disponibilité requise pendant les heures ouvrées avec tolérance à une interruption limitée.</li>",
+		"<li><strong>D3 - Élevée : </strong>L’application doit être opérationnelle en permanence, avec un plan de reprise défini en cas de panne.</li>",
+		"<li><strong>D4 - Critique : </strong>Tolérance zéro à l’interruption, redondance obligatoire, PCA/PRA (Plan de Continuité / Reprise d’Activité) requis.</li>",
+		"</ul>"
 	],
 	"app-integrite" : [
 	],
