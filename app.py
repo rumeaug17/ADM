@@ -391,8 +391,8 @@ def synthese():
     chart_data = generate_radar_chart(avg_axis_scores)
     
     # Tri décroissant par score pour le tableau
-    scored_apps.sort(key=lambda app: app.get("score", 0), reverse=True)
-    
+    scored_apps.sort(key=lambda app: app["score"] if app.get("score") is not None else 0, reverse=True)
+
     return render_template(
         "synthese.html",
         applications=scored_apps,
