@@ -205,6 +205,7 @@ def add_application():
             "name": request.form["name"],
             "rda": request.form["rda"],
             "type": request.form["type"],
+            "criticite": request.form["criticite"], 
             "disponibilite": request.form["disponibilite"],
             "integrite": request.form["integrite"],
             "confidentialite": request.form["confidentialite"],
@@ -236,6 +237,7 @@ def edit_application(name: str):
         app_to_edit["name"] = request.form["name"]
         app_to_edit["rda"] = request.form["rda"]
         app_to_edit["type"] = request.form["type"]
+        app_to_edit["criticite"] = request.form["criticite"]
         app_to_edit["disponibilite"] = request.form["disponibilite"]
         app_to_edit["integrite"] = request.form["integrite"]
         app_to_edit["confidentialite"] = request.form["confidentialite"]
