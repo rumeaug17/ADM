@@ -111,7 +111,8 @@
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
-                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
+			<div class="d-flex flex-nowrap gap-2">
+                    			<a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
 					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
 						♻️
 					</button>
@@ -119,6 +120,7 @@
 					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
 						❌
 					</button>
+			</div>
                 </td>
             </tr>
             {% endfor %}
