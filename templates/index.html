@@ -16,6 +16,10 @@
         .badge-d2, .badge-i2, .badge-c2, .badge-p2 { background-color: #ffc107; }  /* Jaune */
         .badge-d3, .badge-i3, .badge-c3, .badge-p3 { background-color: #fd7e14; }  /* Orange */
         .badge-d4, .badge-i4, .badge-c4, .badge-p4 { background-color: #dc3545; }  /* Rouge */
+		.badge-criticite1 { background-color: #dc3545; } /* Rouge pour Criticité Très Élevée */
+		.badge-criticite2 { background-color: #fd7e14; } /* Orange pour Criticité Élevée */
+		.badge-criticite3 { background-color: #ffc107; } /* Jaune pour Criticité Moyenne */
+		.badge-criticite4 { background-color: #198754; } /* Vert pour Criticité Faible */
         table {
             background-color: white;
             border-radius: 10px;
@@ -53,7 +57,8 @@
             <tr>
                 <th>Nom</th>
                 <th>type</th>
-		<th>RDA</th>
+				<th>RDA</th>
+				<th>Criticité</th>
                 <th>Classification (DICP)</th>
                 <th>Score</th>
                 <th>%</th>
@@ -68,6 +73,19 @@
                 <td><strong>{{ app.name }}</strong></td>
                 <td>{{ app.type }}</td>
                 <td>{{ app.rda }}</td>
+				<td>
+				  {% if app.criticite == "1" %}
+					<span class="badge badge-criticite1">Très Élevée</span>
+				  {% elif app.criticite == "2" %}
+					<span class="badge badge-criticite2">Élevée</span>
+				  {% elif app.criticite == "3" %}
+					<span class="badge badge-criticite3">Moyenne</span>
+				  {% elif app.criticite == "4" %}
+					<span class="badge badge-criticite4">Faible</span>
+				  {% else %}
+					N/A
+				  {% endif %}
+				</td>
                 <td>
 			<span class="badge badge-{{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span>
                 	<span class="badge badge-{{ app.integrite.lower() }}">{{ app.integrite }}</span>
