@@ -112,10 +112,13 @@
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
                     <a href="/score/{{ app.name }}" class="btn btn-sm btn-success">✅ Évaluer</a>
-		    <a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary">✏️ </a>
-		    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
-		    	❌&nbsp; 
-		    </button>
+					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
+						♻️ Reset
+					</button>
+					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary">✏️ </a>
+					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
+						❌&nbsp; 
+					</button>
                 </td>
             </tr>
             {% endfor %}
@@ -136,7 +139,7 @@
       </div>
       <!-- Corps du modal -->
       <div class="modal-body">
-        Êtes-vous sûr de vouloir supprimer l’application **<span id="appName"></span>** ? Cette action est irréversible.
+        Êtes-vous sûr de vouloir supprimer l’application <strong><span id="appName"></span></strong> ? Cette action est irréversible.
       </div>
       <!-- Pied de page du modal avec les boutons -->
       <div class="modal-footer">
@@ -144,6 +147,32 @@
         <!-- Formulaire de confirmation de suppression -->
         <form id="confirmDeleteForm" method="post" action="">
           <button type="submit" class="btn btn-danger">Supprimer</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation de réinitialisation d'évaluation -->
+<div class="modal fade" id="confirmResetModal" tabindex="-1" aria-labelledby="confirmResetLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- En-tête du modal -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmResetLabel">Confirmation de réinitialisation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <!-- Corps du modal -->
+      <div class="modal-body">
+        Êtes-vous sûr de vouloir réinitialiser l'évaluation de l'application <strong><span id="resetAppName"></span></strong> ?<br>
+        Cette action remettra à zéro le score, le nombre de questions répondues, l'évaluateur et la date de la dernière évaluation, sans modifier les réponses et commentaires.
+      </div>
+      <!-- Pied du modal avec les boutons -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <!-- Formulaire de confirmation de réinitialisation -->
+        <form id="confirmResetForm" method="post" action="">
+          <button type="submit" class="btn btn-warning">Réinitialiser</button>
         </form>
       </div>
     </div>
@@ -165,6 +194,18 @@ confirmModal.addEventListener('show.bs.modal', function (event) {
     var form = document.getElementById('confirmDeleteForm');
     form.action = "/delete/" + appName;
 });
+
+var resetModal = document.getElementById('confirmResetModal');
+  resetModal.addEventListener('show.bs.modal', function (event) {
+    // Bouton déclencheur du modal
+    var triggerButton = event.relatedTarget;
+    var appName = triggerButton.getAttribute('data-appname');
+    // Met à jour le nom affiché dans le modal
+    document.getElementById('resetAppName').textContent = appName;
+    // Met à jour l'action du formulaire pour réinitialiser la bonne application
+    var form = document.getElementById('confirmResetForm');
+    form.action = "/reset/" + encodeURIComponent(appName);
+  });
 </script>
 
 </body>
