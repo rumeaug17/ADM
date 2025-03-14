@@ -42,11 +42,29 @@
 		"</ul>"
 	],
 	"app-integrite" : [
+		"<strong>Évalue la nécessité de garantir l’exactitude et la fiabilité des données manipulées.</strong>",
+		"<ul><li><strong>I1 - Faible : </strong>Légère tolérance aux erreurs, impact faible en cas d’inexactitude.</li>",
+		"<li><strong>I2 - Moyenne : </strong>Données importantes mais corrigeables sans impact majeur.</li>",
+		"<li><strong>I3 - Élevée : </strong>Données sensibles nécessitant un contrôle strict pour éviter toute corruption.</li>",
+		"<li><strong>I4 - Critique : </strong>Aucune marge d’erreur tolérée, impact majeur en cas d’altération (ex. données financières, médicales, légales).</li>",
+		"</ul>"
 	],
 	"app-confidentialite" : [
+		"<strong>Mesure la sensibilité des informations traitées et les restrictions d’accès nécessaires.</strong>",
+		"<ul><li><strong>C1 - Faible : </strong>Données publiques ou peu sensibles.</li>",
+		"<li><strong>C2 - Moyenne : </strong>Informations internes nécessitant un accès restreint.</li>",
+		"<li><strong>C3 - Élevée : </strong>Données sensibles nécessitant des mesures de sécurité avancées (ex. données RH, clients, partenaires).</li>",
+		"<li><strong>C4 - Critique : </strong>Informations ultra-confidentielles, strictement restreintes (ex. secrets industriels, données gouvernementales).</li>",
+		"</ul>"
 	],
 	"app-perennite" : [
-	],
+		"<strong>Représente la nécessité de conserver l’application et ses données sur le long terme.</strong>",
+		"<ul><li><strong>P1 - Faible : </strong>Cycle de vie court, remplacement fréquent.</li>",
+		"<li><strong>P2 - Moyenne : </strong>Maintien souhaitable sur quelques années, mais évolution probable.</li>",
+		"<li><strong>P3 - Élevée : </strong>Longévité requise avec nécessité de maintenir l’accès aux données historiques.</li>",
+		"<li><strong>P4 - Critique : </strong>Pérennité impérative, conservation des données à très long terme (ex. archives réglementaires, historiques médicaux).</li>",
+		"</ul>"
+	],										
 	
 	"_comment_" : "Urbanisation",
     "couplage": [
