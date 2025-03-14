@@ -6,11 +6,6 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 
 ## Epic 0 : Correction des bugs 
 
-## Epic 1 : Classification 
-### User Stories
-- **US1.2** : *Bulles d'aide*  
-  Proposer des bulles d'aide pour la spécification de la classification.
-
 ---
 
 ## Epic 2 : Sauvegarde et Historique des Données
