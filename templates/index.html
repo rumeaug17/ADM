@@ -125,7 +125,7 @@
 					{% if app.risque is none %}
 						Non évaluée
 					{% else %}
-						{{ round(app.risque,2) }}
+						{{ app.risque|round(2) }}
 					{% endif %}
 				</td>
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
