@@ -18,6 +18,7 @@ Améliorations apportées :
 import os
 import shutil
 import json
+import csv
 import io
 import base64
 from datetime import datetime
@@ -27,7 +28,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, Response, session, flash
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, Response, session, flash, Response
 
 app = Flask(__name__)
 app.config["DATA_FILE"] = "applications.json"
@@ -483,5 +484,57 @@ def synthese():
         chart_data=chart_data
     )
 
+@app.route('/export_csv')
+@login_required
+def export_csv():
+    # Charger et mettre à jour les applications
+    applications = load_data()
+    update_all_metrics(applications)
+    for app_item in applications:
+        app_item["risque"] = calculate_risk(app_item)
+    
+    # Utiliser StringIO pour créer un buffer en mémoire
+    si = io.StringIO()
+    writer = csv.writer(si, delimiter=';')
+    
+    # Définir les en-têtes du CSV
+    header = [
+        "Nom", "Type", "RDA", "Criticité",
+        "Disponibilité", "Intégrité", "Confidentialité", "Pérennité",
+        "Score", "Max Score", "Pourcentage",
+        "Dernière évaluation", "Évaluateur", "Risque"
+    ]
+    writer.writerow(header)
+    
+    # Pour chaque application, écrire une ligne
+    for app_item in applications:
+        row = [
+            app_item.get("name", ""),
+            app_item.get("type", ""),
+            app_item.get("rda", ""),
+            app_item.get("criticite", ""),
+            app_item.get("disponibilite", ""),
+            app_item.get("integrite", ""),
+            app_item.get("confidentialite", ""),
+            app_item.get("perennite", ""),
+            app_item.get("score", ""),
+            app_item.get("max_score", ""),
+            app_item.get("percentage", ""),
+            app_item.get("last_evaluation", ""),
+            app_item.get("evaluator_name", ""),
+            "" if app_item.get("risque") is None else round(app_item.get("risque"))
+        ]
+        writer.writerow(row)
+    
+    output = si.getvalue()
+    si.close()
+    
+    # Retourner le fichier CSV avec un header pour le téléchargement
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=applications_export.csv"}
+    )
+    
 if __name__ == '__main__':
     app.run(debug=True)
