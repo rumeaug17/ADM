@@ -110,6 +110,11 @@ def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
     if score is None:
         return None
     try:
+        # Conversion du score en float pour s'assurer d'un calcul numérique
+        score = float(score_value)
+    except Exception:
+        return None
+    try:
         # Extraction des valeurs numériques des indicateurs DICP
         d = int(''.join(filter(str.isdigit, app_item.get("disponibilite", "0"))))
         i = int(''.join(filter(str.isdigit, app_item.get("integrite", "0"))))
