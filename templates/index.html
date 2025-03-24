@@ -102,10 +102,13 @@
 				  {% endif %}
 				</td>
                 <td>
+			<div class="d-flex flex-nowrap gap-2">
 			<span class="badge badge-{{ app.disponibilite.lower() }}">{{ app.disponibilite }}</span>
                 	<span class="badge badge-{{ app.integrite.lower() }}">{{ app.integrite }}</span>
                 	<span class="badge badge-{{ app.confidentialite.lower() }}">{{ app.confidentialite }}</span>
-                	<span class="badge badge-{{ app.perennite.lower() }}">{{ app.perennite }}</span></td>
+                	<span class="badge badge-{{ app.perennite.lower() }}">{{ app.perennite }}</span>
+			</div>
+		</td>
                 <td>
 					{% if app.score is none %}
 						Non évaluée
