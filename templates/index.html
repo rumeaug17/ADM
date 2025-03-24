@@ -75,6 +75,7 @@
                 <th>Classification (DICP)</th>
                 <th>Score</th>
                 <th>%</th>
+                <th>Risque</th>
                 <th>Dernière évaluation</th>
 				<th>Évaluateur</th>
                 <th>Actions</th>
@@ -120,6 +121,13 @@
                         N/A
                     {% endif %}
                 </td>
+				<td>
+					{% if app.risque is none %}
+						Non évaluée
+					{% else %}
+						{{ app.risque|round(2) }}
+					{% endif %}
+				</td>
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
