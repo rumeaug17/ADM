@@ -146,6 +146,7 @@ def update_app_metrics(app_item: Dict[str, Any]) -> None:
     else:
         app_item["max_score"] = None
         app_item["percentage"] = None
+        app_item["risque"] = None
 
 
 def update_all_metrics(apps: List[Dict[str, Any]]) -> None:
