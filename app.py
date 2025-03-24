@@ -155,6 +155,26 @@ def update_all_metrics(apps: List[Dict[str, Any]]) -> None:
     for app_item in apps:
         update_app_metrics(app_item)
 
+def calculate_category_sums(app_item: Dict[str, Any]) -> Dict[str, int]:
+    """
+    Calcule la somme des scores pour chaque catégorie pour une application donnée.
+    Pour chaque catégorie (dimension), on parcourt les questions et on additionne les scores
+    en utilisant le mapping SCORING_MAP. Les réponses dont le score est None (par exemple "Non applicable")
+    sont ignorées.
+    """
+    responses = app_item.get("responses", {})
+    category_sums = {}
+    for category, questions in CATEGORIES.items():
+        total = 0
+        for q in questions:
+            # Récupération de la réponse pour la question q
+            response_value = responses.get(q, "Non applicable")
+            score = SCORING_MAP.get(response_value)
+            if score is not None:
+                total += score
+        category_sums[category] = total
+    return category_sums
+
 
 def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
     """
@@ -535,6 +555,27 @@ def export_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=applications_export.csv"}
     )
+
+@app.route('/resume/<name>')
+@login_required
+def resume(name: str):
+    """
+    Affiche un résumé détaillé d'une application.
+    Le résumé regroupe toutes les informations présentes sur la page index et sur la page synthèse.
+    """
+    data = load_data()
+    # Recherche l'application par son nom
+    app_item = next((app for app in data if app["name"] == name), None)
+    if not app_item:
+        abort(404, description="Application non trouvée")
+    # Mise à jour des métriques et calcul du risque
+    update_all_metrics([app_item])
+    # Calculer la somme des scores pour chaque dimension (catégorie)
+    category_sums = calculate_category_sums(app_item)
+    # Génère le graphique radar pour cette application
+    radar_chart_data = generate_radar_chart(calculate_axis_scores([app_item]))
+    return render_template("resume.html", app=app_item, radar_chart=radar_chart_data, category_sums=category_sums)
+
     
 if __name__ == '__main__':
     app.run(debug=True)
