@@ -88,6 +88,7 @@
                 <th>Score</th>
                 <th>Score max</th>
                 <th>%</th>
+				<th>Risque</th>
                 <th>Dernière évaluation</th>
 		<th>&nbsp;</th>
             </tr>
@@ -113,6 +114,20 @@
                         N/A
                     {% endif %}
                 </td>
+				<td>
+					{% if app.risque is none %}
+						Non évaluée
+					{% else %}
+						{% set risk = app.risque|round(0)|int %}
+						{% if risk > 500 %}
+							<span class="badge bg-danger">{{ risk }}</span>
+						{% elif risk > 100 %}
+							<span class="badge bg-warning">{{ risk }}</span>
+						{% else %}
+							<span class="badge bg-success">{{ risk }}</span>
+						{% endif %}
+					{% endif %}
+				</td>				
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
 		<td>
 			<button type="button"
