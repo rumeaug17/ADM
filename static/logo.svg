@@ -1,0 +1,21 @@
+<svg width="200" height="250" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="shieldClip">
+      <path d="M100,10 L190,60 L190,150 C190,220 140,240 100,240 C60,240 10,220 10,150 L10,60 Z" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#shieldClip)">
+    <!-- Top Left: Disponibilité (vert) -->
+    <rect x="10" y="10" width="90" height="110" fill="#198754" />
+    <!-- Top Right: Intégrité (jaune) -->
+    <rect x="100" y="10" width="90" height="110" fill="#ffc107" />
+    <!-- Bottom Left: Confidentialité (orange) -->
+    <rect x="10" y="120" width="90" height="120" fill="#fd7e14" />
+    <!-- Bottom Right: Pérennité (rouge) -->
+    <rect x="100" y="120" width="90" height="120" fill="#dc3545" />
+  </g>
+  <!-- Contour du bouclier -->
+  <path d="M100,10 L190,60 L190,150 C190,220 140,240 100,240 C60,240 10,220 10,150 L10,60 Z" fill="none" stroke="#000" stroke-width="4" />
+  <!-- Texte DICP au centre -->
+  <text x="100" y="135" text-anchor="middle" fill="#ffffff" font-size="40" font-family="Arial" font-weight="bold">ADM</text>
+</svg>
