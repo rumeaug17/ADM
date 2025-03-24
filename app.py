@@ -111,7 +111,7 @@ def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
         return None
     try:
         # Conversion du score en float pour s'assurer d'un calcul numérique
-        score = float(score_value)
+        score = float(score)
     except Exception:
         return None
     try:
@@ -128,7 +128,7 @@ def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
         criticite = 0
     if criticite == 0:
         return None  # Évite la division par zéro
-    facteur = (d * i * c * p) / criticite
+    facteur = (d * i * c * p) / (4 * criticite)
     risque = score * facteur
     return risque
 
