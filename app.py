@@ -95,6 +95,37 @@ def save_data(data: List[Dict[str, Any]]) -> None:
     with open(data_file, "w") as f:
         json.dump(data, f, indent=4)
 
+def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
+    """
+    Calcule le risque d'une application.
+    Le risque est défini comme : risque = score * (produit des indicateurs DICP / criticité)
+    
+    Les indicateurs DICP sont : disponibilite, integrite, confidentialite, perennite.
+    On extrait la partie numérique de chaque indicateur (par exemple, "D1" -> 1).
+    La criticité est convertie en entier (attendu sous forme de "1", "2", etc.).
+    
+    Si le score ou la criticité n'est pas défini ou invalide, retourne None.
+    """
+    score = app_item.get("score")
+    if score is None:
+        return None
+    try:
+        # Extraction des valeurs numériques des indicateurs DICP
+        d = int(''.join(filter(str.isdigit, app_item.get("disponibilite", "0"))))
+        i = int(''.join(filter(str.isdigit, app_item.get("integrite", "0"))))
+        c = int(''.join(filter(str.isdigit, app_item.get("confidentialite", "0"))))
+        p = int(''.join(filter(str.isdigit, app_item.get("perennite", "0"))))
+    except Exception:
+        return None
+    try:
+        criticite = int(app_item.get("criticite", "0"))
+    except Exception:
+        criticite = 0
+    if criticite == 0:
+        return None  # Évite la division par zéro
+    facteur = (d * i * c * p) / criticite
+    risque = score * facteur
+    return risque
 
 def update_app_metrics(app_item: Dict[str, Any]) -> None:
     """
@@ -106,6 +137,7 @@ def update_app_metrics(app_item: Dict[str, Any]) -> None:
         percentage = round((app_item["score"] / max_score) * 100, 2)
         app_item["max_score"] = max_score
         app_item["percentage"] = percentage
+        app_item["risque"] = calculate_risk(app_item)
     else:
         app_item["max_score"] = None
         app_item["percentage"] = None
@@ -196,6 +228,7 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     buf.close()
     plt.close()
     return chart_data
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
