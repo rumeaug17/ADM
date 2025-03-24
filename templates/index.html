@@ -85,7 +85,7 @@
         <tbody>
             {% for app in applications %}
             <tr>
-                <td><strong>{{ app.name }}</strong></td>
+                <td><strong><a href="/resume/{{ app.name }}">{{ app.name }}</a></strong></td>
                 <td>{{ app.type }}</td>
                 <td>{{ app.rda }}</td>
 				<td>
