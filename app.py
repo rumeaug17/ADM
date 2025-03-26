@@ -171,6 +171,14 @@ def update_all_metrics(apps: List[Dict[str, Any]]) -> None:
     """Met à jour les métriques de chaque application dans la liste."""
     for app_item in apps:
         update_app_metrics(app_item)
+        
+    # Calculer le risque global sur les applications évaluées
+    evaluated_risks = [app["risque"] for app in apps if app.get("risque") is not None]
+    if evaluated_risks:
+        global_risk = sum(evaluated_risks) / len(evaluated_risks)
+    else:
+        global_risk = None
+
 
 def calculate_category_sums(app_item: Dict[str, Any]) -> Dict[str, int]:
     """
