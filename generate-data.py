@@ -1,63 +1,118 @@
 #!/usr/bin/env python3
 import json
 import random
-from datetime import datetime, timedelta
 
-def random_date():
-    """Génère une date aléatoire dans le mois précédent."""
-    now = datetime.now()
-    delta = timedelta(
-        days=random.randint(0, 30),
-        hours=random.randint(0, 23),
-        minutes=random.randint(0, 59)
-    )
-    date = now - delta
-    return date.strftime("%Y-%m-%d %H:%M:%S")
+# Liste des clés pour les réponses (et les commentaires associés)
+response_keys = [
+    "doc", "team", "roadmap", "tech_obsolete", "mco", "support",
+    "etat_art", "respect", "code_source", "tests", "securite",
+    "vulnerabilites", "surveillance", "incidents", "performances",
+    "scalable", "besoins_metier", "recouvrement", "evolutivite",
+    "fonctions", "couplage", "decommissionnement"
+]
 
-# Quelques options pour remplir les champs
-types = ["Web", "Mobile", "Desktop", "Service"]
-criticite_options = ["1", "2", "3", "4"]
-rating_prefixes = {
-    "disponibilite": "D",
-    "integrite": "I",
-    "confidentialite": "C",
-    "perennite": "P"
-}
-rating_levels = ["1", "2", "3", "4"]
+# Options possibles pour les réponses
+response_options = [
+    "Oui total", "Non", "Partiel", "Partiellement", "Insuffisant",
+    "Majoritairement", "Non applicable", "Totalement", "Non total"
+]
 
-applications = []
-# Générer par exemple 20 applications
-for i in range(20):
-    # On décide aléatoirement si l'application a déjà été évaluée ou non
-    evaluated = random.choice([True, False])
-    app = {
-        "name": f"Application {i+1}",
-        "rda": f"RDA{random.randint(1,5)}",
-        "type": random.choice(types),
-        "criticite": random.choice(criticite_options),
-        "disponibilite": rating_prefixes["disponibilite"] + random.choice(rating_levels),
-        "integrite": rating_prefixes["integrite"] + random.choice(rating_levels),
-        "confidentialite": rating_prefixes["confidentialite"] + random.choice(rating_levels),
-        "perennite": rating_prefixes["perennite"] + random.choice(rating_levels),
+# Pour les commentaires, nous allons générer un texte simple indiquant le sujet
+def generate_comment(key, app_name):
+    return f"Commentaire pour {key} de l'application {app_name}"
+
+# Définition des données de base pour chaque application selon l'exemple fourni
+data_samples = [
+    {
+        "name": "NEC",
+        "type": "Interne",
+        "rda": "Toto",
+        "disponibilite": "D1",
+        "integrite": "I2",
+        "confidentialite": "C3",
+        "perennite": "P1",
+        "score": 7,
+        "answered_questions": 21,
+        "last_evaluation": "2025-03-13 10:38:28",
+        "criticite": "2",
+        "evaluator_name": "Laurent Labit"
+    },
+    {
+        "name": "PICRIS",
+        "type": "Editeur onPrem",
+        "rda": "Bernard Campan",
+        "disponibilite": "D2",
+        "integrite": "I3",
+        "confidentialite": "C3",
+        "perennite": "P3",
+        "score": 25,
+        "answered_questions": 20,
+        "last_evaluation": "2025-03-12 14:21:12",
+        "criticite": "1",
+        "evaluator_name": "Bernard Campan"
+    },
+    {
+        "name": "DICP App Manager",
+        "type": "Interne cloud",
+        "rda": "Moi",
+        "disponibilite": "D1",
+        "integrite": "I1",
+        "confidentialite": "C1",
+        "perennite": "P1",
+        "score": 1,
+        "answered_questions": 21,
+        "last_evaluation": "2025-03-12 15:08:59",
+        "criticite": "4",
+        "evaluator_name": "Toi"
+    },
+    {
+        "name": "Confluence",
+        "type": "SaaS",
+        "rda": "Eric Cantona",
+        "disponibilite": "D1",
+        "integrite": "I1",
+        "confidentialite": "C2",
+        "perennite": "P2",
+        "score": 0,
+        "answered_questions": 18,
+        "last_evaluation": "2025-03-12 14:54:58",
+        "criticite": "3",
+        "evaluator_name": "Eric Cantona"
+    },
+    {
+        "name": "Sales+",
+        "type": "SaaS",
+        "rda": "Antoine Dupond",
+        "disponibilite": "D3",
+        "integrite": "I3",
+        "confidentialite": "C3",
+        "perennite": "P2",
+        "score": 2,
+        "answered_questions": 16,
+        "last_evaluation": "2025-03-14 12:43:28",
+        "criticite": "2",
+        "evaluator_name": "Antoine Dupond"
+    },
+    {
+        "name": "PILVAL",
+        "type": "Editeur cloud",
+        "rda": "François Beranger",
+        "disponibilite": "D1",
+        "integrite": "I1",
+        "confidentialite": "C2",
+        "perennite": "P1",
         "score": None,
         "answered_questions": 0,
         "last_evaluation": None,
-        "responses": {},
-        "evaluator_name": ""
-    }
-    if evaluated:
-        # Pour les applications évaluées, on définit un score et un nombre de questions répondues
-        app["answered_questions"] = random.randint(5, 10)
-        max_score = app["answered_questions"] * 3  # score maximum possible
-        app["score"] = random.randint(0, max_score)
-        app["last_evaluation"] = random_date()
-        app["evaluator_name"] = f"Evaluateur {random.randint(1,5)}"
-        # Vous pouvez également remplir app["responses"] avec des réponses fictives si besoin
-
-    applications.append(app)
-
-# Sauvegarde dans le fichier JSON (indenté pour plus de lisibilité)
-with open("applications.json", "w") as f:
-    json.dump(applications, f, indent=4)
-
-print("Fichier applications.json généré avec succès.")
+        "criticite": "4",
+        "evaluator_name": "François Beranger"
+    },
+    {
+        "name": "AOAGR",
+        "type": "Interne cloud",
+        "rda": "Non identifi\u00e9",
+        "disponibilite": "D2",
+        "integrite": "I3",
+        "confidentialite": "C3",
+        "perennite": "P3",
+        "score
