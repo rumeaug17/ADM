@@ -72,7 +72,7 @@ if not os.path.exists(app.config["DATA_FILE"]):
     with open(app.config["DATA_FILE"], "w") as f:
         json.dump([], f)
 
- def get_version() -> str:
+def get_version() -> str:
     """
     Récupère le dernier tag Git de la branche main.
     Si la commande échoue, retourne une version par défaut.
