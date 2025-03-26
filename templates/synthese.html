@@ -53,9 +53,9 @@
     <div class="col-md-3">
         <div class="card text-white bg-primary p-3">
             <h4>Risque global</h4>
-		{% if risk > 350 %}
+		{% if global_risk > 350 %}
 			<span class="badge bg-danger">{{ global_risk }}</span>
-		{% elif risk > 100 %}
+		{% elif global_risk > 100 %}
 			<span class="badge bg-warning">{{ global_risk }}</span>
 		{% else %}
 			<span class="badge bg-success">{{ global_risk }}</span>
