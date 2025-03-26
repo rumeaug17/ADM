@@ -3,7 +3,7 @@ import json
 import random
 from datetime import datetime, timedelta
 
-# Nombre d'applications à générer (ici environ 20)
+# Nombre d'applications à générer (environ 20)
 NUM_APPS = 20
 
 # Listes pour générer des noms d'applications
@@ -35,6 +35,19 @@ response_options = [
     "Oui total", "Non", "Partiel", "Partiellement", "Insuffisant",
     "Majoritairement", "Non applicable", "Totalement", "Non total"
 ]
+
+# Table de correspondance pour calculer le score
+SCORING_MAP = {
+    "Oui total": 0,
+    "Non": 0,
+    "Partiel": 1,
+    "Partiellement": 1,
+    "Insuffisant": 2,
+    "Majoritairement": 2,
+    "Non applicable": None,
+    "Totalement": 3,
+    "Non total": 3,
+}
 
 def generate_comment(key: str, app_name: str) -> str:
     return f"Commentaire pour {key} de l'application {app_name}"
@@ -73,17 +86,29 @@ for _ in range(NUM_APPS):
     # Décider aléatoirement si l'application est évaluée
     evaluated = random.choice([True, False])
     
-    if evaluated:
-        answered_questions = random.randint(10, 30)
-        max_score = answered_questions * 3
-        score = random.randint(0, max_score)
-        last_evaluation = random_date_within_days(30)
-    else:
-        answered_questions = 0
-        score = None
-        last_evaluation = None
+    # Générer le dictionnaire des réponses
+    responses = { key: random.choice(response_options) for key in response_keys }
+    # Calculer le score à partir des réponses
+    score = 0
+    answered_questions = 0
+    for resp in responses.values():
+        value = SCORING_MAP.get(resp)
+        if value is not None:
+            score += value
+            answered_questions += 1
 
-    # Créer le dictionnaire de base
+    # Si non évaluée, on force les valeurs correspondantes
+    if not evaluated:
+        score = None
+        answered_questions = 0
+        last_evaluation = None
+    else:
+        last_evaluation = random_date_within_days(30)
+    
+    # Générer le dictionnaire des commentaires
+    comments = { f"{key}_comment": generate_comment(key, app_name) for key in response_keys }
+    
+    # Créer le dictionnaire complet pour l'application
     app = {
         "name": app_name,
         "type": app_type,
@@ -96,15 +121,10 @@ for _ in range(NUM_APPS):
         "answered_questions": answered_questions,
         "last_evaluation": last_evaluation,
         "criticite": criticite,
-        "evaluator_name": rda_name  # Pour cet exemple, on utilise le même nom que le RDA
+        "evaluator_name": rda_name,
+        "responses": responses,
+        "comments": comments
     }
-    
-    # Générer les réponses et les commentaires
-    responses = { key: random.choice(response_options) for key in response_keys }
-    comments = { f"{key}_comment": generate_comment(key, app_name) for key in response_keys }
-    
-    app["responses"] = responses
-    app["comments"] = comments
     
     applications.append(app)
 
@@ -112,4 +132,4 @@ for _ in range(NUM_APPS):
 with open("applications.json", "w", encoding="utf-8") as f:
     json.dump(applications, f, indent=4, ensure_ascii=False)
 
-print("Fichier applications.json généré avec succès avec environ 20 applications.")
+print("Fichier applications.json généré avec succès avec environ 20 applications et un score calculé.")
