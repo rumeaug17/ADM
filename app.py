@@ -512,7 +512,7 @@ def synthese():
     # Calculer le risque global sur les applications évaluées
     evaluated_risks = [app["risque"] for app in data if app.get("risque") is not None]
     if evaluated_risks:
-        global_risk = sum(evaluated_risks) / len(evaluated_risks)
+        global_risk = round(sum(evaluated_risks) / len(evaluated_risks), 2)
     else:
         global_risk = None
         
