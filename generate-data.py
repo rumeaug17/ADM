@@ -115,4 +115,30 @@ data_samples = [
         "integrite": "I3",
         "confidentialite": "C3",
         "perennite": "P3",
-        "score
+        "score": 43,
+        "answered_questions": 22,
+        "last_evaluation": "2025-03-24 13:22:59",
+        "criticite": "2",
+        "evaluator_name": "Moi"
+    }
+]
+
+# Pour chaque application, on ajoute les dictionnaires "responses" et "comments"
+for app in data_samples:
+    # Générer un dictionnaire pour les réponses
+    responses = {}
+    for key in response_keys:
+        responses[key] = random.choice(response_options)
+    app["responses"] = responses
+
+    # Générer un dictionnaire pour les commentaires
+    comments = {}
+    for key in response_keys:
+        comments[f"{key}_comment"] = generate_comment(key, app["name"])
+    app["comments"] = comments
+
+# Sauvegarder le résultat dans un fichier JSON avec une indentation pour la lisibilité
+with open("applications.json", "w", encoding="utf-8") as f:
+    json.dump(data_samples, f, indent=4, ensure_ascii=False)
+
+print("Fichier applications.json généré avec succès.")
