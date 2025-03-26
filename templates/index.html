@@ -54,8 +54,11 @@
     <div class="d-flex justify-content-between my-3">
         <a href="/add" class="btn btn-primary">➕ Ajouter une application</a>
         <a href="/synthese" class="btn btn-outline-primary">📊 Voir Synthèse</a>
-		<a href="/export_csv" class="btn btn-outline-info">📥 Exporter CSV</a>
-		<a href="/logout" class="btn btn-outline-secondary">Déconnexion</a>
+	<a href="/export_csv" class="btn btn-outline-info">📥 Exporter CSV</a>
+	<button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#reevaluateModal">
+        	Tout réévaluer
+    	</button>
+	<a href="/logout" class="btn btn-outline-secondary">Déconnexion</a>
     </div>
 
     <table class="table table-bordered text-center">
@@ -200,6 +203,26 @@
         <form id="confirmResetForm" method="post" action="">
           <button type="submit" class="btn btn-warning">Réinitialiser</button>
         </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation pour "Tout réévaluer" -->
+<div class="modal fade" id="reevaluateModal" tabindex="-1" aria-labelledby="reevaluateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reevaluateModalLabel">Confirmation de réévaluation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Êtes-vous sûr de vouloir réévaluer toutes les applications ?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <!-- Ici, le lien redirige vers la route qui gère la réévaluation de toutes les applications -->
+        <a href="/reevaluate_all" class="btn btn-warning">Réévaluer</a>
       </div>
     </div>
   </div>
