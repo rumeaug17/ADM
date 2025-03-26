@@ -454,6 +454,24 @@ def reset_evaluation(name: str):
     flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
     return redirect(url_for("index"))
 
+@app.route('/reevaluate_all', methods=['POST'])
+@login_required
+def reevaluate_all():
+    """
+    Réinitialise l'évaluation de toutes les applications en une seule opération,
+    c'est-à-dire en mettant à None le score, à 0 le nombre de questions répondues,
+    et en réinitialisant la date de dernière évaluation et l'évaluateur.
+    """
+    data = load_data()
+    for app_item in data:
+        app_item["score"] = None
+        app_item["answered_questions"] = 0
+        app_item["last_evaluation"] = None
+        app_item["evaluator_name"] = ""
+    save_data(data)
+    flash("Toutes les évaluations ont été réinitialisées.", "success")
+    return redirect(url_for("index"))
+
 
 @app.route('/radar/<name>')
 @login_required
