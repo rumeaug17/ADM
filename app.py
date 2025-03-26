@@ -72,20 +72,21 @@ if not os.path.exists(app.config["DATA_FILE"]):
     with open(app.config["DATA_FILE"], "w") as f:
         json.dump([], f)
 
-def get_version() -> str:
-    """
-    Récupère le dernier tag Git de la branche main.
-    Si la commande échoue, retourne une version par défaut.
-    """
+def get_version_from_file() -> str:
+    version_file = os.path.join(app.static_folder, "version.txt")
     try:
-        version = subprocess.check_output(
-            ["git", "describe", "--tags", "--abbrev=0"],
-            stderr=subprocess.STDOUT
-        ).strip().decode("utf-8")
+        with open(version_file, "r") as f:
+            version = f.read().strip()
         return version
     except Exception as e:
-        # En cas d'erreur, on retourne une version par défaut
         return "v0.0.0"
+
+# Charger la version une seule fois au démarrage de l'application
+APP_VERSION = get_version_from_file()
+
+@app.context_processor
+def inject_version():
+    return dict(app_version=APP_VERSION)
         
 def login_required(f):
     @wraps(f)
@@ -272,9 +273,6 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     plt.close()
     return chart_data
 
-@app.context_processor
-def inject_version():
-    return dict(app_version=get_version())
     
 @app.route('/login', methods=['GET', 'POST'])
 def login():
