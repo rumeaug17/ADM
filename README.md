@@ -6,6 +6,8 @@ Il s'agit d'uner petite application toute simple (très primitive) servant à ex
 ```
 pip install -r requirements.txt
 % --proxy=http://USER:PWD@PROXY:PORT
+git describe --tags --abbrev=0 > static/version.txt
+
 python app.py
 http://127.0.0.1:5000/
 ```
