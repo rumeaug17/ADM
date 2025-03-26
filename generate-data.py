@@ -1,8 +1,27 @@
 #!/usr/bin/env python3
 import json
 import random
+from datetime import datetime, timedelta
 
-# Liste des clés pour les réponses (et les commentaires associés)
+# Nombre d'applications à générer (ici environ 20)
+NUM_APPS = 20
+
+# Listes pour générer des noms d'applications
+adjectives = ["Alpha", "Beta", "Gamma", "Delta", "Sigma", "Omega", "Tech", "Info", "Net", "Data"]
+nouns = ["Manager", "App", "System", "Suite", "Portal", "Service", "Platform", "Engine"]
+
+# Listes pour générer des noms de RDA (utilisateurs responsables)
+first_names = ["Laurent", "Bernard", "Eric", "Antoine", "François", "Alice", "Julien", "Sophie", "Nicolas", "Camille"]
+last_names = ["Labit", "Campan", "Cantona", "Dupond", "Beranger", "Martin", "Durand", "Bernard", "Lefevre", "Petit"]
+
+# Types d'application
+types = ["Interne", "Externe", "SaaS", "Editeur", "Service", "Cloud"]
+
+# Fonction pour générer un critère DICP aléatoire à partir d'un préfixe (ex: "D", "I", "C", "P")
+def random_dicp(prefix: str) -> str:
+    return prefix + str(random.randint(1, 4))
+
+# Liste des clés pour les réponses et les commentaires associés
 response_keys = [
     "doc", "team", "roadmap", "tech_obsolete", "mco", "support",
     "etat_art", "respect", "code_source", "tests", "securite",
@@ -17,128 +36,80 @@ response_options = [
     "Majoritairement", "Non applicable", "Totalement", "Non total"
 ]
 
-# Pour les commentaires, nous allons générer un texte simple indiquant le sujet
-def generate_comment(key, app_name):
+def generate_comment(key: str, app_name: str) -> str:
     return f"Commentaire pour {key} de l'application {app_name}"
 
-# Définition des données de base pour chaque application selon l'exemple fourni
-data_samples = [
-    {
-        "name": "NEC",
-        "type": "Interne",
-        "rda": "Toto",
-        "disponibilite": "D1",
-        "integrite": "I2",
-        "confidentialite": "C3",
-        "perennite": "P1",
-        "score": 7,
-        "answered_questions": 21,
-        "last_evaluation": "2025-03-13 10:38:28",
-        "criticite": "2",
-        "evaluator_name": "Laurent Labit"
-    },
-    {
-        "name": "PICRIS",
-        "type": "Editeur onPrem",
-        "rda": "Bernard Campan",
-        "disponibilite": "D2",
-        "integrite": "I3",
-        "confidentialite": "C3",
-        "perennite": "P3",
-        "score": 25,
-        "answered_questions": 20,
-        "last_evaluation": "2025-03-12 14:21:12",
-        "criticite": "1",
-        "evaluator_name": "Bernard Campan"
-    },
-    {
-        "name": "DICP App Manager",
-        "type": "Interne cloud",
-        "rda": "Moi",
-        "disponibilite": "D1",
-        "integrite": "I1",
-        "confidentialite": "C1",
-        "perennite": "P1",
-        "score": 1,
-        "answered_questions": 21,
-        "last_evaluation": "2025-03-12 15:08:59",
-        "criticite": "4",
-        "evaluator_name": "Toi"
-    },
-    {
-        "name": "Confluence",
-        "type": "SaaS",
-        "rda": "Eric Cantona",
-        "disponibilite": "D1",
-        "integrite": "I1",
-        "confidentialite": "C2",
-        "perennite": "P2",
-        "score": 0,
-        "answered_questions": 18,
-        "last_evaluation": "2025-03-12 14:54:58",
-        "criticite": "3",
-        "evaluator_name": "Eric Cantona"
-    },
-    {
-        "name": "Sales+",
-        "type": "SaaS",
-        "rda": "Antoine Dupond",
-        "disponibilite": "D3",
-        "integrite": "I3",
-        "confidentialite": "C3",
-        "perennite": "P2",
-        "score": 2,
-        "answered_questions": 16,
-        "last_evaluation": "2025-03-14 12:43:28",
-        "criticite": "2",
-        "evaluator_name": "Antoine Dupond"
-    },
-    {
-        "name": "PILVAL",
-        "type": "Editeur cloud",
-        "rda": "François Beranger",
-        "disponibilite": "D1",
-        "integrite": "I1",
-        "confidentialite": "C2",
-        "perennite": "P1",
-        "score": None,
-        "answered_questions": 0,
-        "last_evaluation": None,
-        "criticite": "4",
-        "evaluator_name": "François Beranger"
-    },
-    {
-        "name": "AOAGR",
-        "type": "Interne cloud",
-        "rda": "Non identifi\u00e9",
-        "disponibilite": "D2",
-        "integrite": "I3",
-        "confidentialite": "C3",
-        "perennite": "P3",
-        "score": 43,
-        "answered_questions": 22,
-        "last_evaluation": "2025-03-24 13:22:59",
-        "criticite": "2",
-        "evaluator_name": "Moi"
+def random_date_within_days(days=30) -> str:
+    """Génère une date aléatoire dans les 'days' derniers jours."""
+    now = datetime.now()
+    delta = timedelta(
+        days=random.randint(0, days),
+        hours=random.randint(0, 23),
+        minutes=random.randint(0, 59),
+        seconds=random.randint(0, 59)
+    )
+    date = now - delta
+    return date.strftime("%Y-%m-%d %H:%M:%S")
+
+applications = []
+for _ in range(NUM_APPS):
+    # Générer un nom d'application aléatoire
+    app_name = f"{random.choice(adjectives)} {random.choice(nouns)} {random.randint(1, 99)}"
+    # Générer un nom de RDA aléatoire
+    rda_name = f"{random.choice(first_names)} {random.choice(last_names)}"
+    
+    # Choix aléatoire du type d'application
+    app_type = random.choice(types)
+    
+    # Générer les critères DICP aléatoirement
+    disponibilite = random_dicp("D")
+    integrite = random_dicp("I")
+    confidentialite = random_dicp("C")
+    perennite = random_dicp("P")
+    
+    # Criticité aléatoire parmi "1", "2", "3", "4"
+    criticite = str(random.randint(1, 4))
+    
+    # Décider aléatoirement si l'application est évaluée
+    evaluated = random.choice([True, False])
+    
+    if evaluated:
+        answered_questions = random.randint(10, 30)
+        max_score = answered_questions * 3
+        score = random.randint(0, max_score)
+        last_evaluation = random_date_within_days(30)
+    else:
+        answered_questions = 0
+        score = None
+        last_evaluation = None
+
+    # Créer le dictionnaire de base
+    app = {
+        "name": app_name,
+        "type": app_type,
+        "rda": rda_name,
+        "disponibilite": disponibilite,
+        "integrite": integrite,
+        "confidentialite": confidentialite,
+        "perennite": perennite,
+        "score": score,
+        "answered_questions": answered_questions,
+        "last_evaluation": last_evaluation,
+        "criticite": criticite,
+        "evaluator_name": rda_name  # Pour cet exemple, on utilise le même nom que le RDA
     }
-]
-
-# Pour chaque application, on ajoute les dictionnaires "responses" et "comments"
-for app in data_samples:
-    # Générer un dictionnaire pour les réponses
-    responses = {}
-    for key in response_keys:
-        responses[key] = random.choice(response_options)
+    
+    # Générer les réponses et les commentaires
+    responses = { key: random.choice(response_options) for key in response_keys }
+    comments = { f"{key}_comment": generate_comment(key, app_name) for key in response_keys }
+    
     app["responses"] = responses
-
-    # Générer un dictionnaire pour les commentaires
-    comments = {}
-    for key in response_keys:
-        comments[f"{key}_comment"] = generate_comment(key, app["name"])
     app["comments"] = comments
+    
+    applications.append(app)
 
-# Sauvegarder le résultat dans un fichier JSON avec une indentation pour la lisibilité
+# Sauvegarder dans le fichier applications.json avec encodage UTF-8
 with open("applications.json", "w", encoding="utf-8") as f:
-    json.dump(data_samples, f, indent=4, ensure_ascii=False)
+    json.dump(applications, f, indent=4, ensure_ascii=False)
 
-print("Fichier applications.json généré avec succès.")
+print("Fichier applications.json généré avec succès avec environ 20 applications.")
