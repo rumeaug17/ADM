@@ -21,6 +21,7 @@ import json
 import csv
 import io
 import base64
+import subprocess
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
@@ -71,6 +72,21 @@ if not os.path.exists(app.config["DATA_FILE"]):
     with open(app.config["DATA_FILE"], "w") as f:
         json.dump([], f)
 
+ def get_version() -> str:
+    """
+    Récupère le dernier tag Git de la branche main.
+    Si la commande échoue, retourne une version par défaut.
+    """
+    try:
+        version = subprocess.check_output(
+            ["git", "describe", "--tags", "--abbrev=0"],
+            stderr=subprocess.STDOUT
+        ).strip().decode("utf-8")
+        return version
+    except Exception as e:
+        # En cas d'erreur, on retourne une version par défaut
+        return "v0.0.0"
+        
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -256,7 +272,10 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     plt.close()
     return chart_data
 
-
+@app.context_processor
+def inject_version():
+    return dict(app_version=get_version())
+    
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
