@@ -64,7 +64,7 @@ CATEGORIES: Dict[str, List[str]] = {
     "Qualité et Développement": ["etat_art", "code_source", "respect", "tests"],
     "Sécurité et Conformité": ["securite", "vulnerabilites", "surveillance"],
     "Exploitation et Performance": ["incidents", "performances", "scalable"],
-    "Fonctionnel": ["besoins_metier", "evolutivite", "recouvrement"],
+    "Fonctionnel": ["besoins_metier", "evolutivite", "recouvrement", "fonctions"],
 }
 
 # Initialisation du fichier de données s'il n'existe pas
@@ -637,14 +637,44 @@ def resume(name: str):
     app_item = next((app for app in data if app["name"] == name), None)
     if not app_item:
         abort(404, description="Application non trouvée")
-    # Mise à jour des métriques et calcul du risque
-    update_all_metrics([app_item])
-    # Calculer la somme des scores pour chaque dimension (catégorie)
-    category_sums = calculate_category_sums(app_item)
-    # Génère le graphique radar pour cette application
-    radar_chart_data = generate_radar_chart(calculate_axis_scores([app_item]))
-    return render_template("resume.html", app=app_item, radar_chart=radar_chart_data, category_sums=category_sums)
-
+        
+    # Si des évaluations existent, mettre à jour les champs pour l'affichage rapide
+    if "evaluations" in app_item and app_item["evaluations"]:
+        last_eval = app_item["evaluations"][-1]
+        app_item["score"] = last_eval["score"]
+        app_item["answered_questions"] = last_eval["answered_questions"]
+        app_item["last_evaluation"] = last_eval["last_evaluation"]
+        app_item["evaluator_name"] = last_eval["evaluator_name"]
+        # Mise à jour des réponses et commentaires pour afficher le dernier formulaire rempli
+        app_item["responses"] = last_eval["responses"]
+        app_item["comments"] = last_eval["comments"]
+    
+    # Calcul des scores par dimension pour l'évaluation courante à partir des réponses de la dernière évaluation
+    if "evaluations" in app_item and app_item["evaluations"]:
+        current_responses = app_item["evaluations"][-1].get("responses", {})
+    else:
+        current_responses = {}
+    current_category_sums = calculate_category_sums({"responses": current_responses})
+    
+    # Calcul des scores par dimension pour l'évaluation précédente (si disponible)
+    previous_category_sums = {}
+    if "evaluations" in app_item and len(app_item["evaluations"]) > 1:
+        previous_eval = app_item["evaluations"][-2]
+        # On crée un dictionnaire temporaire pour utiliser la fonction existante
+        previous_category_sums = calculate_category_sums({"responses": previous_eval.get("responses", {})})
+    
+    # Calcul et génération du graphique radar pour l'évaluation courante
+    current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
+    radar_chart_data = generate_radar_chart(current_axis_scores)
+    
+    return render_template(
+        "resume.html",
+        app=app_item,
+        radar_chart=radar_chart_data,
+        category_sums=current_category_sums,
+        previous_category_sums=previous_category_sums
+    )
+    
     
 if __name__ == '__main__':
     app.run(debug=True)
