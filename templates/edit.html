@@ -64,6 +64,11 @@
           <input type="text" name="rda" class="form-control" required value="{{ application.rda }}">
         </div>
         <div class="mb-3">
+          <label class="form-label">Date de première possession :</label>
+          <input type="text" name="possession" class="form-control" value="{{ application.rda }}">
+        </div>
+
+        <div class="mb-3">
           <label class="form-label">Type d'application :</label>
           <select name="type" class="form-select">
             <option value="Interne" {% if application.type == "Interne" %} selected {% endif %}>Interne</option>
