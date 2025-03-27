@@ -331,7 +331,9 @@ def add_application():
             "score": None,
             "answered_questions": 0,
             "last_evaluation": None,
-            "responses": {}  # Stockage des réponses individuelles
+            "responses": {},  # Stockage des réponses individuelles
+            "comments": {},       # Initialisation du champ "comments"
+            "evaluations": []     # (Optionnel) pour conserver l'historique des évaluations
         }
         data.append(new_app)
         save_data(data)
