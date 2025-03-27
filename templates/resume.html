@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-
 {% block title %}ADM - {{ app.name }}{% endblock %}
 
 {% block extra_head %}
   <style>
+    /* Réutilisation des styles de badges existants */
     .badge-d1, .badge-i1, .badge-c1, .badge-p1 { background-color: #198754; }
     .badge-d2, .badge-i2, .badge-c2, .badge-p2 { background-color: #ffc107; }
     .badge-d3, .badge-i3, .badge-c3, .badge-p3 { background-color: #fd7e14; }
@@ -12,23 +12,45 @@
     .badge-criticite2 { background-color: #fd7e14; }
     .badge-criticite3 { background-color: #ffc107; }
     .badge-criticite4 { background-color: #198754; }
+    /* Ajustements optionnels pour unifier l'espacement */
+    .card { margin-bottom: 20px; }
+	/* Styles pour les flèches de tendance */
+    .arrow {
+	  font-size: 1.5rem;       /* Un peu plus petit */
+	  font-weight: 1000;        /* Plus épais */
+	  display: inline-block;
+	  margin-left: 5px;
+	  background: transparent !important;
+	  border: none !important;
+	  line-height: 1;
+	  font-family: Arial, sans-serif; /* Force une police classique */
+	}
+    .arrow-down {
+      color: #198754; /* Vert Bootstrap */
+    }
+    .arrow-up {
+      color: #fd7e14; /* Orange Bootstrap */
+    }
+    .arrow-right {
+      color: #0d6efd; /* Bleu Bootstrap */
+    }
   </style>
 {% endblock %}
 
 {% block content %}
 
-
   <h2 class="text-center text-primary">Résumé de l'application : {{ app.name }}</h2>
   <div class="mb-3">
     <a href="/" class="btn btn-outline-secondary">Retour à l'index</a>
   </div>
-   <!-- Boutons d'action identiques à la page index -->
+  <!-- Boutons d'action -->
   <div class="d-flex justify-content-between my-3">
       <a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application">✏️</a>
-	  <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
+      <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
   </div>
   
-  <div class="card mb-3">
+  <!-- Détails de l'application -->
+  <div class="card">
     <div class="card-header">
       Détails de l'application
     </div>
@@ -56,13 +78,6 @@
         <span class="badge badge-{{ app.confidentialite|lower }}">{{ app.confidentialite }}</span>
         <span class="badge badge-{{ app.perennite|lower }}">{{ app.perennite }}</span>
       </p>
-      <p><strong>Score :</strong>
-        {% if app.score is none %}
-          Non évaluée
-        {% else %}
-          {{ app.score }} / {{ app.max_score or "N/A" }}
-        {% endif %}
-      </p>
       <p><strong>Risque :</strong>
         {% if app.risque is not defined or app.risque is none %}
           Non évaluée
@@ -71,7 +86,7 @@
           {% if risk > 500 %}
             <span class="badge bg-danger">{{ risk }}</span>
           {% elif risk > 100 %}
-            <span class="badge bg-warning text-dark">{{ risk }}</span>
+            <span class="badge bg-warning">{{ risk }}</span>
           {% else %}
             <span class="badge bg-success">{{ risk }}</span>
           {% endif %}
@@ -84,38 +99,132 @@
           N/A
         {% endif %}
       </p>
-      <p><strong>Dernière évaluation :</strong> {{ app.last_evaluation or "Non évaluée" }}</p>
-      <p><strong>Évaluateur :</strong> {{ app.evaluator_name or "Non évaluée" }}</p>
+	  {% if app.evaluations|length > 1 %}
+		{% set current_score = app.evaluations[-1].score %}
+		{% set previous_score = app.evaluations[-2].score %}
+		{% if current_score < previous_score %}
+			<p><strong>Tendance :</strong> <span class="arrow arrow-down">&#x2198;</span></p>
+		{% elif current_score > previous_score %}
+			<p><strong>Tendance :</strong> <span class="arrow arrow-up">&#x2197;</span></p>
+		{% else %}
+			<p><strong>Tendance :</strong> <span class="arrow arrow-right">&#x2192;</span></p>
+		{% endif %}
+      {% else %}
+		<p><strong>Tendance :</strong> N/A</p>
+      {% endif %}
+	
     </div>
   </div>
   
-  <!-- Section pour afficher le score par dimension -->
-  <div class="card mb-3">
-    <div class="card-header">
-      Score par Dimension
+  <!-- Affichage côte à côte des évaluations -->
+  <div class="row">
+    <!-- Évaluation Courante -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header text-center">
+          Évaluation Courante
+        </div>
+        <div class="card-body">
+          {% if app.evaluations and app.evaluations|length > 0 %}
+            {% set current_eval = app.evaluations[-1] %}
+            <p><strong>Score :</strong> {{ current_eval.score }} / {{ current_eval.answered_questions * 3 }}</p>
+            <p><strong>Questions répondues :</strong> {{ current_eval.answered_questions }}</p>
+            <p><strong>Date :</strong> {{ current_eval.last_evaluation }}</p>
+            <p><strong>Évaluateur :</strong> {{ current_eval.evaluator_name }}</p>
+          {% else %}
+            <p>Aucune évaluation.</p>
+          {% endif %}
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-      <table class="table table-bordered">
-        <thead class="table-light">
-          <tr>
-            <th>Dimension</th>
-            <th>Score (somme)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for dimension, score_sum in category_sums.items() %}
-          <tr>
-            <td>{{ dimension }}</td>
-            <td>{{ score_sum }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Évaluation Précédente -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header text-center">
+          Évaluation Précédente
+        </div>
+        <div class="card-body">
+          {% if app.evaluations and app.evaluations|length > 1 %}
+            {% set previous_eval = app.evaluations[-2] %}
+            <p><strong>Score :</strong> {{ previous_eval.score }} / {{ previous_eval.answered_questions * 3 }}</p>
+            <p><strong>Questions répondues :</strong> {{ previous_eval.answered_questions }}</p>
+            <p><strong>Date :</strong> {{ previous_eval.last_evaluation }}</p>
+            <p><strong>Évaluateur :</strong> {{ previous_eval.evaluator_name }}</p>
+          {% else %}
+            <p>Aucune évaluation précédente.</p>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
   
+  <!-- Affichage côte à côte des scores par dimension -->
+  <div class="row">
+    <!-- Scores par Dimension (Évaluation Courante) -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header text-center">
+          Scores par Dimension (Évaluation Courante)
+        </div>
+        <div class="card-body">
+          {% if category_sums %}
+          <table class="table table-bordered mb-0">
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dimension, score in category_sums.items() %}
+              <tr>
+                <td>{{ dimension }}</td>
+                <td>{{ score }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p>Aucun score disponible pour l'évaluation courante.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <!-- Scores par Dimension (Évaluation Précédente) -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header text-center">
+          Scores par Dimension (Évaluation Précédente)
+        </div>
+        <div class="card-body">
+          {% if previous_category_sums %}
+          <table class="table table-bordered mb-0">
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dimension, score in previous_category_sums.items() %}
+              <tr>
+                <td>{{ dimension }}</td>
+                <td>{{ score }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p>Aucune évaluation précédente.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Graphique Radar -->
   <div class="card">
-    <div class="card-header">
+    <div class="card-header text-center">
       Graphique Radar
     </div>
     <div class="card-body text-center">
