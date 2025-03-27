@@ -12,11 +12,19 @@
     }
     header {
       background-color: #0d6efd;
-      padding: 10px 20px;
       color: #fff;
       display: flex;
       align-items: center;
+	  justify-content: space-between;
+      padding: 10px 20px; /* Optionnel : pour espacer un peu */
     }
+	.header-left {
+	  display: flex;
+	  align-items: center;
+	}
+	.header-right {
+	  /* Rien de spécifique nécessaire ici si on utilise flex sur le header */
+	}
     header h1 {
       margin: 0;
       font-size: 1.5rem;
@@ -44,9 +52,15 @@
 </head>
 <body>
   <header>
-    <img src="{{ url_for('static', filename='logo.svg') }}" alt="Logo ADM Manager" class="logo">
-    <h1>Gestion de la dette applicative</h1>
-    <a href="/logout" class="btn btn-outline-secondary">Déconnexion</a>
+	<div class="header-left">
+		<img src="{{ url_for('static', filename='logo.svg') }}" alt="Logo ADM Manager" class="logo">
+		<h1>Gestion de la dette applicative</h1>
+	</div>
+	<div class="header-right">
+	{% if session.logged_in %}
+		<a href="/logout" class="btn btn-primary">Déconnexion</a>
+    {% endif %}
+	</div>
   </header>
 
   <main class="container my-4">
