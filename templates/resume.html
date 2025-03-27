@@ -131,6 +131,63 @@
   </div>
   
   <!-- Section Score par Dimension -->
+    <!-- Section pour afficher les scores par dimension des évaluations -->
+  <div class="dimension-container row">
+    <!-- Colonne Évaluation Courante -->
+    <div class="col-md-6 dimension-column current-dim">
+      <div class="dim-header">
+        <h4>Scores par Dimension (Évaluation Courante)</h4>
+      </div>
+      {% if category_sums %}
+      <table class="dim-table">
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dimension, score in category_sums.items() %}
+          <tr>
+            <td>{{ dimension }}</td>
+            <td>{{ score }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>Aucun score disponible pour l'évaluation courante.</p>
+      {% endif %}
+    </div>
+    
+    <!-- Colonne Évaluation Précédente -->
+    <div class="col-md-6 dimension-column previous-dim">
+      <div class="dim-header">
+        <h4>Scores par Dimension (Évaluation Précédente)</h4>
+      </div>
+      {% if previous_category_sums %}
+      <table class="dim-table">
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dimension, score in previous_category_sums.items() %}
+          <tr>
+            <td>{{ dimension }}</td>
+            <td>{{ score }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>Aucune évaluation précédente.</p>
+      {% endif %}
+    </div>
+  </div>
+
   <div class="card mb-3">
     <div class="card-header">
       Score par Dimension
