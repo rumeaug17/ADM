@@ -649,6 +649,9 @@ def resume(name: str):
         app_item["responses"] = last_eval["responses"]
         app_item["comments"] = last_eval["comments"]
     
+    # Recalcul des métriques, y compris le risque
+    update_app_metrics(app_item)
+    
     # Calcul des scores par dimension pour l'évaluation courante à partir des réponses de la dernière évaluation
     if "evaluations" in app_item and app_item["evaluations"]:
         current_responses = app_item["evaluations"][-1].get("responses", {})
@@ -678,4 +681,3 @@ def resume(name: str):
     
 if __name__ == '__main__':
     app.run(debug=True)
-    
