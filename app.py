@@ -321,6 +321,7 @@ def add_application():
         new_app = {
             "name": request.form["name"],
             "rda": request.form["rda"],
+            "possession": request.form["possession"],
             "type": request.form["type"],
             "criticite": request.form["criticite"], 
             "disponibilite": request.form["disponibilite"],
@@ -354,6 +355,7 @@ def edit_application(name: str):
         # Ici, on autorise la modification de tous les champs (si souhaité, le nom peut être en lecture seule)
         app_to_edit["name"] = request.form["name"]
         app_to_edit["rda"] = request.form["rda"]
+        app_to_edit["possession"] = request.form["possession"]
         app_to_edit["type"] = request.form["type"]
         app_to_edit["criticite"] = request.form["criticite"]
         app_to_edit["disponibilite"] = request.form["disponibilite"]
