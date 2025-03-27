@@ -106,11 +106,13 @@
 				</td>
 					
                 <td>
+			<div class="d-flex flex-nowrap gap-2">
 					{% if app.score is none %}
 						Non évaluée
 					{% else %}
-						{{ app.score }} / {{ app.max_score or "N/A" }}
+						{{ app.score }}/{{ app.max_score or "N/A" }}
 					{% endif %}
+			</div>
 		</td>
                 <td>
                     {% if app.percentage is not none %}
