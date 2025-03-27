@@ -14,6 +14,26 @@
     .badge-criticite4 { background-color: #198754; }
     /* Ajustements optionnels pour unifier l'espacement */
     .card { margin-bottom: 20px; }
+	/* Styles pour les flèches de tendance */
+    .arrow {
+	  font-size: 2rem;
+	  font-weight: bold;
+	  display: inline-block;
+	  margin-left: 5px;
+	  background: transparent !important;
+	  border: none !important;
+	  line-height: 1;
+	  font-family: Arial, sans-serif; /* Force une police classique */
+	}
+    .arrow-down {
+      color: #198754; /* Vert Bootstrap */
+    }
+    .arrow-up {
+      color: #fd7e14; /* Orange Bootstrap */
+    }
+    .arrow-right {
+      color: #0d6efd; /* Bleu Bootstrap */
+    }
   </style>
 {% endblock %}
 
@@ -79,6 +99,20 @@
           N/A
         {% endif %}
       </p>
+	  {% if app.evaluations|length > 1 %}
+		{% set current_score = app.evaluations[-1].score %}
+		{% set previous_score = app.evaluations[-2].score %}
+		{% if current_score < previous_score %}
+			<p><strong>Tendance :</strong> <span class="arrow arrow-down">&#x2198;</span></p>
+		{% elif current_score > previous_score %}
+			<p><strong>Tendance :</strong> <span class="arrow arrow-up">&#x2197;</span></p>
+		{% else %}
+			<p><strong>Tendance :</strong> <span class="arrow arrow-right">&#x2192;</span></p>
+		{% endif %}
+      {% else %}
+		<p><strong>Tendance :</strong> N/A</p>
+      {% endif %}
+	
     </div>
   </div>
   
