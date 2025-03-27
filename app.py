@@ -449,6 +449,10 @@ def score_application(name: str):
             application["last_evaluation"] = evaluation["last_evaluation"]
             application["evaluator_name"] = evaluation["evaluator_name"]
             
+            # IMPORTANT : mise à jour des champs utilisés dans le formulaire (affichage des dernières réponses et commentaires)
+            application["responses"] = evaluation_responses
+            application["comments"] = evaluation_comments
+            
             save_data(data)
             flash("Évaluation enregistrée.", "success")
             
