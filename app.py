@@ -383,56 +383,72 @@ def delete_application(name: str):
 @app.route('/score/<name>', methods=['GET', 'POST'])
 @login_required
 def score_application(name: str):
-    """
-    Route pour évaluer une application.
-    En POST, met à jour les réponses, le score, le nombre de questions répondues et la date de la dernière évaluation.
-    """
     data = load_data()
     application = next((app for app in data if app["name"] == name), None)
     if application is None:
         abort(404, description="Application non trouvée")
-
-    if "comments" not in application:
-        application["comments"] = {}  # Initialisation du champ des commentaires
-        
+    
+    # Initialisation du champ 'evaluations' s'il n'existe pas déjà
+    if "evaluations" not in application:
+        application["evaluations"] = []
+    
     if request.method == 'POST':
         responses = request.form.to_dict()
         
-        # Si le formulaire contient le champ 'save_draft', on enregistre en brouillon sans calcul du score.
+        # Sauvegarde en brouillon (mise à jour temporaire, sans ajouter dans l'historique)
         if "save_draft" in request.form:
+            # On stocke les réponses et commentaires dans des champs existants pour le brouillon
+            application.setdefault("comments", {})
+            application.setdefault("responses", {})
             for key, value in responses.items():
                 if key.endswith("_comment"):
-                    application["comments"][key] = value  # Enregistrement du commentaire
+                    application["comments"][key] = value
                 elif value in SCORING_MAP:
-                    application["responses"][key] = value  # Enregistrement de la réponse
-            # On peut mettre à jour l'évaluateur mais pas la date
+                    application["responses"][key] = value
             application["evaluator_name"] = responses.get("evaluator_name", "")
-            # On laisse score, answered_questions et last_evaluation inchangés
             save_data(data)
             flash("Brouillon enregistré.", "success")
         else:
-            # Pour l'évaluation finale, vérifier que tous les commentaires sont non vides
+            # Pour l'évaluation finale, vérifier que tous les commentaires sont remplis
             for key, value in responses.items():
-                if key.endswith("_comment"):
-                    if not value.strip():
-                        flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
-                        return render_template("score.html", application=application)
-            # Calcul du score
+                if key.endswith("_comment") and not value.strip():
+                    flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
+                    return render_template("score.html", application=application)
+            
+            # Calcul du score et collecte des réponses et commentaires spécifiques à cette évaluation
             score = 0
             answered_questions = 0
+            evaluation_responses = {}
+            evaluation_comments = {}
             for key, value in responses.items():
                 if key.endswith("_comment"):
-                    application["comments"][key] = value  # Enregistrement du commentaire
+                    evaluation_comments[key] = value
                 elif value in SCORING_MAP:
+                    evaluation_responses[key] = value
                     if SCORING_MAP[value] is not None:
                         score += SCORING_MAP[value]
                         answered_questions += 1
-                    application["responses"][key] = value  # Enregistrement de la réponse
+            
+            # Création du dictionnaire représentant l'évaluation
+            evaluation = {
+                "score": score,
+                "answered_questions": answered_questions,
+                "last_evaluation": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "evaluator_name": responses.get("evaluator_name", ""),
+                "responses": evaluation_responses,
+                "comments": evaluation_comments
+            }
+            # Ajout de cette évaluation à l'historique
+            application["evaluations"].append(evaluation)
+            
+            # Optionnel : mise à jour des champs principaux pour afficher la dernière évaluation rapidement
             application["score"] = score
             application["answered_questions"] = answered_questions
-            application["last_evaluation"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            application["evaluator_name"] = responses.get("evaluator_name", "")
+            application["last_evaluation"] = evaluation["last_evaluation"]
+            application["evaluator_name"] = evaluation["evaluator_name"]
+            
             save_data(data)
+            flash("Évaluation enregistrée.", "success")
             
         return redirect(url_for("index"))
     
