@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% block title %}ADM - {{ app.name }}{% endblock %}
 
@@ -251,7 +252,8 @@
       <div class="modal-body">
          {% if app.evaluations|length > 1 %}
            {% set previous_eval = app.evaluations[-2] %}
-           {% include "_evaluation_readonly.html" with evaluation=previous_eval %}
+           {% set evaluation = previous_eval %}
+           {% include "_evaluation_readonly.html" %}
          {% else %}
            <p>Aucune évaluation précédente disponible.</p>
          {% endif %}
