@@ -122,10 +122,12 @@
   <div class="row">
     <!-- Évaluation Courante -->
     <div class="col-md-6">
-      <div class="card">
-        <div class="card-header text-center">
-          Évaluation Courante
-        </div>
+	  <div class="card">
+		<div class="card-header d-flex justify-content-between align-items-center">
+			<span>Évaluation Courante</span>
+			<!-- Élément placeholder invisible pour garder la même structure -->
+			<span class="btn btn-sm btn-link" style="visibility: hidden;">Comparaison</span>
+		</div>
         <div class="card-body">
           {% if app.evaluations and app.evaluations|length > 0 %}
             {% set current_eval = app.evaluations[-1] %}
@@ -141,27 +143,27 @@
     </div>
     <!-- Évaluation Précédente -->
     <div class="col-md-6">
-      <div class="card">
-        <div class="card-header text-center">
-          Évaluation Précédente
-        </div>
-        <div class="card-body">
-          {% if app.evaluations and app.evaluations|length > 1 %}
-            {% set previous_eval = app.evaluations[-2] %}
-            <p><strong>Score :</strong> {{ previous_eval.score }} / {{ previous_eval.answered_questions * 3 }}</p>
-            <p><strong>Questions répondues :</strong> {{ previous_eval.answered_questions }}</p>
-            <p><strong>Date :</strong> {{ previous_eval.last_evaluation }}</p>
-            <p><strong>Évaluateur :</strong> {{ previous_eval.evaluator_name }}</p>
-			<div class="text-center mb-3">
-				<button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#previousEvalModal">
-					Comparaisons des évaluations
-				</button>
+		<div class="card">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<span>Évaluation Précédente</span>
+				{% if app.evaluations and app.evaluations|length > 1 %}
+				  <button type="button" class="btn btn-sm btn-link" data-bs-toggle="modal" data-bs-target="#previousEvalModal" style="font-weight: normal; font-size: 0.9rem;">
+					Comparaison
+				  </button>
+				{% endif %}
 			</div>
-          {% else %}
-            <p>Aucune évaluation précédente.</p>
-          {% endif %}
-        </div>
-      </div>
+			<div class="card-body">
+				{% if app.evaluations and app.evaluations|length > 1 %}
+				  {% set previous_eval = app.evaluations[-2] %}
+				  <p><strong>Score :</strong> {{ previous_eval.score }} / {{ previous_eval.answered_questions * 3 }}</p>
+				  <p><strong>Questions répondues :</strong> {{ previous_eval.answered_questions }}</p>
+				  <p><strong>Date :</strong> {{ previous_eval.last_evaluation }}</p>
+				  <p><strong>Évaluateur :</strong> {{ previous_eval.evaluator_name }}</p>
+				{% else %}
+				  <p>Aucune évaluation précédente.</p>
+				{% endif %}
+			</div>
+		</div>
     </div>
   </div>
   
