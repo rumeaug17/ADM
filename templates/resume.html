@@ -44,13 +44,6 @@
   <div class="mb-3">
     <a href="/" class="btn btn-outline-secondary">Retour à l'index</a>
   </div>
-{% if app.evaluations|length > 1 %}
-  <div class="text-center mb-3">
-    <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#previousEvalModal">
-      Afficher l'évaluation précédente (lecture seule)
-    </button>
-  </div>
-{% endif %}
 
   <!-- Boutons d'action -->
   <div class="d-flex justify-content-between my-3">
@@ -159,6 +152,11 @@
             <p><strong>Questions répondues :</strong> {{ previous_eval.answered_questions }}</p>
             <p><strong>Date :</strong> {{ previous_eval.last_evaluation }}</p>
             <p><strong>Évaluateur :</strong> {{ previous_eval.evaluator_name }}</p>
+			<div class="text-center mb-3">
+				<button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#previousEvalModal">
+					Comparaisons des évaluations
+				</button>
+			</div>
           {% else %}
             <p>Aucune évaluation précédente.</p>
           {% endif %}
@@ -252,7 +250,7 @@
       <div class="modal-body">
          {% if app.evaluations|length > 1 %}
            {% set previous_eval = app.evaluations[-2] %}
-           {% set evaluation = previous_eval %}
+		   {% set current_eval = app.evaluations[-1] %}
            {% include "_evaluation_readonly.html" %}
          {% else %}
            <p>Aucune évaluation précédente disponible.</p>
