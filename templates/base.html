@@ -57,10 +57,10 @@
 		<h1>Gestion de la dette applicative</h1>
 	</div>
 	<div class="header-right">
-	{% if request.endpoint != 'index' %}
-      		<a href="{{ url_for('index') }}" class="btn btn-outline-light me-2">Retour à l'index</a>
-    	{% endif %}
 	{% if session.logged_in %}
+		{% if request.endpoint != 'index' %}
+      			<a href="{{ url_for('index') }}" class="btn btn-outline-light me-2">Retour à l'index</a>
+    		{% endif %}
 		<a href="/logout" class="btn btn-primary">Déconnexion</a>
     {% endif %}
 	</div>
