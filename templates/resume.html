@@ -150,6 +150,9 @@
 				  <button type="button" class="btn btn-sm btn-link" data-bs-toggle="modal" data-bs-target="#previousEvalModal" style="font-weight: normal; font-size: 0.9rem;">
 					Comparaison
 				  </button>
+				{% else %}
+					<!-- Élément placeholder invisible pour garder la même structure -->
+					<span class="btn btn-sm btn-link" style="visibility: hidden;">Comparaison</span>
 				{% endif %}
 			</div>
 			<div class="card-body">
