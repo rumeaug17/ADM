@@ -560,6 +560,24 @@ def synthese():
     # Tri décroissant par score pour le tableau
     scored_apps.sort(key=lambda app: app["score"] if app.get("score") is not None else 0, reverse=True)
     
+    # calcul du pire score par catégorie ---
+    best_by_category = {}
+    for category in CATEGORIES:
+        best_app = None
+        best_score = -1  # On initialise à -1 pour que 0 soit considéré
+        for app in data:
+            cat_score = calculate_category_sums(app).get(category, 0)
+            if cat_score > best_score:
+                best_score = cat_score
+                best_app = app.get("name")
+        best_by_category[category] = (best_app, best_score)
+        
+    # Regrouper par application
+    best_grouped = {}
+    for category, (app_name, score) in best_by_category.items():
+        if app_name:
+            best_grouped.setdefault(app_name, []).append((category, score))
+    
     return render_template(
         "synthese.html",
         applications=scored_apps,
@@ -570,7 +588,8 @@ def synthese():
         filter_score=filter_score,
         avg_axis_scores=avg_axis_scores,
         chart_data=chart_data,
-        global_risk=global_risk
+        global_risk=global_risk,
+        best_grouped=best_grouped
     )
 
 @app.route('/export_csv')

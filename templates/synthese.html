@@ -75,10 +75,43 @@
             <h2>{{ apps_above_60 }}</h2>
         </div>
     </div>
+	
+<!-- Affichage côte à côte du graphique radar et du tableau des meilleurs scores par catégorie -->
+<div class="row my-4">
+  <!-- Colonne du graphique radar -->
+  <div class="col-md-6 text-center">
+    <img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes" class="img-fluid">
+  </div>
+  <!-- Colonne du tableau des meilleurs scores par catégorie -->
+  <div class="col-md-6">
+    <h3 class="text-center">Pires scores par catégorie</h3>
+    <table class="table table-bordered text-center">
+      <thead>
+        <tr>
+          <th>Application</th>
+          <th>Catégorie</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+	  <tbody>
+        {% for app, entries in best_grouped.items() %}
+          {% for entry in entries %}
+            <tr>
+              {% if loop.first %}
+                <td rowspan="{{ entries|length }}"><strong><a href="/resume/{{ app }}">{{ app }}</a></strong></td>
+              {% endif %}
+              <td>{{ entry[0] }}</td>
+              <td>{{ entry[1] }}</td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>	
-<div class="container">
-	<img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes">
-</div>
+	
+</div>	
+
 <p/>
     <!-- Tableau des applications -->
 	<div class="btn-group" role="group">
