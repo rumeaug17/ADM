@@ -2,36 +2,301 @@
   "Urbanisation": {
     "couplage": {
       "label": "Faible couplage de l'application dans le SI",
-      "help": "Vérifier la cartographie applicative et l’indépendance de l’application.",
       "type": "select",
-      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
     },
     "decommissionnement": {
       "label": "Existence d'une procédure de décommissionnement",
-      "help": "Vérifier la présence d’un plan de remplacement ou de décommissionnement.",
       "type": "select",
-      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
     }
   },
   "Organisation": {
     "doc": {
       "label": "Documentation complète et à jour",
-      "help": "Vérifier l'existence de manuels, guides techniques et schémas d’architecture.",
       "type": "select",
-      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
     },
     "team": {
       "label": "Équipe clairement identifiée",
-      "help": "Vérifier que l'équipe en charge de l’application est clairement identifiée.",
       "type": "select",
-      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
     },
     "roadmap": {
       "label": "Roadmap claire",
-      "help": "Vérifier l'existence d'un plan d'évolution de l’application.",
       "type": "select",
-      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+    "support_contrat": {
+      "label": "Support assuré sur 24 mois",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }
+  },
+  "Obsolescence": {
+	"tech_obsolete": {
+      "label": "Technologies obsolètes",
+      "type": "select",
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"mco": {
+      "label": "Maintien en condition opérationnelle difficile",
+      "type": "select",
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"support": {
+      "label": "Composants tiers non supportés",
+      "type": "select",
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"version_recente": {
+      "label": "Existe-t-il une version plus récente du progiciel non déployée",
+      "type": "select",
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Oui, patch", "score": 1},
+        {"value": "Oui, mineure", "score": 2},
+        {"value": "Oui, majeure", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }
+  },
+  "Qualité et Développement": {
+	"etat_art": {
+      "label": "Alignement avec l’état de l’art",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"respect": {
+      "label": "Respect des standards et des principes d'architecture",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"code_source": {
+      "label": "Code source maintenable et documenté",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"echanges_api": {
+      "label": "Échanges via des API",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"specifique": {
+      "label": "Pour un progiciel, développements spécifiques intégrés",
+      "type": "select",
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"tests": {
+      "label": "Tests automatisés",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }
+  },
+  "Sécurité et Conformité": {
+	"securite": {
+      "label": "Conformité aux exigences de sécurité",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"vulnerabilites": {
+      "label": "Vulnérabilités connues non corrigées",
+      "type": "select",
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    },
+	"surveillance": {
+      "label": "Mécanismes de surveillance et d’alerte",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }
+  },
+  "Exploitation et Performance": {
+	"incidents": {
+      "label": "Incidents récurrents",
+      "type": "select",
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }, 
+	"performances": {
+      "label": "Performances satisfaisantes",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }, 
+	"scalable": {
+      "label": "Application scalable",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }
+  },
+  "Fonctionnel": {
+	"besoins_metier": {
+      "label": "Couverture des besoins métier",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }, 
+	"recouvrement": {
+      "label": "Périmètre applicatif spécifique identifié",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }, 
+	"evolutivite": {
+      "label": "Évolutivité pour nouvelles demandes métier",
+      "type": "select",
+      "options": [
+        {"value": "Oui total", "score": 0},
+        {"value": "Partiel", "score": 1},
+        {"value": "Insuffisant", "score": 2},
+        {"value": "Non total", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
+    }, 
+	"fonctions": {
+      "label": "Fonctionnalités obsolètes ou inutilisées",
+      "type": "select",
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ]
     }
   }
-  // Ajoutez les autres catégories (Obsolescence, Qualité, Sécurité, Exploitation, Fonctionnel) de la même façon
 }
