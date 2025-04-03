@@ -39,8 +39,9 @@ app.config["CONFIG"] = "config.json"
 
 def load_questions() -> dict:
     """Charge la configuration des questions depuis le fichier questions.json."""
-    with open(app.config["QUESTIONS_FILE"], "r", encoding="utf-8") as f:
-        return json.load(f)
+    questions_file = os.path.join(app.static_folder, app.config["QUESTIONS_FILE"])
+    with open(questions_file, "r", encoding="utf-8") as f:
+        return json.load(f)      
 
 # Charger les questions une seule fois au démarrage, ou bien les recharger selon vos besoins.
 QUESTIONS = load_questions()
