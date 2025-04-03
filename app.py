@@ -467,7 +467,7 @@ def score_application(name: str):
             
         return redirect(url_for("index"))
     
-    return render_template("score.html", application=application)
+    return render_template("score.html", application=application, questions=QUESTIONS)
 
 @app.route('/reset/<name>', methods=['POST'])
 @login_required
