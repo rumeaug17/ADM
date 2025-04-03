@@ -33,8 +33,17 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, a
 
 app = Flask(__name__)
 app.config["DATA_FILE"] = "applications.json"
+app.config["QUESTIONS_FILE"] = "questions.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
 app.config["CONFIG"] = "config.json"
+
+def load_questions() -> dict:
+    """Charge la configuration des questions depuis le fichier questions.json."""
+    with open(app.config["QUESTIONS_FILE"], "r", encoding="utf-8") as f:
+        return json.load(f)
+
+# Charger les questions une seule fois au démarrage, ou bien les recharger selon vos besoins.
+QUESTIONS = load_questions()
 
 def load_config() -> List[Dict[str, Any]]:
     """Charge et retourne la liste des clés de configuration depuis le fichier JSON."""
