@@ -73,263 +73,34 @@
 
     <form method="post">
 	    
-	<div class="card p-4 my-3">
+		<div class="card p-4 my-3">
             <h3>👤 Évaluateur</h3>
             <label>Nom de l'évaluateur :</label>
             <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
         </div>
 
-	{% for category, questions_list in questions.items() %}
-  	<div class="card p-4 my-3">			
-    		<h3>{{ category }}</h3>	
-		{% for key, question in questions_list.items() %}
-		<label class="label">{{ question.label }} :
-        		<span class="info-icon" data-key="{{ key }}">?</span>
-      		</label>
-		<select name="{{ key }}" class="form-select">
-        		{% set value = application.responses.get(key, '') %}
-        		{% for option in question.options %}
-          			<option value="{{ option }}" {% if value == option %} selected {% endif %}>{{ option }}</option>
-        		{% endfor %}
-      		</select>
-		<label class="comment">Commentaire :</label>
-		<textarea name="{{ key }}_comment" class="form-control">{{ application.comments.get(key ~ '_comment', '') }}</textarea>
+		{% for category, questions_list in questions.items() %}
+		<div class="card p-4 my-3">			
+				<h3>{{ category }}</h3>	
+			{% for key, question in questions_list.items() %}
+			<label class="label">{{ question.label }} :
+					<span class="info-icon" data-key="{{ key }}">?</span>
+			</label>
+			{% if question.type == "select" %}
+			<select name="{{ key }}" class="form-select">
+					{% set value = application.responses.get(key, '') %}
+					{% for option in question.options %}
+						<option value="{{ option.value }}" {% if value == option.value %}selected{% endif %}>
+							{{ option.value }}
+						</option>
+					{% endfor %}
+			</select>			
+			{% endif %}
+			<label class="comment">Commentaire :</label>
+			<textarea name="{{ key }}_comment" class="form-control">{{ application.comments.get(key ~ '_comment', '') }}</textarea>
+			{% endfor %}
+		</div>		
 		{% endfor %}
-	</div>		
-	{% endfor %}
-
-	<!-- ancienne version du questionnaire -->
-	    
-        <!-- Urbanisation -->
-        <div class="card p-4 my-3">
-            <h3>📁 Urbanisation</h3>
-            {% set questions = {
-                'couplage': "Faible couplage de l'application dans le SI",
-                'decommissionnement': "Existence d'une procédure de décommissionnement"
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-        </div>
-
-        <!-- Organisation -->
-        <div class="card p-4 my-3">
-            <h3>📁 Organisation</h3>
-            {% set questions = {
-                'doc': 'Documentation complète et à jour',
-                'team': 'Équipe clairement identifiée',
-				'roadmap' : 'Roadmap claire'
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-        </div>
-
-        <!-- Obsolescence -->
-        <div class="card p-4 my-3">
-            <h3>⚠️ Obsolescence</h3>
-            {% set questions = {
-                'tech_obsolete': 'Technologies obsolètes',
-                'mco': 'Maintien en condition opérationnelle difficile',
-				'support': 'Composants tiers non supportés'
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
-                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
-                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
-                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-        </div>
-
-        <!-- Qualité et Développement -->
-        <div class="card p-4 my-3">
-            <h3>🛠️ Qualité et Développement</h3>
-            {% set questions = {
-                'etat_art': "Alignement avec l’état de l’art",
-				'respect' : "Respect des standards et des principes d'architecture",
-                'code_source': "Code source maintenable et documenté",
-				'tests': "Tests automatisés"
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-        </div>
-
-        <!-- Sécurité et Conformité -->
-        <div class="card p-4 my-3">
-            <h3>🔐 Sécurité et Conformité</h3>
-				<label class="label">Conformité aux exigences de sécurité :
-					<span class="info-icon" data-key="securite">?</span>
-				</label>
-                <select name="securite" class="form-select">
-                    {% set value = application.responses.get('securite', '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="securite_comment" class="form-control" >{{ application.comments.get('securite_comment', '') }}</textarea>
-
-				<label class="label">Vulnérabilités connues non corrigées :
-					<span class="info-icon" data-key="vulnerabilites">?</span>
-				</label>
-                <select name="vulnerabilites" class="form-select">
-                    {% set value = application.responses.get('vulnerabilites', '') %}
-                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
-                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
-                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
-                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="vulnerabilites_comment" class="form-control" >{{ application.comments.get('vulnerabilites_comment', '') }}</textarea>
-
-				<label class="label">Mécanismes de surveillance et d’alerte :
-					<span class="info-icon" data-key="surveillance">?</span>
-				</label>
-                <select name="surveillance" class="form-select">
-                    {% set value = application.responses.get('surveillance', '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="surveillance_comment" class="form-control" >{{ application.comments.get('surveillance_comment', '') }}</textarea>
-          </div>
-		
-		<!-- Exploitation et Performance -->
-        <div class="card p-4 my-3">
-            <h3>🚀 Exploitation et Performance</h3>
-				<label class="label">Incidents récurrents :
-					<span class="info-icon" data-key="incidents">?</span>
-				</label>
-                <select name="incidents" class="form-select">
-                    {% set value = application.responses.get('incidents', '') %}
-                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
-                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
-                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
-                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-			    <label class="comment">Commentaire :</label>
-				<textarea name="incidents_comment" class="form-control" >{{ application.comments.get('incidents_comment', '') }}</textarea>
-				<label class="label">Performances satisfaisantes :
-					<span class="info-icon" data-key="performances">?</span>				
-				</label>
-                <select name="performances" class="form-select">
-                    {% set value = application.responses.get('performances', '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="performances_comment" class="form-control" >{{ application.comments.get('performances_comment', '') }}</textarea>
-				<label class="label">Application scalable :
-					<span class="info-icon" data-key="scalable">?</span>				
-				</label>
-                <select name="scalable" class="form-select">
-                    {% set value = application.responses.get('performances', '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="scalable_comment" class="form-control" >{{ application.comments.get('scalable_comment', '') }}</textarea>
-
-        </div>
-		
-        <!-- Fonctionnel -->
-        <div class="card p-4 my-3">
-            <h3>📈 Fonctionnel</h3>
-            {% set questions = {
-                'besoins_metier': "Couverture des besoins métier",
-				'recouvrement' : "Périmètre applicatif spécifique identifié",
-                'evolutivite': "Évolutivité pour nouvelles demandes métier"
-            } %}
-            {% for key, label in questions.items() %}
-				<label class="label">{{ label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
-				</label>
-                <select name="{{ key }}" class="form-select">
-                    {% set value = application.responses.get(key, '') %}
-                    <option value="Oui total" {% if value == "Oui total" %} selected {% endif %}>Oui total</option>
-                    <option value="Partiel" {% if value == "Partiel" %} selected {% endif %}>Partiel</option>
-                    <option value="Insuffisant" {% if value == "Insuffisant" %} selected {% endif %}>Insuffisant</option>
-                    <option value="Non total" {% if value == "Non total" %} selected {% endif %}>Non total</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-				<label class="comment">Commentaire :</label>
-				<textarea name="{{ key }}_comment" class="form-control" >{{ application.comments.get(key + '_comment', '') }}</textarea>
-            {% endfor %}
-			
-				<label class="label">Fonctionnalités obsolètes ou inutilisées :
-					<span class="info-icon" data-key="fonctions">?</span>
-				</label>
-                <select name="fonctions" class="form-select">
-                    {% set value = application.responses.get('fonctions', '') %}
-                    <option value="Non" {% if value == "Non" %} selected {% endif %}>Non</option>
-                    <option value="Partiellement" {% if value == "Partiellement" %} selected {% endif %}>Partiellement</option>
-                    <option value="Majoritairement" {% if value == "Majoritairement" %} selected {% endif %}>Majoritairement</option>
-                    <option value="Totalement" {% if value == "Totalement" %} selected {% endif %}>Totalement</option>
-                    <option value="Non applicable" {% if value == "Non applicable" %} selected {% endif %}>Non applicable</option>
-                </select>
-			    <label class="comment">Commentaire :</label>
-				<textarea name="fonctions_comment" class="form-control" >{{ application.comments.get('fonctions_comment', '') }}</textarea>
-
-        </div>
 
         <button type="submit" id="submitEval" class="btn btn-primary w-100">📊 Mettre à jour le Score</button>
 		<!-- Bouton pour enregistrer le brouillon -->
