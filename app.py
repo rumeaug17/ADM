@@ -41,7 +41,7 @@ def load_questions() -> dict:
     """Charge la configuration des questions depuis le fichier questions.json."""
     questions_file = os.path.join(app.static_folder, app.config["QUESTIONS_FILE"])
     with open(questions_file, "r", encoding="utf-8") as f:
-        return json.load(f)      
+        return json.load(f)       
 
 # Charger les questions une seule fois au démarrage, ou bien les recharger selon vos besoins.
 QUESTIONS = load_questions()
@@ -54,28 +54,40 @@ def load_config() -> List[Dict[str, Any]]:
 config = load_config()
 app.secret_key = config["secret_key"]
 
-# Constantes
-SCORING_MAP: Dict[str, Optional[int]] = {
-    "Oui total": 0,
-    "Non": 0,
-    "Partiel": 1,
-    "Partiellement": 1,
-    "Insuffisant": 2,
-    "Majoritairement": 2,
-    "Non applicable": None,
-    "Totalement": 3,
-    "Non total": 3,
-}
+def compute_categories(questions: dict) -> dict:
+    """
+    Calcule la structure des catégories en extrayant pour chaque catégorie 
+    la liste des clés de question.
+    """
+    categories = {}
+    for category, questions_dict in questions.items():
+        # On ignore les clés commençant par un underscore si présentes
+        q_keys = [key for key in questions_dict.keys() if not key.startswith("_")]
+        categories[category] = q_keys
+    return categories
 
-CATEGORIES: Dict[str, List[str]] = {
-    "Urbanisation": ["couplage", "decommissionnement"],
-    "Organisation": ["doc", "team", "roadmap"],
-    "Obsolescence": ["tech_obsolete", "mco", "support"],
-    "Qualité et Développement": ["etat_art", "code_source", "respect", "tests"],
-    "Sécurité et Conformité": ["securite", "vulnerabilites", "surveillance"],
-    "Exploitation et Performance": ["incidents", "performances", "scalable"],
-    "Fonctionnel": ["besoins_metier", "evolutivite", "recouvrement", "fonctions"],
-}
+def compute_scoring_map(questions: dict) -> dict:
+    """
+    Construit un dictionnaire de correspondance entre la valeur textuelle de la réponse 
+    et sa note numérique, en parcourant l'ensemble des options définies dans questions.json.
+    """
+    scoring_map = {}
+    for category, questions_dict in questions.items():
+        for q_key, q_def in questions_dict.items():
+            # On s'assure que la définition est un dictionnaire et contient des options
+            if isinstance(q_def, dict) and "options" in q_def:
+                for option in q_def["options"]:
+                    if isinstance(option, dict):
+                        value = option.get("value")
+                        score = option.get("score")
+                        # En cas de doublon, on pourrait vérifier la cohérence ici
+                        scoring_map[value] = score
+    return scoring_map
+    
+# Constantes
+SCORING_MAP = compute_scoring_map(QUESTIONS)
+
+CATEGORIES = compute_categories(QUESTIONS)
 
 # Initialisation du fichier de données s'il n'existe pas
 if not os.path.exists(app.config["DATA_FILE"]):
@@ -225,29 +237,6 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
         key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()
     }
     return avg_axis_scores
-
-
-def generate_chart(avg_axis_scores: Dict[str, float]) -> str:
-    """
-    Génère un graphique à barres horizontal à partir des scores moyens par axe.
-    Retourne le graphique encodé en base64 (format PNG).
-    """
-    categories = list(avg_axis_scores.keys())
-    scores = list(avg_axis_scores.values())
-    
-    plt.figure(figsize=(8, 5))
-    plt.barh(categories, scores, color=['blue', 'green', 'orange', 'red', 'purple', 'cyan'][:len(categories)])
-    plt.xlabel("Note Moyenne")
-    plt.xlim(-1, 3)
-    plt.axvline(x=0, color='black', linestyle='--')
-    
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    chart_data = base64.b64encode(buf.getvalue()).decode('utf-8')
-    buf.close()
-    plt.close()  # Ferme la figure pour libérer la mémoire
-    return chart_data
 
 
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
