@@ -1,45 +1,6 @@
 {# _evaluation_readonly.html #}
 <div class="container">
-  {% set categories = {
-    "Urbanisation": {
-      "couplage": "Faible couplage de l'application dans le SI",
-      "decommissionnement": "Existence d'une procédure de décommissionnement"
-    },
-    "Organisation": {
-      "doc": "Documentation complète et à jour",
-      "team": "Équipe clairement identifiée",
-      "roadmap": "Roadmap claire"
-    },
-    "Obsolescence": {
-      "tech_obsolete": "Technologies obsolètes",
-      "mco": "Maintien en condition opérationnelle difficile",
-      "support": "Composants tiers non supportés"
-    },
-    "Qualité et Développement": {
-      "etat_art": "Alignement avec l’état de l’art",
-      "respect": "Respect des standards et des principes d'architecture",
-      "code_source": "Code source maintenable et documenté",
-      "tests": "Tests automatisés"
-    },
-    "Sécurité et Conformité": {
-      "securite": "Conformité aux exigences de sécurité",
-      "vulnerabilites": "Vulnérabilités connues non corrigées",
-      "surveillance": "Mécanismes de surveillance et d’alerte"
-    },
-    "Exploitation et Performance": {
-      "incidents": "Incidents récurrents",
-      "performances": "Performances satisfaisantes",
-      "scalable": "Application scalable"
-    },
-    "Fonctionnel": {
-      "besoins_metier": "Couverture des besoins métier",
-      "recouvrement": "Périmètre applicatif spécifique identifié",
-      "evolutivite": "Évolutivité pour nouvelles demandes métier",
-      "fonctions": "Fonctionnalités obsolètes ou inutilisées"
-    }
-  } %}
-  
-  {% for category, questions in categories.items() %}
+  {% for category, questions_list in questions.items() %}
     <div class="card p-4 my-3">
       <h3>{{ category }}</h3>
       <table class="table table-bordered">
@@ -53,13 +14,13 @@
           </tr>
         </thead>
         <tbody>
-          {% for key, label in questions.items() %}
-            {% set current_resp = current_eval.responses.get(key, '') %}
-            {% set previous_resp = previous_eval.responses.get(key, '') %}
-            {% set current_comm = current_eval.comments.get(key ~ '_comment', '') %}
-            {% set previous_comm = previous_eval.comments.get(key ~ '_comment', '') %}
+          {% for q_key, q_def in questions_list.items() %}
+            {% set current_resp = current_eval.responses.get(q_key, '') %}
+            {% set previous_resp = previous_eval.responses.get(q_key, '') %}
+            {% set current_comm = current_eval.comments.get(q_key ~ '_comment', '') %}
+            {% set previous_comm = previous_eval.comments.get(q_key ~ '_comment', '') %}
             <tr>
-              <td>{{ label }}</td>
+              <td>{{ q_def.label }}</td>
               <td {% if current_resp != previous_resp %}class="bg-warning"{% endif %}>
                 {{ current_resp }}
               </td>
