@@ -72,11 +72,33 @@
     <h2 class="text-center text-primary">✅ Évaluation : <strong>{{ application.name }}</strong></h2>
 
     <form method="post">
-		<div class="card p-4 my-3">
+	    
+	<div class="card p-4 my-3">
             <h3>👤 Évaluateur</h3>
             <label>Nom de l'évaluateur :</label>
             <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
         </div>
+
+	{% for category, questions_list in questions.items() %}
+  	<div class="card p-4 my-3">			
+    		<h3>{{ category }}</h3>	
+		{% for key, question in questions_list.items() %}
+		<label class="label">{{ question.label }} :
+        		<span class="info-icon" data-key="{{ key }}">?</span>
+      		</label>
+		<select name="{{ key }}" class="form-select">
+        		{% set value = application.responses.get(key, '') %}
+        		{% for option in question.options %}
+          			<option value="{{ option }}" {% if value == option %} selected {% endif %}>{{ option }}</option>
+        		{% endfor %}
+      		</select>
+		<label class="comment">Commentaire :</label>
+		<textarea name="{{ key }}_comment" class="form-control">{{ application.comments.get(key ~ '_comment', '') }}</textarea>
+		{% endfor %}
+	</div>		
+	{% endfor %}
+
+	<!-- ancienne version du questionnaire -->
 	    
         <!-- Urbanisation -->
         <div class="card p-4 my-3">
