@@ -683,6 +683,10 @@ def resume(name: str):
         previous_eval = app_item["evaluations"][-2]
         # On crée un dictionnaire temporaire pour utiliser la fonction existante
         previous_category_sums = calculate_category_sums({"responses": previous_eval.get("responses", {})})
+    else:
+        previous_eval = {}  # On pourra gérer l'absence d'évaluation précédente dans le template
+
+    current_eval = app_item["evaluations"][-1] if app_item.get("evaluations") else {}
     
     # Calcul et génération du graphique radar pour l'évaluation courante
     current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
@@ -693,7 +697,10 @@ def resume(name: str):
         app=app_item,
         radar_chart=radar_chart_data,
         category_sums=current_category_sums,
-        previous_category_sums=previous_category_sums
+        previous_category_sums=previous_category_sums,
+        questions=QUESTIONS,
+        current_eval=current_eval,
+        previous_eval=previous_eval
     )
     
     
