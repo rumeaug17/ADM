@@ -1,0 +1,37 @@
+{
+  "Urbanisation": {
+    "couplage": {
+      "label": "Faible couplage de l'application dans le SI",
+      "help": "Vérifier la cartographie applicative et l’indépendance de l’application.",
+      "type": "select",
+      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+    },
+    "decommissionnement": {
+      "label": "Existence d'une procédure de décommissionnement",
+      "help": "Vérifier la présence d’un plan de remplacement ou de décommissionnement.",
+      "type": "select",
+      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+    }
+  },
+  "Organisation": {
+    "doc": {
+      "label": "Documentation complète et à jour",
+      "help": "Vérifier l'existence de manuels, guides techniques et schémas d’architecture.",
+      "type": "select",
+      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+    },
+    "team": {
+      "label": "Équipe clairement identifiée",
+      "help": "Vérifier que l'équipe en charge de l’application est clairement identifiée.",
+      "type": "select",
+      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+    },
+    "roadmap": {
+      "label": "Roadmap claire",
+      "help": "Vérifier l'existence d'un plan d'évolution de l’application.",
+      "type": "select",
+      "options": ["Oui total", "Partiel", "Insuffisant", "Non total", "Non applicable"]
+    }
+  }
+  // Ajoutez les autres catégories (Obsolescence, Qualité, Sécurité, Exploitation, Fonctionnel) de la même façon
+}
