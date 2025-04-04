@@ -99,7 +99,13 @@
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Présence de plans d’évolution</li><li>backlog de développement</li><li>alignement avec la stratégie et le SDSI</li></ul>"
 		],
-
+	"support_contrat" : [
+		"<strong>Le support de la solution existe et est assuré pour les 24 prochains mois ?</strong>",
+		"<br>Le suppoort de la solution, dans la version utilisée, est nécessaire pour la maintenance et les corrections de sécurité.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Contrat de support</li><li>Prérequis de la solution</li></ul>"
+	],
+	
 	"_comment_" : "Obsolescence",
     "tech_obsolete": [
 		"<strong>L’application repose-t-elle sur des technologies obsolètes ?</strong>",
@@ -118,6 +124,12 @@
 		"<br>Un composant tiers non maintenu représente un risque élevé en termes de sécurité et de pérennité.<br>",
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Bibliothèques et dépendances utilisées</li><li>support officiel disponible</li></ul>"
+		],
+    "version_recente": [
+		"<strong>La version de la solution est-elle la dernière version disponible ?</strong>",
+		"<br>S'il existe une version pluis récente non déployée, il y a des risques de trou de maintenance ou de problèmes de sécurité non corrigés.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Roadmap</li><li>support officiel</li></ul>"
 		],
 
 	"_comment_" : "Qualité et Développement",
@@ -138,6 +150,18 @@
 		"<br>Un code non maintenable augmente la complexité des évolutions et des corrections.<br>",
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Présence de commentaires</li><li>structure modulaire</li><li>normes de codage respectées</li></ul>"
+		],
+    "echanges_api": [
+		"<strong>Les échanges avec le reste du SI est effectué à travers des API sur des technologies standards ?</strong>",
+		"<br>L'usage d'API standards simplifie l'intégration de la solution, et sa maintenance.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture applicative</li><li>Contrat de service</li></ul>"
+		],
+    "specifique": [
+		"<strong>Y a-t-il des développements spécifiques, au delà du paramétrage prévu par la solution pour intégrer l'application dans le SI ?</strong>",
+		"<br>Les développements spécifiques sont toujuors des ralentisseurs sur la maintenance et l'évolution.<br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture applicative</li><li>Dossier d'intégration</li></ul>"
 		],
     "tests": [
 		"<strong>Des tests automatisés sont-ils en place ?</strong>",
