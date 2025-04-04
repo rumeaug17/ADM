@@ -225,7 +225,7 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
                 axis_scores[category].append(sum(scores) / len(scores))
     return {key: round(sum(values)/len(values), 2) if values else 0 for key, values in axis_scores.items()}
 
-def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
+def generate_radar_chart_new(avg_axis_scores: Dict[str, float]) -> str:
     """
     Génère un graphique radar en coordonnées polaires à partir des scores moyens par axe.
     
@@ -293,7 +293,7 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     plt.close()
     return chart_data
 
-def generate_radar_chart_basic(avg_axis_scores: Dict[str, float]) -> str:
+def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
     Génère un graphique radar (en PNG encodé en base64) à partir des scores moyens par axe.
     """
