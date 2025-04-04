@@ -20,6 +20,7 @@ from typing import List, Dict, Any, Optional
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.path import Path
+from matplotlib.colors import LinearSegmentedColormap
 
 import numpy as np
 
@@ -227,70 +228,58 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
     Génère un graphique radar en polar à partir des scores moyens par axe.
-    La zone remplie est colorée avec un dégradé radial :
-      - Bleu du centre jusqu'à r=1,
-      - Dégradé de bleu à jaune pour 1 < r <= 2,
-      - Dégradé de jaune à rouge pour 2 < r <= 3.
-    Le dégradé est ensuite clipé sur la zone évaluée.
     
-    Retourne le graphique sous forme d'image PNG encodée en base64.
+    La zone intérieure de la courbe est remplie avec un dégradé radial personnalisé :
+      - Bleu au centre (r=0),
+      - Dégradé vers jaune pour 1 < r ≤ 2,
+      - Dégradé vers rouge pour 2 < r ≤ 3.
+    
+    Le dégradé est affiché sous forme d'image et clipé à la zone évaluée.
+    Retourne l'image PNG encodée en base64.
     """
     # Préparation des données
     categories = list(avg_axis_scores.keys())
     scores = list(avg_axis_scores.values())
-    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     # Fermer la boucle du radar
+    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     scores += scores[:1]
     angles += angles[:1]
     
-    # Création de la figure et des axes en projection polaire
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={"projection": "polar"})
+    # Création de la figure en projection polaire
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={'projection': 'polar'})
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(categories)
-    # Pour ce dégradé, on définit l'axe radial de 0 à 3
     ax.set_ylim(0, 3)
     ax.set_yticks([0, 1, 2, 3])
     ax.set_yticklabels(["0", "1", "2", "3"])
     ax.axhline(y=0, color='black', linestyle='--')
     
-    # Tracé de la ligne du radar
-    ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid')
+    # Création du colormap personnalisé pour le dégradé radial
+    # Le colormap va de bleu (au centre) à jaune (r=1 à r=2) puis à rouge (r=2 à r=3)
+    cmap = LinearSegmentedColormap.from_list("radial_gradient", [(0,0,1), (1,1,0), (1,0,0)])
     
-    # Création d'un dégradé radial via une image
-    N = 300  # résolution de l'image
-    r_vals = np.linspace(0, 3, N)
-    gradient = np.empty((N, 1, 3))
+    # Créer une grille cartésienne couvrant le disque de rayon 3
+    N = 500
+    x = np.linspace(-3, 3, N)
+    y = np.linspace(-3, 3, N)
+    X, Y = np.meshgrid(x, y)
+    R = np.sqrt(X**2 + Y**2)
     
-    def color_for_radius(r_val: float) -> np.ndarray:
-        """Retourne un tableau RGB en fonction de la valeur radiale."""
-        if r_val <= 1:
-            return np.array([0, 0, 1])  # bleu
-        elif r_val <= 2:
-            t = r_val - 1  # de 0 à 1
-            return (1 - t) * np.array([0, 0, 1]) + t * np.array([1, 1, 0])  # bleu -> jaune
-        else:
-            t = r_val - 2  # de 0 à 1
-            return (1 - t) * np.array([1, 1, 0]) + t * np.array([1, 0, 0])  # jaune -> rouge
-
-    for i, rv in enumerate(r_vals):
-        gradient[i, 0, :] = color_for_radius(rv)
-    # Répéter horizontalement pour obtenir une image carrée
-    gradient_img = np.repeat(gradient, N, axis=1)
+    # Affichage de l'image de dégradé
+    im = ax.imshow(R, extent=[-3, 3, -3, 3], origin='lower',
+                   cmap=cmap, alpha=0.5, vmin=0, vmax=3, zorder=1)
     
-    # Affichage de l'image dégradée en coordonnées cartésiennes
-    # Le domaine est [-3, 3] sur les deux axes, car r=3 correspond à x et y = ±3
-    im = ax.imshow(gradient_img, extent=[-3, 3, -3, 3], origin='lower', aspect='auto')
-    im.set_alpha(0.5)
-    
-    # Définir la zone de clipping pour n'afficher le dégradé que dans la zone évaluée
-    # Conversion de la forme polaire (angles, scores) en coordonnées cartésiennes
+    # Création de la zone de clipping : conversion de la courbe radar en coordonnées cartésiennes
     cartesian_verts = [(r * np.cos(theta), r * np.sin(theta)) for theta, r in zip(angles, scores)]
-    poly_path = Path(cartesian_verts)
-    im.set_clip_path(poly_path, transform=ax.transData)
+    poly = Polygon(cartesian_verts, closed=True, transform=ax.transData)
+    im.set_clip_path(poly)
     
-    # Export de l'image en PNG encodé en base64
+    # Tracé de la ligne du radar par-dessus le dégradé
+    ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid', zorder=2)
+    
+    # Export de l'image dans un buffer et encodage en base64
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
