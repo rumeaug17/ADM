@@ -227,25 +227,26 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
 
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
-    Génère un graphique radar en polar à partir des scores moyens par axe.
+    Génère un graphique radar en coordonnées polaires à partir des scores moyens par axe.
     
-    La zone intérieure de la courbe est remplie avec un dégradé radial personnalisé :
-      - Bleu au centre (r=0),
-      - Dégradé vers jaune pour 1 < r ≤ 2,
-      - Dégradé vers rouge pour 2 < r ≤ 3.
+    La zone intérieure du radar est remplie par un dégradé qui dépend du rayon :
+      - Bleu pour r <= 1,
+      - Transition linéaire de bleu à jaune pour 1 < r <= 2,
+      - Transition linéaire de jaune à rouge pour 2 < r <= 3.
     
-    Le dégradé est affiché sous forme d'image et clipé à la zone évaluée.
+    Le remplissage est réalisé avec un contourf en polar qui est ensuite clipé sur la zone
+    définie par la courbe radar.
+    
     Retourne l'image PNG encodée en base64.
     """
-    # Préparation des données
+    # Préparation des données et fermeture de la boucle
     categories = list(avg_axis_scores.keys())
     scores = list(avg_axis_scores.values())
-    # Fermer la boucle du radar
     angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     scores += scores[:1]
     angles += angles[:1]
     
-    # Création de la figure en projection polaire
+    # Création de la figure en coordonnées polaires
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={'projection': 'polar'})
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
@@ -257,29 +258,33 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     ax.axhline(y=0, color='black', linestyle='--')
     
     # Création du colormap personnalisé pour le dégradé radial
-    # Le colormap va de bleu (au centre) à jaune (r=1 à r=2) puis à rouge (r=2 à r=3)
-    cmap = LinearSegmentedColormap.from_list("radial_gradient", [(0,0,1), (1,1,0), (1,0,0)])
+    cmap = LinearSegmentedColormap.from_list("custom_gradient", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
     
-    # Créer une grille cartésienne couvrant le disque de rayon 3
-    N = 500
-    x = np.linspace(-3, 3, N)
-    y = np.linspace(-3, 3, N)
-    X, Y = np.meshgrid(x, y)
-    R = np.sqrt(X**2 + Y**2)
+    # Création d'une grille en coordonnées polaires pour le contourf.
+    # theta varie de 0 à 2pi et r de 0 à 3.
+    n_theta, n_r = 300, 300
+    theta = np.linspace(0, 2 * np.pi, n_theta)
+    r = np.linspace(0, 3, n_r)
+    T, R = np.meshgrid(theta, r)
+    # La valeur affichée est simplement le rayon, qui détermine la couleur via le colormap.
+    Z = R  
     
-    # Affichage de l'image de dégradé
-    im = ax.imshow(R, extent=[-3, 3, -3, 3], origin='lower',
-                   cmap=cmap, alpha=0.5, vmin=0, vmax=3, zorder=1)
+    # Remplissage de tout le disque par un contourf
+    cs = ax.contourf(T, R, Z, levels=100, cmap=cmap, vmin=0, vmax=3, zorder=1)
     
-    # Création de la zone de clipping : conversion de la courbe radar en coordonnées cartésiennes
-    cartesian_verts = [(r * np.cos(theta), r * np.sin(theta)) for theta, r in zip(angles, scores)]
-    poly = Polygon(cartesian_verts, closed=True, transform=ax.transData)
-    im.set_clip_path(poly)
+    # Construction du polygone correspondant à la zone radar
+    # Conversion des points (theta, r) de la courbe radar en coordonnées cartésiennes
+    radar_verts = [(r_val * np.cos(theta_val), r_val * np.sin(theta_val)) for theta_val, r_val in zip(angles, scores)]
+    radar_patch = Polygon(radar_verts, closed=True, transform=ax.transData)
     
-    # Tracé de la ligne du radar par-dessus le dégradé
+    # Appliquer le clip à chaque collection du contourf
+    for coll in cs.collections:
+        coll.set_clip_path(radar_patch)
+    
+    # Tracé de la courbe radar par-dessus
     ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid', zorder=2)
     
-    # Export de l'image dans un buffer et encodage en base64
+    # Export du graphique dans un buffer
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
