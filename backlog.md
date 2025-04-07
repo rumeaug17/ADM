@@ -8,6 +8,14 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 
 ---
 
+## Epic 1 : Fonctionnel
+
+### User Stories
+- **US1.1** : *Précision de l'estimation du score de dette *  
+  Augmenter le nombre des questions à répondre et avoir des questions plus précises
+- **US1.2** : *Spécificité des questions *  
+  Avoir des questions spécifiques en fonction du type d'application
+
 ## Epic 2 : Sauvegarde et Historique des Données
 
 ### User Stories
