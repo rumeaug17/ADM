@@ -20,7 +20,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Organisation": {
@@ -66,7 +67,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Obsolescence": {
@@ -79,7 +81,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud"]
     },
 	"mco": {
       "label": "Maintien en condition opérationnelle difficile",
@@ -112,7 +115,8 @@
         {"value": "Oui, mineure", "score": 2},
         {"value": "Oui, majeure", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Editeur onPrem", "Editeur cloud"]
     }
   },
   "Qualité et Développement": {
@@ -169,7 +173,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"tests": {
       "label": "Tests automatisés",
@@ -180,7 +185,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud"]
     }
   },
   "Sécurité et Conformité": {
