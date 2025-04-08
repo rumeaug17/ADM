@@ -438,7 +438,7 @@ def edit_application(name: str) -> Any:
     
     if request.method == "POST":
         # Mise à jour des champs modifiables
-        for field in ["name", "rda", "possession", "type", "criticite",
+        for field in ["name", "rda", "possession", "type_app", "hosting", "criticite",
                       "disponibilite", "integrite", "confidentialite", "perennite"]:
             app_to_edit[field] = request.form[field]
         save_data(data)
@@ -524,7 +524,7 @@ def score_application(name: str) -> Any:
         return redirect(url_for("index"))
     
     # Filtrer les questions à afficher en fonction du type d'application
-    filtered_questions = filter_questions_by_type(QUESTIONS, application["type"])
+    filtered_questions = filter_questions_by_type(QUESTIONS, application["type_app"], application["hosting"])
     
     return render_template("score.html", application=application, questions=filtered_questions)
 
