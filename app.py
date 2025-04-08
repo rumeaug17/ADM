@@ -404,7 +404,7 @@ def add_application() -> Any:
         new_app = {
             "name": request.form["name"],
             "rda": request.form["rda"],
-            "possession": request.form["possession"]],
+            "possession": request.form["possession"],
             "type_app": request.form["type_app"],
             "hosting": request.form["hosting"],
             "criticite": request.form["criticite"],
