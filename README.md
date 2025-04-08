@@ -7,7 +7,7 @@ L'objectif d'une telle application est de calculer une estimation de la dette d'
 
 Les questions pour l'estimation du score de dette pour chaque application est configurable dans un fichier json. 
 
-Les questions par défaut sont décrites ici : [Documentation.md](/Documentation.md)
+Les questions par défaut sont décrites ici : [Documentation.md](/documentation.md)
 
 # INSTALL and RUN:
 ```
