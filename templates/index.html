@@ -80,7 +80,7 @@
             {% for app in applications %}
             <tr>
                 <td><strong><a href="/resume/{{ app.name }}">{{ app.name }}</a></strong></td>
-                <td>{{ app.type }}</td>
+                <td>{{ app.type_app }} / {{ app.hosting }}</td>
                 <td>{{ app.rda }}</td>
 				<td>
 				  {% if app.criticite == "1" %}
