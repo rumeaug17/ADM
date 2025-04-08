@@ -35,7 +35,7 @@
 **Clé :** `decommissionnement`  
 **Type :** select
 
-**Applicable pour :** Editeur onPrem, Editeur cloud, SaaS
+**Applicable pour le type d'application :** Editeur, Open source
 
 **Options :**
 
@@ -147,7 +147,7 @@ Une roadmap absente ou floue peut indiquer un manque de vision stratégique et i
 **Clé :** `support_contrat`  
 **Type :** select
 
-**Applicable pour :** Editeur onPrem, Editeur cloud, SaaS
+**Applicable pour le type d'application :** Editeur, Open source
 
 **Options :**
 
@@ -177,7 +177,7 @@ Le suppoort de la solution, dans la version utilisée, est nécessaire pour la m
 **Clé :** `tech_obsolete`  
 **Type :** select
 
-**Applicable pour :** Interne, Interne cloud, Editeur onPrem, Editeur cloud
+**Applicable pour le type d'application :** Interne, Open source
 
 **Options :**
 
@@ -258,7 +258,9 @@ Un composant tiers non maintenu représente un risque élevé en termes de sécu
 **Clé :** `version_recente`  
 **Type :** select
 
-**Applicable pour :** Editeur onPrem, Editeur cloud
+**Applicable pour le type d'application :** Editeur, Open source
+
+**Applicable pour le type d'hébergement :** On prem, Cloud, Hybride
 
 **Options :**
 
@@ -394,7 +396,7 @@ L'usage d'API standards simplifie l'intégration de la solution, et sa maintenan
 **Clé :** `specifique`  
 **Type :** select
 
-**Applicable pour :** Editeur onPrem, Editeur cloud, SaaS
+**Applicable pour le type d'application :** Editeur, Open source
 
 **Options :**
 
@@ -422,7 +424,7 @@ Les développements spécifiques sont toujuors des ralentisseurs sur la maintena
 **Clé :** `tests`  
 **Type :** select
 
-**Applicable pour :** Interne, Interne cloud, Editeur onPrem, Editeur cloud
+**Applicable pour le type d'hébergement :** On prem, Cloud, Hybride
 
 **Options :**
 
