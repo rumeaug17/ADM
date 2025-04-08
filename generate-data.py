@@ -14,20 +14,16 @@ nouns = ["Manager", "App", "System", "Suite", "Portal", "Service", "Platform", "
 first_names = ["Laurent", "Bernard", "Eric", "Antoine", "François", "Alice", "Julien", "Sophie", "Nicolas", "Camille", "Guillaume", "Léon", "Caroline", "Michel", "Omar", "Alexandra", "Michèle"]
 last_names = ["Labit", "Campan", "Cantona", "Dupond", "Beranger", "Martin", "Durand", "Bernard", "Lefevre", "Petit", "Dupont", "Lhabit", "Ben Hamida", "Leveaux", "Legrand", "Sy"]
 
-# Types d'application
-types = ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
+# Nouveaux critères : type d'application et type d'hébergement
+type_apps = ["Interne", "Editeur", "Open source"]
+hostings = ["On prem", "Cloud", "SaaS"]
 
 def random_dicp(prefix: str) -> str:
-    """
-    Génère aléatoirement un critère DICP en ajoutant un chiffre entre 1 et 4 au préfixe.
-    Exemple : random_dicp("D") -> "D2"
-    """
+    """Génère une valeur DICP aléatoire avec le préfixe (ex. 'D2')."""
     return prefix + str(random.randint(1, 4))
 
 def random_date_within_days(days=30) -> str:
-    """
-    Génère une date-heure aléatoire dans les 'days' derniers jours, au format "YYYY-MM-DD HH:MM:SS".
-    """
+    """Génère une date aléatoire dans les 'days' derniers jours au format 'YYYY-MM-DD HH:MM:SS'."""
     now = datetime.now()
     delta = timedelta(
         days=random.randint(0, days),
@@ -38,27 +34,33 @@ def random_date_within_days(days=30) -> str:
     return (now - delta).strftime("%Y-%m-%d %H:%M:%S")
 
 def random_date_only(days=365) -> str:
-    """
-    Génère une date aléatoire dans les 'days' derniers jours, au format "YYYY-MM-DD".
-    """
+    """Génère une date au format 'YYYY-MM-DD' dans les 'days' derniers jours."""
     now = datetime.now()
     delta = timedelta(days=random.randint(0, days))
     return (now - delta).strftime("%Y-%m-%d")
 
 def generate_comment(key: str, app_name: str) -> str:
-    """
-    Génère un commentaire fictif pour une question donnée et le nom de l'application.
-    """
     return f"Commentaire pour {key} de l'application {app_name}"
 
 # Charger la configuration des questions depuis questions.json
-with open("static/questions.json", "r", encoding="utf-8") as f:
+with open("questions.json", "r", encoding="utf-8") as f:
     questions_config = json.load(f)
 
-# Génération des applications de test
+# Construire la liste des clés de questions et les options associées (pour générer des réponses)
+question_keys = []      # Liste de toutes les clés de questions
+question_options = {}   # Mapping : clé -> liste d'options
+
+for category, qs in questions_config.items():
+    for q_key, q_def in qs.items():
+        question_keys.append(q_key)
+        question_options[q_key] = q_def["options"]
+
 applications = []
 for i in range(NUM_APPS):
-    app_type = random.choice(types)
+    # Choix aléatoire pour les deux propriétés
+    type_app = random.choice(type_apps)
+    hosting = random.choice(hostings)
+    
     name = f"{random.choice(adjectives)} {random.choice(nouns)} {random.randint(1, 100)}"
     rda = random.choice(first_names) + " " + random.choice(last_names)
     possession = random_date_only(365)
@@ -73,20 +75,17 @@ for i in range(NUM_APPS):
     total_score = 0
     answered_questions = 0
 
-    # Parcourir toutes les catégories de questions et sélectionner celles applicables
+    # Parcourir les questions
     for category, qs in questions_config.items():
         for q_key, q_def in qs.items():
-            # Si la question possède un attribut "app_types", on la conserve uniquement
-            # si le type de l'application est dans la liste.
-            if "app_types" in q_def and app_type not in q_def["app_types"]:
-                continue
-            # Choisir aléatoirement une option parmi celles disponibles
+            # Filtrer les questions n'étant pas concernées par le type d'application ou d'hébergement est géré
+            # au niveau du filtrage dans l'application elle-même. Ici, nous générons une réponse
+            # pour chaque question.
             option = random.choice(q_def["options"])
             responses[q_key] = option["value"]
             if option["score"] is not None:
                 total_score += option["score"]
                 answered_questions += 1
-            # Générer un commentaire pour cette question
             comments[q_key + "_comment"] = generate_comment(q_key, name)
     
     last_evaluation = random_date_within_days(30)
@@ -105,7 +104,8 @@ for i in range(NUM_APPS):
         "name": name,
         "rda": rda,
         "possession": possession,
-        "type": app_type,
+        "type_app": type_app,       # Nouveau champ pour le type d'application
+        "hosting": hosting,         # Nouveau champ pour le type d'hébergement
         "criticite": criticite,
         "disponibilite": disponibilite,
         "integrite": integrite,
