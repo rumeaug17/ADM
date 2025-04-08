@@ -111,21 +111,37 @@ def save_data(data: List[Dict[str, Any]]) -> None:
 
 # --- Fonctions utilitaires ---
 
-def filter_questions_by_type(questions: dict, app_type: str) -> dict:
+def filter_questions_by_type(questions: dict, type_app: str, hosting: str) -> dict:
     """
-    Filtre les questions pour ne conserver que celles qui correspondent au type d'application.
-    Si une question possède une clé 'app_types', elle est incluse uniquement si le type de l'application est présent.
-    Sinon, la question est conservée.
+    Filtre les questions en s'appuyant sur deux critères indépendants :
+      - Si une question contient la clé "app_types", le type_app de l'application doit être 
+        dans la liste (après normalisation).
+      - Si une question contient la clé "hosting_types", le hosting de l'application doit être 
+        dans la liste (après normalisation).
+    Si une question ne possède pas l'une ou l'autre de ces clés, le critère correspondant n'est pas appliqué.
+    Seules les questions satisfaisant tous les filtres spécifiés seront retournées.
     """
     filtered_questions = {}
+    # Normaliser les valeurs de l'application
+    type_app_norm = type_app.strip().lower()
+    hosting_norm = hosting.strip().lower()
     for category, qs in questions.items():
-        # On crée une nouvelle catégorie uniquement avec les questions filtrées
-        filtered_questions[category] = {}
+        filtered_qs = {}
         for key, q_def in qs.items():
-            # Si le champ 'app_types' est présent et que le type de l'application n'est pas dans la liste, on ignore la question
-            if "app_types" in q_def and app_type not in q_def["app_types"]:
-                continue
-            filtered_questions[category][key] = q_def
+            include = True
+            # Filtrage sur le type d'application
+            if "app_types" in q_def:
+                allowed_app = [val.strip().lower() for val in q_def["app_types"]]
+                if type_app_norm not in allowed_app:
+                    include = False
+            # Filtrage sur le type d'hébergement
+            if "hosting_types" in q_def:
+                allowed_hosting = [val.strip().lower() for val in q_def["hosting_types"]]
+                if hosting_norm not in allowed_hosting:
+                    include = False
+            if include:
+                filtered_qs[key] = q_def
+        filtered_questions[category] = filtered_qs
     return filtered_questions
 
 
@@ -388,8 +404,9 @@ def add_application() -> Any:
         new_app = {
             "name": request.form["name"],
             "rda": request.form["rda"],
-            "possession": request.form["possession"],
-            "type": request.form["type"],
+            "possession": request.form["possession"]],
+            "type_app": request.form["type_app"],
+            "hosting": request.form["hosting"],
             "criticite": request.form["criticite"],
             "disponibilite": request.form["disponibilite"],
             "integrite": request.form["integrite"],
