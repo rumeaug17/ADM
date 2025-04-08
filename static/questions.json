@@ -9,7 +9,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
     "decommissionnement": {
       "label": "Existence d'une procédure de décommissionnement",
@@ -20,7 +21,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Organisation": {
@@ -33,7 +35,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
     "team": {
       "label": "Équipe clairement identifiée",
@@ -44,7 +47,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
     "roadmap": {
       "label": "Roadmap claire",
@@ -55,7 +59,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
     "support_contrat": {
       "label": "Support assuré sur 24 mois",
@@ -66,7 +71,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Obsolescence": {
@@ -79,7 +85,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"mco": {
       "label": "Maintien en condition opérationnelle difficile",
@@ -90,7 +97,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"support": {
       "label": "Composants tiers non supportés",
@@ -101,7 +109,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"version_recente": {
       "label": "Existe-t-il une version plus récente du progiciel non déployée",
@@ -112,7 +121,8 @@
         {"value": "Oui, mineure", "score": 2},
         {"value": "Oui, majeure", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Qualité et Développement": {
@@ -125,7 +135,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"respect": {
       "label": "Respect des standards et des principes d'architecture",
@@ -136,7 +147,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"code_source": {
       "label": "Code source maintenable et documenté",
@@ -147,7 +159,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"echanges_api": {
       "label": "Échanges via des API",
@@ -158,7 +171,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"specifique": {
       "label": "Pour un progiciel, développements spécifiques intégrés",
@@ -169,7 +183,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"tests": {
       "label": "Tests automatisés",
@@ -180,7 +195,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Sécurité et Conformité": {
@@ -193,7 +209,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"vulnerabilites": {
       "label": "Vulnérabilités connues non corrigées",
@@ -204,7 +221,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     },
 	"surveillance": {
       "label": "Mécanismes de surveillance et d’alerte",
@@ -215,7 +233,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Exploitation et Performance": {
@@ -228,7 +247,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }, 
 	"performances": {
       "label": "Performances satisfaisantes",
@@ -239,7 +259,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }, 
 	"scalable": {
       "label": "Application scalable",
@@ -250,7 +271,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Fonctionnel": {
@@ -263,7 +285,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }, 
 	"recouvrement": {
       "label": "Périmètre applicatif spécifique identifié",
@@ -274,7 +297,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }, 
 	"evolutivite": {
       "label": "Évolutivité pour nouvelles demandes métier",
@@ -285,7 +309,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }, 
 	"fonctions": {
       "label": "Fonctionnalités obsolètes ou inutilisées",
@@ -296,7 +321,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Interne cloud", "Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   }
 }
