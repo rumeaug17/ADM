@@ -67,8 +67,8 @@ def generate_markdown(questions_config, info_texts):
     return "\n".join(md_lines)
 
 if __name__ == "__main__":
-    questions_config = load_json("questions.json")
-    info_texts = load_json("info_texts.json")
+    questions_config = load_json("static/questions.json")
+    info_texts = load_json("static/info_texts.json")
     
     markdown_text = generate_markdown(questions_config, info_texts)
     with open("documentation.md", "w", encoding="utf-8") as f:
