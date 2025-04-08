@@ -111,6 +111,24 @@ def save_data(data: List[Dict[str, Any]]) -> None:
 
 # --- Fonctions utilitaires ---
 
+def filter_questions_by_type(questions: dict, app_type: str) -> dict:
+    """
+    Filtre les questions pour ne conserver que celles qui correspondent au type d'application.
+    Si une question possède une clé 'app_types', elle est incluse uniquement si le type de l'application est présent.
+    Sinon, la question est conservée.
+    """
+    filtered_questions = {}
+    for category, qs in questions.items():
+        # On crée une nouvelle catégorie uniquement avec les questions filtrées
+        filtered_questions[category] = {}
+        for key, q_def in qs.items():
+            # Si le champ 'app_types' est présent et que le type de l'application n'est pas dans la liste, on ignore la question
+            if "app_types" in q_def and app_type not in q_def["app_types"]:
+                continue
+            filtered_questions[category][key] = q_def
+    return filtered_questions
+
+
 def get_version_from_file() -> str:
     """Lit et retourne la version de l'application depuis version.txt situé dans static."""
     version_file = os.path.join(app.static_folder, "version.txt")
@@ -488,7 +506,10 @@ def score_application(name: str) -> Any:
             flash("Évaluation enregistrée.", "success")
         return redirect(url_for("index"))
     
-    return render_template("score.html", application=application, questions=QUESTIONS)
+    # Filtrer les questions à afficher en fonction du type d'application
+    filtered_questions = filter_questions_by_type(QUESTIONS, application["type"])
+    
+    return render_template("score.html", application=application, questions=filtered_questions)
 
 @app.route('/reset/<name>', methods=['POST'])
 @login_required
