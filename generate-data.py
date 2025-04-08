@@ -43,7 +43,7 @@ def generate_comment(key: str, app_name: str) -> str:
     return f"Commentaire pour {key} de l'application {app_name}"
 
 # Charger la configuration des questions depuis questions.json
-with open("questions.json", "r", encoding="utf-8") as f:
+with open("static/questions.json", "r", encoding="utf-8") as f:
     questions_config = json.load(f)
 
 # Construire la liste des clés de questions et les options associées (pour générer des réponses)
