@@ -9,7 +9,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
     "decommissionnement": {
       "label": "Existence d'une procédure de décommissionnement",
@@ -21,6 +21,7 @@
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
+	  "app_types": ["Editeur onPrem", "Editeur cloud", "SaaS"]
     }
   },
   "Organisation": {
@@ -33,7 +34,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
     "team": {
       "label": "Équipe clairement identifiée",
@@ -44,7 +45,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
     "roadmap": {
       "label": "Roadmap claire",
@@ -55,7 +56,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
     "support_contrat": {
       "label": "Support assuré sur 24 mois",
@@ -92,7 +93,7 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
 	"support": {
       "label": "Composants tiers non supportés",
@@ -103,7 +104,7 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
 	"version_recente": {
       "label": "Existe-t-il une version plus récente du progiciel non déployée",
@@ -128,7 +129,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
 	"respect": {
       "label": "Respect des standards et des principes d'architecture",
@@ -139,7 +140,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
 	"code_source": {
       "label": "Code source maintenable et documenté",
@@ -150,7 +151,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
 	"echanges_api": {
       "label": "Échanges via des API",
@@ -161,7 +162,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
 	"specifique": {
       "label": "Pour un progiciel, développements spécifiques intégrés",
@@ -198,7 +199,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
 	"vulnerabilites": {
       "label": "Vulnérabilités connues non corrigées",
@@ -209,7 +210,7 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     },
 	"surveillance": {
       "label": "Mécanismes de surveillance et d’alerte",
@@ -220,7 +221,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     }
   },
   "Exploitation et Performance": {
@@ -233,7 +234,7 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     }, 
 	"performances": {
       "label": "Performances satisfaisantes",
@@ -244,7 +245,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     }, 
 	"scalable": {
       "label": "Application scalable",
@@ -255,7 +256,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     }
   },
   "Fonctionnel": {
@@ -268,7 +269,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     }, 
 	"recouvrement": {
       "label": "Périmètre applicatif spécifique identifié",
@@ -279,7 +280,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     }, 
 	"evolutivite": {
       "label": "Évolutivité pour nouvelles demandes métier",
@@ -290,7 +291,7 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     }, 
 	"fonctions": {
       "label": "Fonctionnalités obsolètes ou inutilisées",
@@ -301,7 +302,7 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ],
+      ]
     }
   }
 }
