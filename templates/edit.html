@@ -68,16 +68,23 @@
           <input type="date" name="possession" class="form-control" value="{{ application.possession }}">
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">Type d'application :</label>
-          <select name="type" class="form-select">
-            <option value="Interne" {% if application.type == "Interne" %} selected {% endif %}>Interne</option>
-            <option value="Interne cloud" {% if application.type == "Interne cloud" %} selected {% endif %}>Interne cloud</option>
-            <option value="Editeur onPrem" {% if application.type == "Editeur onPrem" %} selected {% endif %}>Editeur onPrem</option>
-            <option value="Editeur cloud" {% if application.type == "Editeur cloud" %} selected {% endif %}>Editeur cloud</option>
-            <option value="SaaS" {% if application.type == "SaaS" %} selected {% endif %}>SaaS</option>
-          </select>
-        </div>
+		<div class="mb-3">
+		  <label class="form-label">Type d'application :</label>
+		  <select name="type_app" class="form-select">
+			<option value="Interne" {% if application.type_app == "Interne" %} selected {% endif %}>Interne</option>
+			<option value="Editeur" {% if application.type_app == "Editeur" %} selected {% endif %}>Editeur</option>
+			<option value="Open source" {% if application.type_app == "Open source" %} selected {% endif %}>Open source</option>
+		  </select>
+		</div>
+		<div class="mb-3">
+		  <label class="form-label">Type d'hébergement :</label>
+		  <select name="hosting" class="form-select">
+			<option value="On prem" {% if application.hosting == "On prem" %} selected {% endif %}>On prem</option>
+			<option value="Hybride" {% if application.hosting == "Hybride" %} selected {% endif %}>Hybride</option>
+			<option value="Cloud" {% if application.hosting == "Cloud" %} selected {% endif %}>Cloud</option>
+			<option value="SaaS" {% if application.hosting == "SaaS" %} selected {% endif %}>SaaS</option>
+		  </select>
+		</div>
 		<div class="mb-3">
 		  <label class="form-label">Criticité :
 			<span class="info-icon" data-key="app-criticite">?</span>

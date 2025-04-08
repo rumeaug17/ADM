@@ -68,16 +68,23 @@
           <label class="form-label">Date de première possession :</label>
           <input type="date" name="possession" class="form-control" required>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Type d'application :</label>
-          <select name="type" class="form-select">
-            <option value="Interne">Interne</option>
-            <option value="Interne cloud">Interne cloud</option>
-            <option value="Editeur onPrem">Editeur onPrem</option>
-            <option value="Editeur cloud">Editeur cloud</option>
-            <option value="SaaS">SaaS</option>
-          </select>
-        </div>
+		<div class="mb-3">
+		  <label class="form-label">Type d'application :</label>
+		  <select name="type_app" class="form-select">
+			<option value="Interne">Interne</option>
+			<option value="Editeur">Editeur</option>
+			<option value="Open source">Open source</option>
+		  </select>
+		</div>
+		<div class="mb-3">
+		  <label class="form-label">Type d'hébergement :</label>
+		  <select name="hosting" class="form-select">
+			<option value="On prem">On prem</option>
+			<option value="Hybride">Hybride</option>
+			<option value="Cloud">Cloud</option>
+			<option value="SaaS">SaaS</option>
+		  </select>
+		</div>
 		<div class="mb-3">
 		  <label class="form-label">Criticité :
 			<span class="info-icon" data-key="app-criticite">?</span>
