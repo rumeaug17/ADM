@@ -465,6 +465,7 @@ def score_application(name):
                 app_item.responses = draft_responses
                 app_item.comments = draft_comments
                 # On peut enregistrer aussi le nom de l'évaluateur (facultatif)
+                app_item.evaluator_name = request.form.get("evaluator_name", "")
                 # Si vous souhaitez enregistrer un brouillon, vous ne mettez pas à jour le score final.
                 session_db.commit()
                 flash("Brouillon enregistré.", "success")
