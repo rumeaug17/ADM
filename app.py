@@ -513,7 +513,7 @@ def score_application(name):
         
         # return render_template("score.html", application=app_item, questions=QUESTIONS)
         # Filtrer les questions à afficher en fonction du type d'application
-        filtered_questions = filter_questions_by_type(QUESTIONS, application["type_app"], application["hosting"])
+        filtered_questions = filter_questions_by_type(QUESTIONS, app_item.type_app, app_item.hosting)
         return render_template("score.html", application=app_item, questions=filtered_questions)
         
     finally:
