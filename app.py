@@ -27,9 +27,11 @@ import numpy as np
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, Response, session, flash
 
+# Import du module de base de données
+from database import init_db, get_session_factory, Application, Evaluation
+
 app = Flask(__name__)
 # Configuration de l'application
-app.config["DATA_FILE"] = "applications.json"
 app.config["QUESTIONS_FILE"] = "questions.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
 app.config["CONFIG"] = "config.json"
@@ -87,27 +89,14 @@ def compute_scoring_map(questions: dict) -> dict:
 SCORING_MAP: Dict[str, Optional[int]] = compute_scoring_map(QUESTIONS)
 CATEGORIES: Dict[str, List[str]] = compute_categories(QUESTIONS)
 
+# --- Initialisation de la connexion à la base de données ---
+
+# La chaîne de connexion est attendue dans la configuration de l'application Flask.
+app.config["DB_CONNECTION"] = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
+engine = init_db(app.config["DB_CONNECTION"])
+Session = get_session_factory(engine)
+
 # --- Gestion des données ---
-
-# Initialisation du fichier de données s'il n'existe pas
-if not os.path.exists(app.config["DATA_FILE"]):
-    with open(app.config["DATA_FILE"], "w", encoding="utf-8") as f:
-        json.dump([], f)
-
-def load_data() -> List[Dict[str, Any]]:
-    """Charge la liste des applications depuis le fichier JSON."""
-    return load_json_file(app.config["DATA_FILE"])
-
-def save_data(data: List[Dict[str, Any]]) -> None:
-    """
-    Enregistre la liste des applications dans le fichier JSON.
-    Une sauvegarde du fichier existant est effectuée avant l'écriture.
-    """
-    data_file = app.config["DATA_FILE"]
-    if os.path.exists(data_file):
-        shutil.copyfile(data_file, app.config["BACKUP_FILE"])
-    with open(data_file, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
 
 # --- Fonctions utilitaires ---
 
@@ -170,10 +159,40 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def get_app_by_name(name: str, data: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    """Retourne l'application dont le nom correspond ou None si non trouvée."""
-    return next((app for app in data if app["name"] == name), None)
+def get_app_by_name(name: str, session_db) -> Application:
+    return session_db.query(Application).filter_by(name=name).first()
 
+def app_to_dict(app_obj: Application) -> dict:
+    return {
+        "name": app_obj.name,
+        "rda": app_obj.rda,
+        "possession": app_obj.possession.isoformat() if app_obj.possession else None,
+        "type_app": app_obj.type_app,
+        "hosting": app_obj.hosting,
+        "criticite": app_obj.criticite,
+        "disponibilite": app_obj.disponibilite,
+        "integrite": app_obj.integrite,
+        "confidentialite": app_obj.confidentialite,
+        "perennite": app_obj.perennite,
+        "score": app_obj.score,
+        "answered_questions": app_obj.answered_questions,
+        "last_evaluation": app_obj.last_evaluation.isoformat() if app_obj.last_evaluation else None,
+        "responses": app_obj.responses,
+        "comments": app_obj.comments,
+        "evaluations": [
+            {
+                "score": ev.score,
+                "answered_questions": ev.answered_questions,
+                "last_evaluation": ev.last_evaluation.isoformat() if ev.last_evaluation else None,
+                "evaluator_name": ev.evaluator_name,
+                "responses": ev.responses,
+                "comments": ev.comments,
+                "created_at": ev.created_at.isoformat() if ev.created_at else None,
+            }
+            for ev in app_obj.evaluations
+        ]
+    }
+    
 # --- Calcul des métriques et graphiques ---
 
 def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
@@ -259,73 +278,6 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
                 axis_scores[category].append(sum(scores) / len(scores))
     return {key: round(sum(values)/len(values), 2) if values else 0 for key, values in axis_scores.items()}
 
-def generate_radar_chart_new(avg_axis_scores: Dict[str, float]) -> str:
-    """
-    Génère un graphique radar en coordonnées polaires à partir des scores moyens par axe.
-    
-    La zone intérieure du radar est remplie par un dégradé qui dépend du rayon :
-      - Bleu pour r <= 1,
-      - Transition linéaire de bleu à jaune pour 1 < r <= 2,
-      - Transition linéaire de jaune à rouge pour 2 < r <= 3.
-    
-    Le remplissage est réalisé avec un contourf en polar qui est ensuite clipé sur la zone
-    définie par la courbe radar.
-    
-    Retourne l'image PNG encodée en base64.
-    """
-    # Préparation des données et fermeture de la boucle
-    categories = list(avg_axis_scores.keys())
-    scores = list(avg_axis_scores.values())
-    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-    scores += scores[:1]
-    angles += angles[:1]
-    
-    # Création de la figure en coordonnées polaires
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={'projection': 'polar'})
-    ax.set_theta_offset(np.pi / 2)
-    ax.set_theta_direction(-1)
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories)
-    ax.set_ylim(0, 3)
-    ax.set_yticks([0, 1, 2, 3])
-    ax.set_yticklabels(["0", "1", "2", "3"])
-    ax.axhline(y=0, color='black', linestyle='--')
-    
-    # Création du colormap personnalisé pour le dégradé radial
-    cmap = LinearSegmentedColormap.from_list("custom_gradient", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
-    
-    # Création d'une grille en coordonnées polaires pour le contourf.
-    # theta varie de 0 à 2pi et r de 0 à 3.
-    n_theta, n_r = 300, 300
-    theta = np.linspace(0, 2 * np.pi, n_theta)
-    r = np.linspace(0, 3, n_r)
-    T, R = np.meshgrid(theta, r)
-    # La valeur affichée est simplement le rayon, qui détermine la couleur via le colormap.
-    Z = R  
-    
-    # Remplissage de tout le disque par un contourf
-    cs = ax.contourf(T, R, Z, levels=100, cmap=cmap, vmin=0, vmax=3, zorder=1)
-    
-    # Construction du polygone correspondant à la zone radar
-    # Conversion des points (theta, r) de la courbe radar en coordonnées cartésiennes
-    radar_verts = [(r_val * np.cos(theta_val), r_val * np.sin(theta_val)) for theta_val, r_val in zip(angles, scores)]
-    radar_patch = Polygon(radar_verts, closed=True, transform=ax.transData)
-    
-    # Appliquer le clip à chaque collection du contourf
-    for coll in cs.collections:
-        coll.set_clip_path(radar_patch)
-    
-    # Tracé de la courbe radar par-dessus
-    ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid', zorder=2)
-    
-    # Export du graphique dans un buffer
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')
-    buf.seek(0)
-    chart_data = base64.b64encode(buf.getvalue()).decode('utf-8')
-    buf.close()
-    plt.close()
-    return chart_data
 
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
@@ -361,6 +313,16 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
 
 # --- Routes et gestion de l'authentification ---
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Loggez l'erreur (optionnel)
+    app.logger.error("Unhandled Exception: %s", e)
+    # Récupération d'un code d'erreur si disponible, sinon 500
+    code = getattr(e, "code", 500)
+    # Affichez le template error.html en passant le message d'erreur
+    return render_template("error.html", error_message=str(e)), code
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login() -> Any:
     """Route de connexion avec authentification minimale."""
@@ -384,333 +346,393 @@ def logout() -> Any:
 
 @app.route('/')
 @login_required
-def index() -> Any:
-    """
-    Affiche la liste des applications et met à jour leurs métriques.
-    """
-    applications = load_data()
-    update_all_metrics(applications)
-    return render_template("index.html", applications=applications)
-
+def index():
+    session_db = Session()
+    try:
+        app_objs = session_db.query(Application).all()
+        # Convertir les objets ORM en dictionnaires
+        applications = [app_to_dict(app) for app in app_objs]
+        # Mettre à jour les métriques pour chaque application convertie
+        for app_item in applications:
+            update_app_metrics(app_item)
+        return render_template("index.html", applications=applications)
+    finally:
+        session_db.close()
+        
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
-def add_application() -> Any:
-    """
-    Permet d'ajouter une nouvelle application.
-    En POST, crée et enregistre l'application.
-    """
+def add_application():
     if request.method == 'POST':
-        data = load_data()
-        new_app = {
-            "name": request.form["name"],
-            "rda": request.form["rda"],
-            "possession": request.form["possession"],
-            "type_app": request.form["type_app"],
-            "hosting": request.form["hosting"],
-            "criticite": request.form["criticite"],
-            "disponibilite": request.form["disponibilite"],
-            "integrite": request.form["integrite"],
-            "confidentialite": request.form["confidentialite"],
-            "perennite": request.form["perennite"],
-            "score": None,
-            "answered_questions": 0,
-            "last_evaluation": None,
-            "responses": {},
-            "comments": {},
-            "evaluations": []
-        }
-        data.append(new_app)
-        save_data(data)
-        return redirect(url_for("index"))
+        session_db = Session()
+        try:
+            # Création d'une nouvelle application
+            new_app = Application(
+                name=request.form["name"],
+                rda=request.form["rda"],
+                possession=datetime.strptime(request.form["possession"], "%Y-%m-%d").date(),
+                type_app=request.form["type_app"],
+                hosting=request.form["hosting"],
+                criticite=request.form["criticite"],
+                disponibilite=request.form["disponibilite"],
+                integrite=request.form["integrite"],
+                confidentialite=request.form["confidentialite"],
+                perennite=request.form["perennite"],
+                score=None,
+                answered_questions=0,
+                last_evaluation=None,
+                responses={},
+                comments={}
+            )
+            session_db.add(new_app)
+            session_db.commit()
+            return redirect(url_for("index"))
+        finally:
+            session_db.close()
     return render_template("add.html")
 
 @app.route('/edit/<name>', methods=['GET', 'POST'])
 @login_required
-def edit_application(name: str) -> Any:
-    """
-    Permet de modifier une application existante.
-    Renvoie une erreur 404 si l'application n'est pas trouvée.
-    """
-    data = load_data()
-    app_to_edit = get_app_by_name(name, data)
-    if not app_to_edit:
-        abort(404, description="Application non trouvée")
-    
-    if request.method == "POST":
-        # Mise à jour des champs modifiables
-        for field in ["name", "rda", "possession", "type_app", "hosting", "criticite",
-                      "disponibilite", "integrite", "confidentialite", "perennite"]:
-            app_to_edit[field] = request.form[field]
-        save_data(data)
-        return redirect(url_for("index"))
-    
-    return render_template("edit.html", application=app_to_edit)
+def edit_application(name):
+    session_db = Session()
+    try:
+        app_to_edit = get_app_by_name(name, session_db)
+        if not app_to_edit:
+            abort(404, description="Application non trouvée")
+        if request.method == "POST":
+            # Mise à jour des champs modifiables
+            app_to_edit.rda = request.form["rda"]
+            app_to_edit.possession = datetime.strptime(request.form["possession"], "%Y-%m-%d").date()
+            app_to_edit.type_app = request.form["type_app"]
+            app_to_edit.hosting = request.form["hosting"]
+            app_to_edit.criticite = request.form["criticite"]
+            app_to_edit.disponibilite = request.form["disponibilite"]
+            app_to_edit.integrite = request.form["integrite"]
+            app_to_edit.confidentialite = request.form["confidentialite"]
+            app_to_edit.perennite = request.form["perennite"]
+            session_db.commit()
+            return redirect(url_for("index"))
+        return render_template("edit.html", application=app_to_edit)
+    finally:
+        session_db.close()
 
 @app.route('/delete/<name>', methods=['POST'])
 @login_required
-def delete_application(name: str) -> Any:
-    """Supprime une application par nom et redirige vers l'index."""
-    data = load_data()
-    data = [app for app in data if app["name"] != name]
-    save_data(data)
-    return redirect(url_for("index"))
+def delete_application(name):
+    session_db = Session()
+    try:
+        app_to_delete = get_app_by_name(name, session_db)
+        if not app_to_delete:
+            abort(404, description="Application non trouvée")
+        session_db.delete(app_to_delete)
+        session_db.commit()
+        return redirect(url_for("index"))
+    finally:
+        session_db.close()
 
 @app.route('/score/<name>', methods=['GET', 'POST'])
 @login_required
-def score_application(name: str) -> Any:
-    """
-    Permet d'évaluer une application.
-    En POST, sauvegarde soit un brouillon, soit l'évaluation finale.
-    """
-    data = load_data()
-    application = get_app_by_name(name, data)
-    if not application:
-        abort(404, description="Application non trouvée")
-    
-    # Initialisation de l'historique des évaluations si nécessaire
-    application.setdefault("evaluations", [])
-    
-    if request.method == 'POST':
-        responses = request.form.to_dict()
-        # Sauvegarde brouillon
-        if "save_draft" in request.form:
-            application.setdefault("responses", {})
-            application.setdefault("comments", {})
-            for key, value in responses.items():
-                if key.endswith("_comment"):
-                    application["comments"][key] = value
-                elif value in SCORING_MAP:
-                    application["responses"][key] = value
-            application["evaluator_name"] = responses.get("evaluator_name", "")
-            save_data(data)
-            flash("Brouillon enregistré.", "success")
-        else:
-            # Validation que tous les commentaires sont renseignés
-            for key, value in responses.items():
-                if key.endswith("_comment") and not value.strip():
-                    flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
-                    return render_template("score.html", application=application, questions=QUESTIONS)
-            # Calcul de l'évaluation finale
-            score = 0
-            answered_questions = 0
-            evaluation_responses = {}
-            evaluation_comments = {}
-            for key, value in responses.items():
-                if key.endswith("_comment"):
-                    evaluation_comments[key] = value
-                elif value in SCORING_MAP:
-                    evaluation_responses[key] = value
-                    if SCORING_MAP[value] is not None:
-                        score += SCORING_MAP[value]
-                        answered_questions += 1
-            evaluation = {
-                "score": score,
-                "answered_questions": answered_questions,
-                "last_evaluation": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "evaluator_name": responses.get("evaluator_name", ""),
-                "responses": evaluation_responses,
-                "comments": evaluation_comments
-            }
-            application["evaluations"].append(evaluation)
-            # Mise à jour rapide de l'affichage
-            application["score"] = score
-            application["answered_questions"] = answered_questions
-            application["last_evaluation"] = evaluation["last_evaluation"]
-            application["evaluator_name"] = evaluation["evaluator_name"]
-            application["responses"] = evaluation_responses
-            application["comments"] = evaluation_comments
-            save_data(data)
-            flash("Évaluation enregistrée.", "success")
-        return redirect(url_for("index"))
-    
-    # Filtrer les questions à afficher en fonction du type d'application
-    filtered_questions = filter_questions_by_type(QUESTIONS, application["type_app"], application["hosting"])
-    
-    return render_template("score.html", application=application, questions=filtered_questions)
+def score_application(name):
+    session_db = Session()
+    try:
+        app_item = get_app_by_name(name, session_db)
+        if not app_item:
+            abort(404, description="Application non trouvée")
+            
+        if request.method == 'POST':
+            # Mode brouillon : on ne vérifie pas que tous les commentaires sont remplis
+            if "save_draft" in request.form:
+                draft_responses = {}
+                draft_comments = {}
+                for key, value in request.form.items():
+                    if key.endswith("_comment"):
+                        draft_comments[key] = value
+                    elif value in SCORING_MAP:
+                        draft_responses[key] = value
+                # Enregistrer le brouillon sans validation stricte des commentaires.
+                app_item.responses = draft_responses
+                app_item.comments = draft_comments
+                # On peut enregistrer aussi le nom de l'évaluateur (facultatif)
+                # Si vous souhaitez enregistrer un brouillon, vous ne mettez pas à jour le score final.
+                session_db.commit()
+                flash("Brouillon enregistré.", "success")
+                return redirect(url_for("index"))
+            else:
+                # Mode évaluation finale : on vérifie que tous les commentaires sont renseignés
+                for key, value in request.form.items():
+                    if key.endswith("_comment") and not value.strip():
+                        flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
+                        return render_template("score.html", application=app_item, questions=QUESTIONS)
+                
+                evaluation_responses = {}
+                evaluation_comments = {}
+                score = 0
+                answered_questions = 0
+                for key, value in request.form.items():
+                    if key.endswith("_comment"):
+                        evaluation_comments[key] = value
+                    elif value in SCORING_MAP:
+                        evaluation_responses[key] = value
+                        if SCORING_MAP[value] is not None:
+                            score += SCORING_MAP[value]
+                            answered_questions += 1
+                
+                new_eval = Evaluation(
+                    score=score,
+                    answered_questions=answered_questions,
+                    last_evaluation=datetime.now(),
+                    evaluator_name=request.form.get("evaluator_name", ""),
+                    responses=evaluation_responses,
+                    comments=evaluation_comments
+                )
+                # Ajoute la nouvelle évaluation à l'historique de l'application
+                app_item.evaluations.append(new_eval)
+                # Met à jour l'application avec la nouvelle évaluation
+                app_item.score = score
+                app_item.answered_questions = answered_questions
+                app_item.last_evaluation = new_eval.last_evaluation
+                app_item.responses = evaluation_responses
+                app_item.comments = evaluation_comments
+                session_db.commit()
+                flash("Évaluation enregistrée.", "success")
+                return redirect(url_for("index"))
+        
+        return render_template("score.html", application=app_item, questions=QUESTIONS)
+    finally:
+        session_db.close()
+
 
 @app.route('/reset/<name>', methods=['POST'])
 @login_required
-def reset_evaluation(name: str) -> Any:
-    """Réinitialise l'évaluation d'une application sans toucher aux réponses enregistrées."""
-    data = load_data()
-    app_to_reset = get_app_by_name(name, data)
-    if not app_to_reset:
-        abort(404, description="Application non trouvée")
-    app_to_reset["score"] = None
-    app_to_reset["answered_questions"] = 0
-    app_to_reset["last_evaluation"] = None
-    app_to_reset["evaluator_name"] = ""
-    save_data(data)
-    flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
-    return redirect(url_for("index"))
+def reset_evaluation(name):
+    session_db = Session()
+    try:
+        app_to_reset = get_app_by_name(name, session_db)
+        if not app_to_reset:
+            abort(404, description="Application non trouvée")
+        # Réinitialiser les évaluations de l'application
+        app_to_reset.score = None
+        app_to_reset.answered_questions = 0
+        app_to_reset.last_evaluation = None
+        app_to_reset.responses = {}
+        app_to_reset.comments = {}
+        session_db.commit()
+        flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
+        return redirect(url_for("index"))
+    finally:
+        session_db.close()
 
 @app.route('/reevaluate_all', methods=['POST'])
 @login_required
-def reevaluate_all() -> Any:
-    """Réinitialise l'évaluation de toutes les applications."""
-    data = load_data()
-    for app_item in data:
-        app_item["score"] = None
-        app_item["answered_questions"] = 0
-        app_item["last_evaluation"] = None
-        app_item["evaluator_name"] = ""
-    save_data(data)
-    flash("Toutes les évaluations ont été réinitialisées.", "success")
-    return redirect(url_for("index"))
+def reevaluate_all():
+    session_db = Session()
+    try:
+        applications = session_db.query(Application).all()
+        for app_item in applications:
+            app_item.score = None
+            app_item.answered_questions = 0
+            app_item.last_evaluation = None
+            app_item.responses = {}
+            app_item.comments = {}
+        session_db.commit()
+        flash("Toutes les évaluations ont été réinitialisées.", "success")
+        return redirect(url_for("index"))
+    finally:
+        session_db.close()
 
+# --- Nouvelle route : Radar Chart ---
 @app.route('/radar/<name>')
 @login_required
-def radar_chart(name: str) -> Any:
-    """
-    Génère et retourne un graphique radar pour une application.
-    Renvoie une erreur 404 si l'application n'est pas trouvée.
-    """
-    data = load_data()
-    app_item = get_app_by_name(name, data)
-    if not app_item:
-        abort(404, description="Application non trouvée")
-    avg_axis_scores = calculate_axis_scores([app_item])
-    chart_data = generate_radar_chart(avg_axis_scores)
-    return Response(base64.b64decode(chart_data), mimetype='image/png')
+def radar_chart(name):
+    session_db = Session()
+    try:
+        app_obj = get_app_by_name(name, session_db)
+        if not app_obj:
+            abort(404, description="Application non trouvée")
+        # Pour générer le graphique radar, on utilise les réponses stockées.
+        # On suppose que la fonction calculate_axis_scores attend un dictionnaire avec la clé "responses".
+        avg_axis_scores = calculate_axis_scores([{"responses": app_obj.responses}])
+        chart_data = generate_radar_chart(avg_axis_scores)
+        return Response(base64.b64decode(chart_data), mimetype='image/png')
+    finally:
+        session_db.close()
 
+# --- Nouvelle route : Synthèse ---
 @app.route('/synthese')
 @login_required
-def synthese() -> Any:
-    """
-    Affiche la synthèse globale des applications, avec KPI, graphique radar et tableau filtré.
-    """
-    data = load_data()
-    filter_score = request.args.get("filter_score", "above_30")
-    for app_item in data:
-        update_app_metrics(app_item)
-    evaluated_risks = [app["risque"] for app in data if app.get("risque") is not None]
-    global_risk = round(sum(evaluated_risks) / len(evaluated_risks), 2) if evaluated_risks else None
-    total_apps = len(data)
-    if filter_score == "above_30":
-        scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 30]
-    elif filter_score == "above_60":
-        scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 60]
-    else:
-        scored_apps = data.copy()
-    avg_score = round(sum(app["score"] for app in data if app.get("score") is not None) / len(data), 2) if data else 0
-    apps_above_30 = len([app for app in data if app.get("percentage") and app["percentage"] > 30])
-    apps_above_60 = len([app for app in data if app.get("percentage") and app["percentage"] > 60])
-    avg_axis_scores = calculate_axis_scores(data)
-    chart_data = generate_radar_chart(avg_axis_scores)
-    scored_apps.sort(key=lambda app: app.get("score") or 0, reverse=True)
-    
-    # Calcul du pire score par catégorie
-    best_by_category = {}
-    for category in CATEGORIES:
-        best_app = None
-        best_score = -1
+def synthese():
+    session_db = Session()
+    try:
+        filter_score = request.args.get("filter_score", "above_30")
+        db_apps = session_db.query(Application).all()
+        # Conversion des objets ORM en dictionnaires
+        data = [app_to_dict(app) for app in db_apps]
+        
+        # Mise à jour des métriques pour chaque application
         for app_item in data:
-            cat_score = calculate_category_sums(app_item).get(category, 0)
-            if cat_score > best_score:
-                best_score = cat_score
-                best_app = app_item.get("name")
-        best_by_category[category] = (best_app, best_score)
-    best_grouped = {}
-    for category, (app_name, score) in best_by_category.items():
-        if app_name:
-            best_grouped.setdefault(app_name, []).append((category, score))
-    
-    return render_template(
-        "synthese.html",
-        applications=scored_apps,
-        total_apps=total_apps,
-        avg_score=avg_score,
-        apps_above_30=apps_above_30,
-        apps_above_60=apps_above_60,
-        filter_score=filter_score,
-        avg_axis_scores=avg_axis_scores,
-        chart_data=chart_data,
-        global_risk=global_risk,
-        best_grouped=best_grouped
-    )
+            update_app_metrics(app_item)
+        evaluated_risks = [app_item.get("risque") for app_item in data if app_item.get("risque") is not None]
+        global_risk = round(sum(evaluated_risks) / len(evaluated_risks), 2) if evaluated_risks else None
+        total_apps = len(data)
+        
+        if filter_score == "above_30":
+            scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 30]
+        elif filter_score == "above_60":
+            scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 60]
+        else:
+            scored_apps = data.copy()
+            
+        avg_score = round(sum(app["score"] for app in data if app.get("score") is not None) / len(data), 2) if data else 0
+        apps_above_30 = len([app for app in data if app.get("percentage") and app["percentage"] > 30])
+        apps_above_60 = len([app for app in data if app.get("percentage") and app["percentage"] > 60])
+        avg_axis_scores = calculate_axis_scores(data)
+        chart_data = generate_radar_chart(avg_axis_scores)
+        scored_apps.sort(key=lambda app: app.get("score") or 0, reverse=True)
+        
+        # Calcul des pires scores (ou meilleurs, selon la logique)
+        best_by_category = {}
+        for category in CATEGORIES:
+            best_app = None
+            best_score = -1
+            for app_item in data:
+                cat_score = calculate_category_sums(app_item).get(category, 0)
+                if cat_score > best_score:
+                    best_score = cat_score
+                    best_app = app_item.get("name")
+            best_by_category[category] = (best_app, best_score)
+        best_grouped = {}
+        for category, (app_name, score_val) in best_by_category.items():
+            if app_name:
+                best_grouped.setdefault(app_name, []).append((category, score_val))
+        
+        return render_template(
+            "synthese.html",
+            applications=scored_apps,
+            total_apps=total_apps,
+            avg_score=avg_score,
+            apps_above_30=apps_above_30,
+            apps_above_60=apps_above_60,
+            filter_score=filter_score,
+            avg_axis_scores=avg_axis_scores,
+            chart_data=chart_data,
+            global_risk=global_risk,
+            best_grouped=best_grouped
+        )
+    finally:
+        session_db.close()
 
+# --- Nouvelle route : Export CSV ---
 @app.route('/export_csv')
 @login_required
-def export_csv() -> Any:
-    """Exporte les applications au format CSV pour téléchargement."""
-    applications = load_data()
-    update_all_metrics(applications)
-    for app_item in applications:
-        app_item["risque"] = calculate_risk(app_item)
-    si = io.StringIO()
-    writer = csv.writer(si, delimiter=';')
-    header = ["Nom", "Type", "RDA", "Criticité", "Disponibilité", "Intégrité", "Confidentialité",
-              "Pérennité", "Score", "Max Score", "Pourcentage", "Dernière évaluation", "Évaluateur", "Risque"]
-    writer.writerow(header)
-    for app_item in applications:
-        row = [
-            app_item.get("name", ""),
-            app_item.get("type", ""),
-            app_item.get("rda", ""),
-            app_item.get("criticite", ""),
-            app_item.get("disponibilite", ""),
-            app_item.get("integrite", ""),
-            app_item.get("confidentialite", ""),
-            app_item.get("perennite", ""),
-            app_item.get("score", ""),
-            app_item.get("max_score", ""),
-            app_item.get("percentage", ""),
-            app_item.get("last_evaluation", ""),
-            app_item.get("evaluator_name", ""),
-            "" if app_item.get("risque") is None else round(app_item.get("risque"))
-        ]
-        writer.writerow(row)
-    output = si.getvalue()
-    si.close()
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=applications_export.csv"}
-    )
+def export_csv():
+    session_db = Session()
+    try:
+        db_apps = session_db.query(Application).all()
+        applications = [app_to_dict(app) for app in db_apps]
+        update_all_metrics(applications)
+        for app_item in applications:
+            app_item["risque"] = calculate_risk(app_item)
+        si = io.StringIO()
+        writer = csv.writer(si, delimiter=';')
+        header = ["Nom", "Type", "RDA", "Criticité", "Disponibilité", "Intégrité", "Confidentialité",
+                  "Pérennité", "Score", "Max Score", "Pourcentage", "Dernière évaluation", "Évaluateur", "Risque"]
+        writer.writerow(header)
+        for app_item in applications:
+            row = [
+                app_item.get("name", ""),
+                f"{app_item.get('type_app', '')} / {app_item.get('hosting', '')}",
+                app_item.get("rda", ""),
+                app_item.get("criticite", ""),
+                app_item.get("disponibilite", ""),
+                app_item.get("integrite", ""),
+                app_item.get("confidentialite", ""),
+                app_item.get("perennite", ""),
+                app_item.get("score", ""),
+                app_item.get("max_score", ""),
+                app_item.get("percentage", ""),
+                app_item.get("last_evaluation", ""),
+                app_item.get("evaluator_name", ""),
+                "" if app_item.get("risque") is None else round(app_item.get("risque"))
+            ]
+            writer.writerow(row)
+        output = si.getvalue()
+        si.close()
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-Disposition": "attachment; filename=applications_export.csv"}
+        )
+    finally:
+        session_db.close()
 
 @app.route('/resume/<name>')
 @login_required
-def resume(name: str) -> Any:
-    """
-    Affiche un résumé détaillé d'une application, incluant les dernières évaluations,
-    un graphique radar et la comparaison avec l'évaluation précédente (si disponible).
-    """
-    data = load_data()
-    app_item = get_app_by_name(name, data)
-    if not app_item:
-        abort(404, description="Application non trouvée")
-    if app_item.get("evaluations"):
-        last_eval = app_item["evaluations"][-1]
-        app_item.update({
-            "score": last_eval["score"],
-            "answered_questions": last_eval["answered_questions"],
-            "last_evaluation": last_eval["last_evaluation"],
-            "evaluator_name": last_eval["evaluator_name"],
-            "responses": last_eval["responses"],
-            "comments": last_eval["comments"]
-        })
-    update_app_metrics(app_item)
-    current_responses = app_item["evaluations"][-1].get("responses", {}) if app_item.get("evaluations") else {}
-    current_category_sums = calculate_category_sums({"responses": current_responses})
-    if app_item.get("evaluations") and len(app_item["evaluations"]) > 1:
-        previous_eval = app_item["evaluations"][-2]
-        previous_category_sums = calculate_category_sums({"responses": previous_eval.get("responses", {})})
-    else:
-        previous_eval = {}
-        previous_category_sums = {}
-    current_eval = app_item["evaluations"][-1] if app_item.get("evaluations") else {}
-    current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
-    radar_chart_data = generate_radar_chart(current_axis_scores)
-    return render_template(
-        "resume.html",
-        app=app_item,
-        radar_chart=radar_chart_data,
-        category_sums=current_category_sums,
-        previous_category_sums=previous_category_sums,
-        questions=QUESTIONS,
-        current_eval=current_eval,
-        previous_eval=previous_eval
-    )
+def resume(name):
+    session_db = Session()
+    try:
+        app_obj = get_app_by_name(name, session_db)
+        if not app_obj:
+            abort(404, description="Application non trouvée")
+            
+        # Convertir l'objet Application en dictionnaire pour faciliter le calcul des métriques
+        app_item = app_to_dict(app_obj)
+        
+        # Tri des évaluations par date de création (si created_at est nul, on utilise datetime.min)
+        evaluations_sorted = sorted(
+            app_obj.evaluations, 
+            key=lambda ev: ev.created_at if ev.created_at is not None else datetime.min
+        )
+        
+        # Si au moins une évaluation existe, on utilise la plus récente
+        if evaluations_sorted:
+            last_eval_obj = evaluations_sorted[-1]
+            last_eval = {
+                "score": last_eval_obj.score,
+                "answered_questions": last_eval_obj.answered_questions,
+                "last_evaluation": last_eval_obj.last_evaluation.isoformat() if last_eval_obj.last_evaluation else None,
+                "evaluator_name": last_eval_obj.evaluator_name,
+                "responses": last_eval_obj.responses,
+                "comments": last_eval_obj.comments
+            }
+            # Mettez à jour les données affichées avec la dernière évaluation
+            app_item.update(last_eval)
+        update_app_metrics(app_item)
+        
+        current_responses = app_item.get("responses", {}) if evaluations_sorted else {}
+        current_category_sums = calculate_category_sums({"responses": current_responses})
+        
+        # Si au moins deux évaluations existent, on récupère l'évaluation précédente
+        if len(evaluations_sorted) > 1:
+            previous_eval_obj = evaluations_sorted[-2]
+            previous_eval = {
+                "score": previous_eval_obj.score,
+                "answered_questions": previous_eval_obj.answered_questions,
+                "last_evaluation": previous_eval_obj.last_evaluation.isoformat() if previous_eval_obj.last_evaluation else None,
+                "evaluator_name": previous_eval_obj.evaluator_name,
+                "responses": previous_eval_obj.responses,
+                "comments": previous_eval_obj.comments
+            }
+            previous_category_sums = calculate_category_sums({"responses": previous_eval.get("responses", {})})
+        else:
+            previous_eval = {}
+            previous_category_sums = {}
+        
+        current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
+        radar_chart_data = generate_radar_chart(current_axis_scores)
+        
+        return render_template(
+            "resume.html",
+            app=app_item,
+            radar_chart=radar_chart_data,
+            category_sums=current_category_sums,
+            previous_category_sums=previous_category_sums,
+            questions=QUESTIONS,
+            current_eval=last_eval if evaluations_sorted else {},
+            previous_eval=previous_eval
+        )
+    finally:
+        session_db.close()
+
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
