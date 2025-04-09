@@ -163,17 +163,13 @@ def get_app_by_name(name: str, session_db) -> Application:
     return session_db.query(Application).filter_by(name=name).first()
 
 def app_to_dict(app_obj: Application) -> dict:
-    """
-    Convertit un objet Application en dictionnaire pour pouvoir être exploité
-    par les fonctions de calcul des métriques et de génération des graphiques.
-    """
     return {
         "name": app_obj.name,
         "rda": app_obj.rda,
         "possession": app_obj.possession.isoformat() if app_obj.possession else None,
         "type_app": app_obj.type_app,
         "hosting": app_obj.hosting,
-        "criticite": str(app_obj.criticite),
+        "criticite": app_obj.criticite,
         "disponibilite": app_obj.disponibilite,
         "integrite": app_obj.integrite,
         "confidentialite": app_obj.confidentialite,
@@ -182,7 +178,19 @@ def app_to_dict(app_obj: Application) -> dict:
         "answered_questions": app_obj.answered_questions,
         "last_evaluation": app_obj.last_evaluation.isoformat() if app_obj.last_evaluation else None,
         "responses": app_obj.responses,
-        "comments": app_obj.comments
+        "comments": app_obj.comments,
+        "evaluations": [
+            {
+                "score": ev.score,
+                "answered_questions": ev.answered_questions,
+                "last_evaluation": ev.last_evaluation.isoformat() if ev.last_evaluation else None,
+                "evaluator_name": ev.evaluator_name,
+                "responses": ev.responses,
+                "comments": ev.comments,
+                "created_at": ev.created_at.isoformat() if ev.created_at else None,
+            }
+            for ev in app_obj.evaluations
+        ]
     }
     
 # --- Calcul des métriques et graphiques ---
