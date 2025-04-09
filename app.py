@@ -481,14 +481,20 @@ def score_application(name):
         if not app_item:
             abort(404, description="Application non trouvée")
             
-        # Initialisation de l'historique des évaluations si nécessaire (déjà géré par la relation evaluations)
+        # En POST, on traite le formulaire d'évaluation
         if request.method == 'POST':
-            responses = {}
+            # --- Validation des commentaires ---
+            for key, value in request.form.items():
+                if key.endswith("_comment") and not value.strip():
+                    flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
+                    return render_template("score.html", application=app_item, questions=QUESTIONS)
+            
+            # Traitement des réponses et calcul du score
             evaluation_responses = {}
             evaluation_comments = {}
             score = 0
             answered_questions = 0
-            # Récupération des réponses issues du formulaire
+            
             for key, value in request.form.items():
                 if key.endswith("_comment"):
                     evaluation_comments[key] = value
@@ -497,6 +503,7 @@ def score_application(name):
                     if SCORING_MAP[value] is not None:
                         score += SCORING_MAP[value]
                         answered_questions += 1
+            
             new_eval = Evaluation(
                 score=score,
                 answered_questions=answered_questions,
@@ -505,9 +512,9 @@ def score_application(name):
                 responses=evaluation_responses,
                 comments=evaluation_comments
             )
-            # Ajout de l'évaluation à l'application
+            
+            # Ajout de la nouvelle évaluation à l'application et mise à jour des indicateurs
             app_item.evaluations.append(new_eval)
-            # Mise à jour de l'application avec les scores et la dernière évaluation
             app_item.score = score
             app_item.answered_questions = answered_questions
             app_item.last_evaluation = new_eval.last_evaluation
@@ -516,6 +523,7 @@ def score_application(name):
             session_db.commit()
             flash("Évaluation enregistrée.", "success")
             return redirect(url_for("index"))
+        
         return render_template("score.html", application=app_item, questions=QUESTIONS)
     finally:
         session_db.close()
