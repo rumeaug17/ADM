@@ -32,7 +32,6 @@ from database import init_db, get_session_factory, Application, Evaluation
 
 app = Flask(__name__)
 # Configuration de l'application
-app.config["DATA_FILE"] = "applications.json"
 app.config["QUESTIONS_FILE"] = "questions.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
 app.config["CONFIG"] = "config.json"
@@ -98,26 +97,6 @@ engine = init_db(app.config["DB_CONNECTION"])
 Session = get_session_factory(engine)
 
 # --- Gestion des données ---
-
-# Initialisation du fichier de données s'il n'existe pas
-if not os.path.exists(app.config["DATA_FILE"]):
-    with open(app.config["DATA_FILE"], "w", encoding="utf-8") as f:
-        json.dump([], f)
-
-def load_data() -> List[Dict[str, Any]]:
-    """Charge la liste des applications depuis le fichier JSON."""
-    return load_json_file(app.config["DATA_FILE"])
-
-def save_data(data: List[Dict[str, Any]]) -> None:
-    """
-    Enregistre la liste des applications dans le fichier JSON.
-    Une sauvegarde du fichier existant est effectuée avant l'écriture.
-    """
-    data_file = app.config["DATA_FILE"]
-    if os.path.exists(data_file):
-        shutil.copyfile(data_file, app.config["BACKUP_FILE"])
-    with open(data_file, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
 
 # --- Fonctions utilitaires ---
 
@@ -268,73 +247,6 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
                 axis_scores[category].append(sum(scores) / len(scores))
     return {key: round(sum(values)/len(values), 2) if values else 0 for key, values in axis_scores.items()}
 
-def generate_radar_chart_new(avg_axis_scores: Dict[str, float]) -> str:
-    """
-    Génère un graphique radar en coordonnées polaires à partir des scores moyens par axe.
-    
-    La zone intérieure du radar est remplie par un dégradé qui dépend du rayon :
-      - Bleu pour r <= 1,
-      - Transition linéaire de bleu à jaune pour 1 < r <= 2,
-      - Transition linéaire de jaune à rouge pour 2 < r <= 3.
-    
-    Le remplissage est réalisé avec un contourf en polar qui est ensuite clipé sur la zone
-    définie par la courbe radar.
-    
-    Retourne l'image PNG encodée en base64.
-    """
-    # Préparation des données et fermeture de la boucle
-    categories = list(avg_axis_scores.keys())
-    scores = list(avg_axis_scores.values())
-    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-    scores += scores[:1]
-    angles += angles[:1]
-    
-    # Création de la figure en coordonnées polaires
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={'projection': 'polar'})
-    ax.set_theta_offset(np.pi / 2)
-    ax.set_theta_direction(-1)
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories)
-    ax.set_ylim(0, 3)
-    ax.set_yticks([0, 1, 2, 3])
-    ax.set_yticklabels(["0", "1", "2", "3"])
-    ax.axhline(y=0, color='black', linestyle='--')
-    
-    # Création du colormap personnalisé pour le dégradé radial
-    cmap = LinearSegmentedColormap.from_list("custom_gradient", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
-    
-    # Création d'une grille en coordonnées polaires pour le contourf.
-    # theta varie de 0 à 2pi et r de 0 à 3.
-    n_theta, n_r = 300, 300
-    theta = np.linspace(0, 2 * np.pi, n_theta)
-    r = np.linspace(0, 3, n_r)
-    T, R = np.meshgrid(theta, r)
-    # La valeur affichée est simplement le rayon, qui détermine la couleur via le colormap.
-    Z = R  
-    
-    # Remplissage de tout le disque par un contourf
-    cs = ax.contourf(T, R, Z, levels=100, cmap=cmap, vmin=0, vmax=3, zorder=1)
-    
-    # Construction du polygone correspondant à la zone radar
-    # Conversion des points (theta, r) de la courbe radar en coordonnées cartésiennes
-    radar_verts = [(r_val * np.cos(theta_val), r_val * np.sin(theta_val)) for theta_val, r_val in zip(angles, scores)]
-    radar_patch = Polygon(radar_verts, closed=True, transform=ax.transData)
-    
-    # Appliquer le clip à chaque collection du contourf
-    for coll in cs.collections:
-        coll.set_clip_path(radar_patch)
-    
-    # Tracé de la courbe radar par-dessus
-    ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid', zorder=2)
-    
-    # Export du graphique dans un buffer
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')
-    buf.seek(0)
-    chart_data = base64.b64encode(buf.getvalue()).decode('utf-8')
-    buf.close()
-    plt.close()
-    return chart_data
 
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
