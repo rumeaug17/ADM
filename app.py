@@ -347,7 +347,7 @@ def add_application():
             new_app = Application(
                 name=request.form["name"],
                 rda=request.form["rda"],
-                possession=request.form["possession"],
+                possession=datetime.strptime(request.form["possession"], "%Y-%m-%d").date(),
                 type_app=request.form["type_app"],
                 hosting=request.form["hosting"],
                 criticite=request.form["criticite"],
@@ -379,7 +379,7 @@ def edit_application(name):
         if request.method == "POST":
             # Mise à jour des champs modifiables
             app_to_edit.rda = request.form["rda"]
-            app_to_edit.possession = request.form["possession"]
+            app_to_edit.possession = datetime.strptime(request.form["possession"], "%Y-%m-%d").date()
             app_to_edit.type_app = request.form["type_app"]
             app_to_edit.hosting = request.form["hosting"]
             app_to_edit.criticite = request.form["criticite"]
