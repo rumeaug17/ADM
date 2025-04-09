@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Erreur - ADM{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="text-danger">Une erreur est survenue</h2>
+    <p>{{ error_message }}</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Retour à l'accueil</a>
+</div>
+{% endblock %}
