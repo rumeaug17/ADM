@@ -173,6 +173,11 @@ class JSONQuery:
                 filtered.append(record)
         return JSONQuery(self.model, filtered)
 
+    def first(self):
+        if self.data_list:
+            return self.model.from_dict(self.data_list[0])
+        return None
+
 class JSONSession:
     """
     Session "dummy" qui simule l'accès à une base de données via un fichier JSON.
