@@ -1,14 +1,15 @@
 """
 Module database_json.py : Backend de persistance utilisant un fichier JSON.
-Ce module implémente une interface identique à celle du module MySQL (database.py).
-La "chaîne de connexion" passée est en réalité le chemin vers le fichier JSON.
+Ce module implémente une interface identique à celle du backend MySQL (database.py),
+pour que l'application Flask puisse fonctionner sans changement selon le backend sélectionné.
+La "chaine de connexion" dans ce cas est le chemin vers le fichier JSON.
 """
 
 import os
 import json
-from datetime import date, datetime
+from datetime import datetime, date
 
-### Classes de Modèles
+### CLASSES MODELES
 
 class Application:
     def __init__(self, id=None, name="", rda="", possession=None, type_app="",
@@ -18,10 +19,10 @@ class Application:
         self.id = id
         self.name = name
         self.rda = rda
-        self.possession = possession  # date (objet ou chaîne "YYYY-MM-DD")
+        self.possession = possession  # objet date ou chaîne "YYYY-MM-DD"
         self.type_app = type_app
         self.hosting = hosting
-        self.criticite = criticite  # nombre (1,2,3,4)
+        self.criticite = criticite  # numérique (ex: 1,2,3,4)
         self.disponibilite = disponibilite
         self.integrite = integrite
         self.confidentialite = confidentialite
@@ -38,7 +39,8 @@ class Application:
             "id": self.id,
             "name": self.name,
             "rda": self.rda,
-            "possession": self.possession.isoformat() if isinstance(self.possession, date) else self.possession,
+            # Si possession est un objet date ou datetime, on le convertit en chaîne ISO.
+            "possession": self.possession.isoformat() if self.possession and hasattr(self.possession, "isoformat") else self.possession,
             "type_app": self.type_app,
             "hosting": self.hosting,
             "criticite": self.criticite,
@@ -48,7 +50,7 @@ class Application:
             "perennite": self.perennite,
             "score": self.score,
             "answered_questions": self.answered_questions,
-            "last_evaluation": self.last_evaluation.isoformat() if isinstance(self.last_evaluation, datetime) else self.last_evaluation,
+            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
             "responses": self.responses,
             "comments": self.comments,
             "evaluations": [ev.to_dict() for ev in self.evaluations]
@@ -56,14 +58,14 @@ class Application:
 
     @classmethod
     def from_dict(cls, data):
-        # Conversion pour possession
+        # Conversion de la possession en objet date si nécessaire
         possession = data.get("possession")
         if possession and isinstance(possession, str):
             try:
                 possession = datetime.strptime(possession, "%Y-%m-%d").date()
             except Exception:
                 pass
-        # Conversion pour last_evaluation
+        # Conversion de la dernière évaluation en datetime
         last_eval = data.get("last_evaluation")
         if last_eval and isinstance(last_eval, str):
             try:
@@ -103,7 +105,7 @@ class Evaluation:
         self.application_id = application_id
         self.score = score
         self.answered_questions = answered_questions
-        self.last_evaluation = last_evaluation  # datetime
+        self.last_evaluation = last_evaluation  # datetime object
         self.evaluator_name = evaluator_name
         self.responses = responses if responses is not None else {}
         self.comments = comments if comments is not None else {}
@@ -115,11 +117,11 @@ class Evaluation:
             "application_id": self.application_id,
             "score": self.score,
             "answered_questions": self.answered_questions,
-            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation else None,
+            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
             "evaluator_name": self.evaluator_name,
             "responses": self.responses,
             "comments": self.comments,
-            "created_at": self.created_at.isoformat() if self.created_at else None
+            "created_at": self.created_at.isoformat() if self.created_at and hasattr(self.created_at, "isoformat") else self.created_at
         }
 
     @classmethod
@@ -151,41 +153,47 @@ class Evaluation:
     def __repr__(self):
         return f"<Evaluation id={self.id} score={self.score}>"
 
-### Classes « fake ORM » pour JSON
+### CLASSE JSONQueryCustom
 
-class JSONQuery:
-    def __init__(self, model, data_list):
-        self.model = model
-        self.data_list = data_list  # liste de dictionnaires
+class JSONQueryCustom:
+    def __init__(self, objects):
+        self.objects = objects  # Liste d'instances "live"
 
     def all(self):
-        return [self.model.from_dict(record) for record in self.data_list]
+        return self.objects
 
     def filter_by(self, **kwargs):
         filtered = []
-        for record in self.data_list:
+        for obj in self.objects:
             match = True
             for k, v in kwargs.items():
-                if record.get(k) != v:
+                if getattr(obj, k, None) != v:
                     match = False
                     break
             if match:
-                filtered.append(record)
-        return JSONQuery(self.model, filtered)
+                filtered.append(obj)
+        return JSONQueryCustom(filtered)
 
     def first(self):
-        if self.data_list:
-            return self.model.from_dict(self.data_list[0])
-        return None
+        return self.objects[0] if self.objects else None
+
+### CLASSE JSONSession AVEC TRACKING DES OBJETS LIVE
 
 class JSONSession:
     """
-    Session "dummy" qui simule l'accès à une base de données via un fichier JSON.
+    Une session qui simule une base de données via un fichier JSON.
+    Elle charge les données du fichier et crée des instances "live" stockées dans _tracked.
+    Les modifications sur ces instances sont synchronisées dans le fichier lors du commit.
     """
     def __init__(self, db_filename):
         self.db_filename = db_filename
         self._load()
         self._next_id = max((record.get("id", 0) for record in self._data), default=0) + 1
+        self._tracked = {}  # Dictionnaire d'objets déjà créés, indexés par leur id.
+        # Créer les objets trackés à partir de _data
+        for record in self._data:
+            obj = Application.from_dict(record)
+            self._tracked[obj.id] = obj
         self._backup = self._data.copy()
 
     def _load(self):
@@ -205,15 +213,16 @@ class JSONSession:
 
     def query(self, model):
         if model == Application:
-            return JSONQuery(Application, self._data)
-        return JSONQuery(model, [])
+            # Retourne les objets trackés sous forme d'une requête personnalisée.
+            return JSONQueryCustom(list(self._tracked.values()))
+        return JSONQueryCustom([])
 
     def add(self, obj):
         if isinstance(obj, Application):
             if obj.id is None:
                 obj.id = self._next_id
                 self._next_id += 1
-            self._data.append(obj.to_dict())
+            self._tracked[obj.id] = obj
         else:
             raise ValueError("Type d'objet non supporté par JSONSession")
 
@@ -223,33 +232,43 @@ class JSONSession:
 
     def delete(self, obj):
         if isinstance(obj, Application):
+            if obj.id in self._tracked:
+                del self._tracked[obj.id]
             self._data = [record for record in self._data if record.get("id") != obj.id]
         else:
             raise ValueError("Type d'objet non supporté par JSONSession")
 
     def commit(self):
+        # Mettre à jour self._data en synchronisant tous les objets trackés
+        id_to_index = {record.get("id"): i for i, record in enumerate(self._data)}
+        for obj in self._tracked.values():
+            if obj.id in id_to_index:
+                self._data[id_to_index[obj.id]] = obj.to_dict()
+            else:
+                self._data.append(obj.to_dict())
         self._save()
         self._backup = self._data.copy()
 
     def rollback(self):
         self._data = self._backup.copy()
+        # Recharger les objets trackés à partir de _data
+        self._tracked = {}
+        for record in self._data:
+            obj = Application.from_dict(record)
+            self._tracked[obj.id] = obj
 
     def close(self):
-        pass  # Aucun nettoyage nécessaire
+        pass  # Aucun nettoyage particulier nécessaire
 
-### Fonctions d'interface pour le backend JSON
+### Fonctions d'interface
 
 def get_engine(connection_url):
     """
-    Pour le backend JSON, connection_url correspond au chemin du fichier JSON.
+    Dans ce backend, connection_url est le chemin vers le fichier JSON.
     """
     return None
 
 def get_session_factory(engine, db_filename=None):
-    """
-    Retourne une factory de sessions pour le backend JSON.
-    Si db_filename n'est pas fourni, une valeur par défaut est utilisée.
-    """
     if db_filename is None:
         db_filename = "applications.json"
     def session_factory():
@@ -258,8 +277,7 @@ def get_session_factory(engine, db_filename=None):
 
 def init_db(connection_url):
     """
-    Initialise la "base de données" JSON en vérifiant que le fichier existe.
-    La valeur connection_url est en réalité le chemin du fichier JSON.
+    Initialise la "base" JSON. Ici, connection_url est le chemin vers le fichier JSON.
     """
     if not os.path.exists(connection_url):
         with open(connection_url, "w", encoding="utf-8") as f:
