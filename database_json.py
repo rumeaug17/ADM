@@ -38,7 +38,7 @@ class Application:
             "id": self.id,
             "name": self.name,
             "rda": self.rda,
-            "possession": self.possession.isoformat() if isinstance(self.possession, (datetime,)) else self.possession,
+            "possession": self.possession.isoformat() if isinstance(self.possession, date) else self.possession,
             "type_app": self.type_app,
             "hosting": self.hosting,
             "criticite": self.criticite,
