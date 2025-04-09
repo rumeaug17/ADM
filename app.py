@@ -42,11 +42,21 @@ app.config["CONFIG"] = "config.json"
 db_backend = config.get("db_backend", "mysql").lower()
 if db_backend == "mysql":
     from database import init_db, get_session_factory, Application, Evaluation
+    # La chaîne de connexion est attendue dans la configuration de l'application Flask.
+    app.config["DB_CONNECTION"] = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
+
 elif db_backend == "json":
     # Assurez-vous d'avoir un module database_json.py qui implémente l'interface de database.
     from database_json import init_db, get_session_factory, Application, Evaluation
+    # La chaîne de connexion est attendue dans la configuration de l'application Flask.
+    app.config["DB_CONNECTION"] = config.get("json_connection_url", "applications.json")
+
 else:
     abort(500, description="Configuration du backend incorrecte")
+
+# --- Initialisation de la connexion à la base de données ---
+engine = init_db(app.config["DB_CONNECTION"])
+Session = get_session_factory(engine)
 
 # --- Chargement des configurations ---
 
@@ -100,15 +110,6 @@ def compute_scoring_map(questions: dict) -> dict:
 
 SCORING_MAP: Dict[str, Optional[int]] = compute_scoring_map(QUESTIONS)
 CATEGORIES: Dict[str, List[str]] = compute_categories(QUESTIONS)
-
-# --- Initialisation de la connexion à la base de données ---
-
-# La chaîne de connexion est attendue dans la configuration de l'application Flask.
-app.config["DB_CONNECTION"] = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
-engine = init_db(app.config["DB_CONNECTION"])
-Session = get_session_factory(engine)
-
-# --- Gestion des données ---
 
 # --- Fonctions utilitaires ---
 
