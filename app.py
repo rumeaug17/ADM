@@ -33,6 +33,27 @@ app.config["QUESTIONS_FILE"] = "questions.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
 app.config["CONFIG"] = "config.json"
 
+# --- Chargement des configurations ---
+
+def load_json_file(path: str) -> Any:
+    """Charge un fichier JSON et retourne son contenu."""
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def load_questions() -> dict:
+    """Charge la configuration des questions depuis le fichier questions.json situé dans le dossier static."""
+    questions_path = os.path.join(app.static_folder, app.config["QUESTIONS_FILE"])
+    return load_json_file(questions_path)
+
+def load_config() -> List[Dict[str, Any]]:
+    """Charge la configuration depuis le fichier config.json."""
+    return load_json_file(app.config["CONFIG"])
+
+# Charger les configurations au démarrage
+QUESTIONS = load_questions()
+config = load_config()
+app.secret_key = config["secret_key"]
+
 # --- Injection de la dépendance du backend de données ---
 
 # Selon la configuration, choisir le backend à utiliser.
@@ -57,27 +78,6 @@ else:
 # --- Initialisation de la connexion à la base de données ---
 engine = init_db(app.config["DB_CONNECTION"])
 Session = get_session_factory(engine)
-
-# --- Chargement des configurations ---
-
-def load_json_file(path: str) -> Any:
-    """Charge un fichier JSON et retourne son contenu."""
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def load_questions() -> dict:
-    """Charge la configuration des questions depuis le fichier questions.json situé dans le dossier static."""
-    questions_path = os.path.join(app.static_folder, app.config["QUESTIONS_FILE"])
-    return load_json_file(questions_path)
-
-def load_config() -> List[Dict[str, Any]]:
-    """Charge la configuration depuis le fichier config.json."""
-    return load_json_file(app.config["CONFIG"])
-
-# Charger les configurations au démarrage
-QUESTIONS = load_questions()
-config = load_config()
-app.secret_key = config["secret_key"]
 
 # --- Calcul des constantes dynamiques ---
 
