@@ -6,7 +6,7 @@ La "chaîne de connexion" passée est en réalité le chemin vers le fichier JSO
 
 import os
 import json
-from datetime import datetime
+from datetime import date, datetime
 
 ### Classes de Modèles
 
