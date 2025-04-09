@@ -2,6 +2,7 @@
 import json
 import random
 import sys
+import os
 from datetime import datetime, timedelta
 
 # Importer les fonctions du module database pour initialiser la base et obtenir une session
@@ -15,8 +16,10 @@ adjectives = ["Alpha", "Beta", "Gamma", "Delta", "Sigma", "Omega", "Tech", "Info
 nouns = ["Manager", "App", "System", "Suite", "Portal", "Service", "Platform", "Engine", "Truc", "Machin", "Bidule"]
 
 # Listes pour générer des noms de RDA (responsables)
-first_names = ["Laurent", "Bernard", "Eric", "Antoine", "François", "Alice", "Julien", "Sophie", "Nicolas", "Camille", "Guillaume", "Léon", "Caroline", "Michel", "Omar", "Alexandra", "Michèle"]
-last_names = ["Labit", "Campan", "Cantona", "Dupond", "Beranger", "Martin", "Durand", "Bernard", "Lefevre", "Petit", "Dupont", "Lhabit", "Ben Hamida", "Leveaux", "Legrand", "Sy"]
+first_names = ["Laurent", "Bernard", "Eric", "Antoine", "François", "Alice", "Julien", "Sophie", "Nicolas", "Camille",
+               "Guillaume", "Léon", "Caroline", "Michel", "Omar", "Alexandra", "Michèle"]
+last_names = ["Labit", "Campan", "Cantona", "Dupond", "Beranger", "Martin", "Durand", "Bernard", "Lefevre", "Petit",
+              "Dupont", "Lhabit", "Ben Hamida", "Leveaux", "Legrand", "Sy"]
 
 # Nouveaux critères pour la séparation
 type_apps = ["Interne", "Editeur", "Open source"]
@@ -47,15 +50,18 @@ def generate_comment(key: str, app_name: str) -> str:
     """Génère un commentaire fictif pour une question donnée."""
     return f"Commentaire pour {key} de l'application {app_name}"
 
-def generate_applications():
-    """Génère une liste d'applications de test (objets Application)."""
+def generate_applications(questions_config):
+    """
+    Génère une liste d'applications de test (objets Application) avec des réponses et commentaires générés
+    pour chaque question.
+    """
     applications = []
     for i in range(NUM_APPS):
         # Choix aléatoire pour type d'application et hébergement
         type_app = random.choice(type_apps)
         hosting = random.choice(hostings)
         
-        # Génération du nom de l'application et du RDA
+        # Génération du nom d'application et du RDA
         name = f"{random.choice(adjectives)} {random.choice(nouns)} {random.randint(1, 100)}"
         rda = random.choice(first_names) + " " + random.choice(last_names)
         possession = datetime.strptime(random_date_only(365), "%Y-%m-%d").date()
@@ -65,8 +71,18 @@ def generate_applications():
         confidentialite = random_dicp("C")
         perennite = random_dicp("P")
         
-        # Création d'une application de test sans évaluation initiale
-        app = Application(
+        # Générer les réponses et commentaires en parcourant les questions
+        responses = {}
+        comments = {}
+        for category, qs in questions_config.items():
+            for q_key, q_def in qs.items():
+                # Choisir aléatoirement une option parmi celles de la question
+                option = random.choice(q_def.get("options", []))
+                responses[q_key] = option.get("value")
+                comments[q_key + "_comment"] = generate_comment(q_key, name)
+        
+        # Créer l'application sans évaluation initiale
+        app_obj = Application(
             name=name,
             rda=rda,
             possession=possession,
@@ -80,10 +96,10 @@ def generate_applications():
             score=None,
             answered_questions=0,
             last_evaluation=None,
-            responses={},
-            comments={}
+            responses=responses,
+            comments=comments
         )
-        applications.append(app)
+        applications.append(app_obj)
     return applications
 
 def main(config_path):
@@ -92,13 +108,18 @@ def main(config_path):
         config = json.load(f)
     connection_url = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
 
+    # Charger la configuration des questions. Supposons que questions.json se trouve dans le dossier 'static'
+    questions_file = os.path.join(os.path.dirname(__file__), "static", "questions.json")
+    with open(questions_file, "r", encoding="utf-8") as f:
+        questions_config = json.load(f)
+    
     # Initialiser la base (création des tables si nécessaire)
     engine = init_db(connection_url)
     Session = get_session_factory(engine)
     session_db = Session()
     
     try:
-        apps = generate_applications()
+        apps = generate_applications(questions_config)
         session_db.add_all(apps)
         session_db.commit()
         print(f"{NUM_APPS} applications de test ont été insérées dans la base de données.")
