@@ -162,6 +162,29 @@ def login_required(f):
 def get_app_by_name(name: str, session_db) -> Application:
     return session_db.query(Application).filter_by(name=name).first()
 
+def app_to_dict(app_obj: Application) -> dict:
+    """
+    Convertit un objet Application en dictionnaire pour pouvoir être exploité
+    par les fonctions de calcul des métriques et de génération des graphiques.
+    """
+    return {
+        "name": app_obj.name,
+        "rda": app_obj.rda,
+        "possession": app_obj.possession.isoformat() if app_obj.possession else None,
+        "type_app": app_obj.type_app,
+        "hosting": app_obj.hosting,
+        "criticite": app_obj.criticite,
+        "disponibilite": app_obj.disponibilite,
+        "integrite": app_obj.integrite,
+        "confidentialite": app_obj.confidentialite,
+        "perennite": app_obj.perennite,
+        "score": app_obj.score,
+        "answered_questions": app_obj.answered_questions,
+        "last_evaluation": app_obj.last_evaluation.isoformat() if app_obj.last_evaluation else None,
+        "responses": app_obj.responses,
+        "comments": app_obj.comments
+    }
+    
 # --- Calcul des métriques et graphiques ---
 
 def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
@@ -478,159 +501,189 @@ def reevaluate_all():
     finally:
         session_db.close()
 
+# --- Nouvelle route : Radar Chart ---
 @app.route('/radar/<name>')
 @login_required
-def radar_chart(name: str) -> Any:
-    """
-    Génère et retourne un graphique radar pour une application.
-    Renvoie une erreur 404 si l'application n'est pas trouvée.
-    """
-    data = load_data()
-    app_item = get_app_by_name(name, data)
-    if not app_item:
-        abort(404, description="Application non trouvée")
-    avg_axis_scores = calculate_axis_scores([app_item])
-    chart_data = generate_radar_chart(avg_axis_scores)
-    return Response(base64.b64decode(chart_data), mimetype='image/png')
+def radar_chart(name):
+    session_db = Session()
+    try:
+        app_obj = get_app_by_name(name, session_db)
+        if not app_obj:
+            abort(404, description="Application non trouvée")
+        # Pour générer le graphique radar, on utilise les réponses stockées.
+        # On suppose que la fonction calculate_axis_scores attend un dictionnaire avec la clé "responses".
+        avg_axis_scores = calculate_axis_scores([{"responses": app_obj.responses}])
+        chart_data = generate_radar_chart(avg_axis_scores)
+        return Response(base64.b64decode(chart_data), mimetype='image/png')
+    finally:
+        session_db.close()
 
+# --- Nouvelle route : Synthèse ---
 @app.route('/synthese')
 @login_required
-def synthese() -> Any:
-    """
-    Affiche la synthèse globale des applications, avec KPI, graphique radar et tableau filtré.
-    """
-    data = load_data()
-    filter_score = request.args.get("filter_score", "above_30")
-    for app_item in data:
-        update_app_metrics(app_item)
-    evaluated_risks = [app["risque"] for app in data if app.get("risque") is not None]
-    global_risk = round(sum(evaluated_risks) / len(evaluated_risks), 2) if evaluated_risks else None
-    total_apps = len(data)
-    if filter_score == "above_30":
-        scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 30]
-    elif filter_score == "above_60":
-        scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 60]
-    else:
-        scored_apps = data.copy()
-    avg_score = round(sum(app["score"] for app in data if app.get("score") is not None) / len(data), 2) if data else 0
-    apps_above_30 = len([app for app in data if app.get("percentage") and app["percentage"] > 30])
-    apps_above_60 = len([app for app in data if app.get("percentage") and app["percentage"] > 60])
-    avg_axis_scores = calculate_axis_scores(data)
-    chart_data = generate_radar_chart(avg_axis_scores)
-    scored_apps.sort(key=lambda app: app.get("score") or 0, reverse=True)
-    
-    # Calcul du pire score par catégorie
-    best_by_category = {}
-    for category in CATEGORIES:
-        best_app = None
-        best_score = -1
+def synthese():
+    session_db = Session()
+    try:
+        filter_score = request.args.get("filter_score", "above_30")
+        db_apps = session_db.query(Application).all()
+        # Conversion des objets ORM en dictionnaires
+        data = [app_to_dict(app) for app in db_apps]
+        
+        # Mise à jour des métriques pour chaque application
         for app_item in data:
-            cat_score = calculate_category_sums(app_item).get(category, 0)
-            if cat_score > best_score:
-                best_score = cat_score
-                best_app = app_item.get("name")
-        best_by_category[category] = (best_app, best_score)
-    best_grouped = {}
-    for category, (app_name, score) in best_by_category.items():
-        if app_name:
-            best_grouped.setdefault(app_name, []).append((category, score))
-    
-    return render_template(
-        "synthese.html",
-        applications=scored_apps,
-        total_apps=total_apps,
-        avg_score=avg_score,
-        apps_above_30=apps_above_30,
-        apps_above_60=apps_above_60,
-        filter_score=filter_score,
-        avg_axis_scores=avg_axis_scores,
-        chart_data=chart_data,
-        global_risk=global_risk,
-        best_grouped=best_grouped
-    )
+            update_app_metrics(app_item)
+        evaluated_risks = [app_item.get("risque") for app_item in data if app_item.get("risque") is not None]
+        global_risk = round(sum(evaluated_risks) / len(evaluated_risks), 2) if evaluated_risks else None
+        total_apps = len(data)
+        
+        if filter_score == "above_30":
+            scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 30]
+        elif filter_score == "above_60":
+            scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 60]
+        else:
+            scored_apps = data.copy()
+            
+        avg_score = round(sum(app["score"] for app in data if app.get("score") is not None) / len(data), 2) if data else 0
+        apps_above_30 = len([app for app in data if app.get("percentage") and app["percentage"] > 30])
+        apps_above_60 = len([app for app in data if app.get("percentage") and app["percentage"] > 60])
+        avg_axis_scores = calculate_axis_scores(data)
+        chart_data = generate_radar_chart(avg_axis_scores)
+        scored_apps.sort(key=lambda app: app.get("score") or 0, reverse=True)
+        
+        # Calcul des pires scores (ou meilleurs, selon la logique)
+        best_by_category = {}
+        for category in CATEGORIES:
+            best_app = None
+            best_score = -1
+            for app_item in data:
+                cat_score = calculate_category_sums(app_item).get(category, 0)
+                if cat_score > best_score:
+                    best_score = cat_score
+                    best_app = app_item.get("name")
+            best_by_category[category] = (best_app, best_score)
+        best_grouped = {}
+        for category, (app_name, score_val) in best_by_category.items():
+            if app_name:
+                best_grouped.setdefault(app_name, []).append((category, score_val))
+        
+        return render_template(
+            "synthese.html",
+            applications=scored_apps,
+            total_apps=total_apps,
+            avg_score=avg_score,
+            apps_above_30=apps_above_30,
+            apps_above_60=apps_above_60,
+            filter_score=filter_score,
+            avg_axis_scores=avg_axis_scores,
+            chart_data=chart_data,
+            global_risk=global_risk,
+            best_grouped=best_grouped
+        )
+    finally:
+        session_db.close()
 
+# --- Nouvelle route : Export CSV ---
 @app.route('/export_csv')
 @login_required
-def export_csv() -> Any:
-    """Exporte les applications au format CSV pour téléchargement."""
-    applications = load_data()
-    update_all_metrics(applications)
-    for app_item in applications:
-        app_item["risque"] = calculate_risk(app_item)
-    si = io.StringIO()
-    writer = csv.writer(si, delimiter=';')
-    header = ["Nom", "Type", "RDA", "Criticité", "Disponibilité", "Intégrité", "Confidentialité",
-              "Pérennité", "Score", "Max Score", "Pourcentage", "Dernière évaluation", "Évaluateur", "Risque"]
-    writer.writerow(header)
-    for app_item in applications:
-        row = [
-            app_item.get("name", ""),
-            app_item.get("type", ""),
-            app_item.get("rda", ""),
-            app_item.get("criticite", ""),
-            app_item.get("disponibilite", ""),
-            app_item.get("integrite", ""),
-            app_item.get("confidentialite", ""),
-            app_item.get("perennite", ""),
-            app_item.get("score", ""),
-            app_item.get("max_score", ""),
-            app_item.get("percentage", ""),
-            app_item.get("last_evaluation", ""),
-            app_item.get("evaluator_name", ""),
-            "" if app_item.get("risque") is None else round(app_item.get("risque"))
-        ]
-        writer.writerow(row)
-    output = si.getvalue()
-    si.close()
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=applications_export.csv"}
-    )
+def export_csv():
+    session_db = Session()
+    try:
+        db_apps = session_db.query(Application).all()
+        applications = [app_to_dict(app) for app in db_apps]
+        update_all_metrics(applications)
+        for app_item in applications:
+            app_item["risque"] = calculate_risk(app_item)
+        si = io.StringIO()
+        writer = csv.writer(si, delimiter=';')
+        header = ["Nom", "Type", "RDA", "Criticité", "Disponibilité", "Intégrité", "Confidentialité",
+                  "Pérennité", "Score", "Max Score", "Pourcentage", "Dernière évaluation", "Évaluateur", "Risque"]
+        writer.writerow(header)
+        for app_item in applications:
+            row = [
+                app_item.get("name", ""),
+                f"{app_item.get('type_app', '')} / {app_item.get('hosting', '')}",
+                app_item.get("rda", ""),
+                app_item.get("criticite", ""),
+                app_item.get("disponibilite", ""),
+                app_item.get("integrite", ""),
+                app_item.get("confidentialite", ""),
+                app_item.get("perennite", ""),
+                app_item.get("score", ""),
+                app_item.get("max_score", ""),
+                app_item.get("percentage", ""),
+                app_item.get("last_evaluation", ""),
+                app_item.get("evaluator_name", ""),
+                "" if app_item.get("risque") is None else round(app_item.get("risque"))
+            ]
+            writer.writerow(row)
+        output = si.getvalue()
+        si.close()
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-Disposition": "attachment; filename=applications_export.csv"}
+        )
+    finally:
+        session_db.close()
 
+# --- Nouvelle route : Resume ---
 @app.route('/resume/<name>')
 @login_required
-def resume(name: str) -> Any:
-    """
-    Affiche un résumé détaillé d'une application, incluant les dernières évaluations,
-    un graphique radar et la comparaison avec l'évaluation précédente (si disponible).
-    """
-    data = load_data()
-    app_item = get_app_by_name(name, data)
-    if not app_item:
-        abort(404, description="Application non trouvée")
-    if app_item.get("evaluations"):
-        last_eval = app_item["evaluations"][-1]
-        app_item.update({
-            "score": last_eval["score"],
-            "answered_questions": last_eval["answered_questions"],
-            "last_evaluation": last_eval["last_evaluation"],
-            "evaluator_name": last_eval["evaluator_name"],
-            "responses": last_eval["responses"],
-            "comments": last_eval["comments"]
-        })
-    update_app_metrics(app_item)
-    current_responses = app_item["evaluations"][-1].get("responses", {}) if app_item.get("evaluations") else {}
-    current_category_sums = calculate_category_sums({"responses": current_responses})
-    if app_item.get("evaluations") and len(app_item["evaluations"]) > 1:
-        previous_eval = app_item["evaluations"][-2]
-        previous_category_sums = calculate_category_sums({"responses": previous_eval.get("responses", {})})
-    else:
-        previous_eval = {}
-        previous_category_sums = {}
-    current_eval = app_item["evaluations"][-1] if app_item.get("evaluations") else {}
-    current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
-    radar_chart_data = generate_radar_chart(current_axis_scores)
-    return render_template(
-        "resume.html",
-        app=app_item,
-        radar_chart=radar_chart_data,
-        category_sums=current_category_sums,
-        previous_category_sums=previous_category_sums,
-        questions=QUESTIONS,
-        current_eval=current_eval,
-        previous_eval=previous_eval
-    )
+def resume(name):
+    session_db = Session()
+    try:
+        app_obj = get_app_by_name(name, session_db)
+        if not app_obj:
+            abort(404, description="Application non trouvée")
+            
+        app_item = app_to_dict(app_obj)
+        
+        if app_obj.evaluations:
+            # Utilisation de la dernière évaluation
+            last_eval_obj = app_obj.evaluations[-1]
+            last_eval = {
+                "score": last_eval_obj.score,
+                "answered_questions": last_eval_obj.answered_questions,
+                "last_evaluation": last_eval_obj.last_evaluation.isoformat() if last_eval_obj.last_evaluation else None,
+                "evaluator_name": last_eval_obj.evaluator_name,
+                "responses": last_eval_obj.responses,
+                "comments": last_eval_obj.comments
+            }
+            app_item.update(last_eval)
+        update_app_metrics(app_item)
+        
+        current_responses = app_item.get("responses", {}) if app_obj.evaluations else {}
+        current_category_sums = calculate_category_sums({"responses": current_responses})
+        if app_obj.evaluations and len(app_obj.evaluations) > 1:
+            previous_eval_obj = app_obj.evaluations[-2]
+            previous_eval = {
+                "score": previous_eval_obj.score,
+                "answered_questions": previous_eval_obj.answered_questions,
+                "last_evaluation": previous_eval_obj.last_evaluation.isoformat() if previous_eval_obj.last_evaluation else None,
+                "evaluator_name": previous_eval_obj.evaluator_name,
+                "responses": previous_eval_obj.responses,
+                "comments": previous_eval_obj.comments
+            }
+            previous_category_sums = calculate_category_sums({"responses": previous_eval.get("responses", {})})
+        else:
+            previous_eval = {}
+            previous_category_sums = {}
+        current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
+        radar_chart_data = generate_radar_chart(current_axis_scores)
+        
+        return render_template(
+            "resume.html",
+            app=app_item,
+            radar_chart=radar_chart_data,
+            category_sums=current_category_sums,
+            previous_category_sums=previous_category_sums,
+            questions=QUESTIONS,
+            current_eval=last_eval if app_obj.evaluations else {},
+            previous_eval=previous_eval
+        )
+    finally:
+        session_db.close()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
