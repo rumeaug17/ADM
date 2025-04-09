@@ -27,9 +27,6 @@ import numpy as np
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, Response, session, flash
 
-# Import du module de base de données
-from database import init_db, get_session_factory, Application, Evaluation
-
 app = Flask(__name__)
 # Configuration de l'application
 app.config["QUESTIONS_FILE"] = "questions.json"
@@ -56,6 +53,31 @@ def load_config() -> List[Dict[str, Any]]:
 QUESTIONS = load_questions()
 config = load_config()
 app.secret_key = config["secret_key"]
+
+# --- Injection de la dépendance du backend de données ---
+
+# Selon la configuration, choisir le backend à utiliser.
+# Par convention, le fichier config.json devrait contenir une clé "db_backend"
+# qui peut avoir la valeur "mysql" pour utiliser le module MySQL (database.py)
+# ou "json" pour utiliser le module JSON (par exemple, database_json.py).
+db_backend = config.get("db_backend", "mysql").lower()
+if db_backend == "mysql":
+    from database import init_db, get_session_factory, Application, Evaluation
+    # La chaîne de connexion est attendue dans la configuration de l'application Flask.
+    app.config["DB_CONNECTION"] = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
+
+elif db_backend == "json":
+    # Assurez-vous d'avoir un module database_json.py qui implémente l'interface de database.
+    from database_json import init_db, get_session_factory, Application, Evaluation
+    # La chaîne de connexion est attendue dans la configuration de l'application Flask.
+    app.config["DB_CONNECTION"] = config.get("json_connection_url", "applications.json")
+
+else:
+    abort(500, description="Configuration du backend incorrecte")
+
+# --- Initialisation de la connexion à la base de données ---
+engine = init_db(app.config["DB_CONNECTION"])
+Session = get_session_factory(engine)
 
 # --- Calcul des constantes dynamiques ---
 
@@ -88,15 +110,6 @@ def compute_scoring_map(questions: dict) -> dict:
 
 SCORING_MAP: Dict[str, Optional[int]] = compute_scoring_map(QUESTIONS)
 CATEGORIES: Dict[str, List[str]] = compute_categories(QUESTIONS)
-
-# --- Initialisation de la connexion à la base de données ---
-
-# La chaîne de connexion est attendue dans la configuration de l'application Flask.
-app.config["DB_CONNECTION"] = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
-engine = init_db(app.config["DB_CONNECTION"])
-Session = get_session_factory(engine)
-
-# --- Gestion des données ---
 
 # --- Fonctions utilitaires ---
 
@@ -452,6 +465,7 @@ def score_application(name):
                 app_item.responses = draft_responses
                 app_item.comments = draft_comments
                 # On peut enregistrer aussi le nom de l'évaluateur (facultatif)
+                app_item.evaluator_name = request.form.get("evaluator_name", "")
                 # Si vous souhaitez enregistrer un brouillon, vous ne mettez pas à jour le score final.
                 session_db.commit()
                 flash("Brouillon enregistré.", "success")
@@ -496,7 +510,12 @@ def score_application(name):
                 flash("Évaluation enregistrée.", "success")
                 return redirect(url_for("index"))
         
-        return render_template("score.html", application=app_item, questions=QUESTIONS)
+        
+        # return render_template("score.html", application=app_item, questions=QUESTIONS)
+        # Filtrer les questions à afficher en fonction du type d'application
+        filtered_questions = filter_questions_by_type(QUESTIONS, app_item.type_app, app_item.hosting)
+        return render_template("score.html", application=app_item, questions=filtered_questions)
+        
     finally:
         session_db.close()
 
