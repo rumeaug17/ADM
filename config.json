@@ -2,5 +2,7 @@
 	"secret_key": "TODO s3cr3tK3y",
 	"user": "user",
 	"pwd": "pwd",
+	"db_backend":"sql",
+	"json_config":"applications.json",
 	"sql_connection_url": "mysql+mysqlconnector://user:password@localhost/dbname"
 }
