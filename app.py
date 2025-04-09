@@ -656,7 +656,6 @@ def export_csv():
     finally:
         session_db.close()
 
-# --- Nouvelle route : Resume ---
 @app.route('/resume/<name>')
 @login_required
 def resume(name):
@@ -666,11 +665,18 @@ def resume(name):
         if not app_obj:
             abort(404, description="Application non trouvée")
             
+        # Convertir l'objet Application en dictionnaire pour faciliter le calcul des métriques
         app_item = app_to_dict(app_obj)
         
-        if app_obj.evaluations:
-            # Utilisation de la dernière évaluation
-            last_eval_obj = app_obj.evaluations[-1]
+        # Tri des évaluations par date de création (si created_at est nul, on utilise datetime.min)
+        evaluations_sorted = sorted(
+            app_obj.evaluations, 
+            key=lambda ev: ev.created_at if ev.created_at is not None else datetime.min
+        )
+        
+        # Si au moins une évaluation existe, on utilise la plus récente
+        if evaluations_sorted:
+            last_eval_obj = evaluations_sorted[-1]
             last_eval = {
                 "score": last_eval_obj.score,
                 "answered_questions": last_eval_obj.answered_questions,
@@ -679,13 +685,16 @@ def resume(name):
                 "responses": last_eval_obj.responses,
                 "comments": last_eval_obj.comments
             }
+            # Mettez à jour les données affichées avec la dernière évaluation
             app_item.update(last_eval)
         update_app_metrics(app_item)
         
-        current_responses = app_item.get("responses", {}) if app_obj.evaluations else {}
+        current_responses = app_item.get("responses", {}) if evaluations_sorted else {}
         current_category_sums = calculate_category_sums({"responses": current_responses})
-        if app_obj.evaluations and len(app_obj.evaluations) > 1:
-            previous_eval_obj = app_obj.evaluations[-2]
+        
+        # Si au moins deux évaluations existent, on récupère l'évaluation précédente
+        if len(evaluations_sorted) > 1:
+            previous_eval_obj = evaluations_sorted[-2]
             previous_eval = {
                 "score": previous_eval_obj.score,
                 "answered_questions": previous_eval_obj.answered_questions,
@@ -698,6 +707,7 @@ def resume(name):
         else:
             previous_eval = {}
             previous_category_sums = {}
+        
         current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
         radar_chart_data = generate_radar_chart(current_axis_scores)
         
@@ -708,11 +718,12 @@ def resume(name):
             category_sums=current_category_sums,
             previous_category_sums=previous_category_sums,
             questions=QUESTIONS,
-            current_eval=last_eval if app_obj.evaluations else {},
+            current_eval=last_eval if evaluations_sorted else {},
             previous_eval=previous_eval
         )
     finally:
         session_db.close()
+
 
 
 if __name__ == '__main__':
