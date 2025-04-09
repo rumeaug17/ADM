@@ -305,6 +305,16 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
 
 # --- Routes et gestion de l'authentification ---
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Loggez l'erreur (optionnel)
+    app.logger.error("Unhandled Exception: %s", e)
+    # Récupération d'un code d'erreur si disponible, sinon 500
+    code = getattr(e, "code", 500)
+    # Affichez le template error.html en passant le message d'erreur
+    return render_template("error.html", error_message=str(e)), code=code)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login() -> Any:
     """Route de connexion avec authentification minimale."""
