@@ -420,52 +420,68 @@ def score_application(name):
         if not app_item:
             abort(404, description="Application non trouvée")
             
-        # En POST, on traite le formulaire d'évaluation
         if request.method == 'POST':
-            # --- Validation des commentaires ---
-            for key, value in request.form.items():
-                if key.endswith("_comment") and not value.strip():
-                    flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
-                    return render_template("score.html", application=app_item, questions=QUESTIONS)
-            
-            # Traitement des réponses et calcul du score
-            evaluation_responses = {}
-            evaluation_comments = {}
-            score = 0
-            answered_questions = 0
-            
-            for key, value in request.form.items():
-                if key.endswith("_comment"):
-                    evaluation_comments[key] = value
-                elif value in SCORING_MAP:
-                    evaluation_responses[key] = value
-                    if SCORING_MAP[value] is not None:
-                        score += SCORING_MAP[value]
-                        answered_questions += 1
-            
-            new_eval = Evaluation(
-                score=score,
-                answered_questions=answered_questions,
-                last_evaluation=datetime.now(),
-                evaluator_name=request.form.get("evaluator_name", ""),
-                responses=evaluation_responses,
-                comments=evaluation_comments
-            )
-            
-            # Ajout de la nouvelle évaluation à l'application et mise à jour des indicateurs
-            app_item.evaluations.append(new_eval)
-            app_item.score = score
-            app_item.answered_questions = answered_questions
-            app_item.last_evaluation = new_eval.last_evaluation
-            app_item.responses = evaluation_responses
-            app_item.comments = evaluation_comments
-            session_db.commit()
-            flash("Évaluation enregistrée.", "success")
-            return redirect(url_for("index"))
+            # Mode brouillon : on ne vérifie pas que tous les commentaires sont remplis
+            if "save_draft" in request.form:
+                draft_responses = {}
+                draft_comments = {}
+                for key, value in request.form.items():
+                    if key.endswith("_comment"):
+                        draft_comments[key] = value
+                    elif value in SCORING_MAP:
+                        draft_responses[key] = value
+                # Enregistrer le brouillon sans validation stricte des commentaires.
+                app_item.responses = draft_responses
+                app_item.comments = draft_comments
+                # On peut enregistrer aussi le nom de l'évaluateur (facultatif)
+                # Si vous souhaitez enregistrer un brouillon, vous ne mettez pas à jour le score final.
+                session_db.commit()
+                flash("Brouillon enregistré.", "success")
+                return redirect(url_for("index"))
+            else:
+                # Mode évaluation finale : on vérifie que tous les commentaires sont renseignés
+                for key, value in request.form.items():
+                    if key.endswith("_comment") and not value.strip():
+                        flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
+                        return render_template("score.html", application=app_item, questions=QUESTIONS)
+                
+                evaluation_responses = {}
+                evaluation_comments = {}
+                score = 0
+                answered_questions = 0
+                for key, value in request.form.items():
+                    if key.endswith("_comment"):
+                        evaluation_comments[key] = value
+                    elif value in SCORING_MAP:
+                        evaluation_responses[key] = value
+                        if SCORING_MAP[value] is not None:
+                            score += SCORING_MAP[value]
+                            answered_questions += 1
+                
+                new_eval = Evaluation(
+                    score=score,
+                    answered_questions=answered_questions,
+                    last_evaluation=datetime.now(),
+                    evaluator_name=request.form.get("evaluator_name", ""),
+                    responses=evaluation_responses,
+                    comments=evaluation_comments
+                )
+                # Ajoute la nouvelle évaluation à l'historique de l'application
+                app_item.evaluations.append(new_eval)
+                # Met à jour l'application avec la nouvelle évaluation
+                app_item.score = score
+                app_item.answered_questions = answered_questions
+                app_item.last_evaluation = new_eval.last_evaluation
+                app_item.responses = evaluation_responses
+                app_item.comments = evaluation_comments
+                session_db.commit()
+                flash("Évaluation enregistrée.", "success")
+                return redirect(url_for("index"))
         
         return render_template("score.html", application=app_item, questions=QUESTIONS)
     finally:
         session_db.close()
+
 
 @app.route('/reset/<name>', methods=['POST'])
 @login_required
