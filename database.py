@@ -63,18 +63,17 @@ class Evaluation(Base):
         return f"<Evaluation(app_id={self.application_id}, score={self.score}, evaluator={self.evaluator_name})>"
 
 
-def get_engine(connection_url=None):
+def get_engine(connection_url):
     """
-    Retourne un engine SQLAlchemy pour se connecter à la base MySQL.
-    Si connection_url n'est pas fourni, une valeur par défaut est utilisée.
-    
-    Exemple de connection_url :
-    "mysql+mysqlconnector://user:password@localhost/adm_db"
+    Retourne un engine SQLAlchemy pour se connecter à la base MySQL,
+    en s'assurant que les connexions expirées soient renouvelées via pool_pre_ping.
     """
-    if not connection_url:
-        # Adapter cette chaîne selon vos identifiants et le nom de votre base de données.
-        connection_url = "mysql+mysqlconnector://root:password@localhost/adm_db"
-    engine = create_engine(connection_url, echo=False, pool_recycle=3600)
+    engine = create_engine(
+        connection_url,
+        echo=False,
+        pool_recycle=3600,    # recycle la connexion après 3600 secondes
+        pool_pre_ping=True    # vérifie la validité de la connexion avant son utilisation
+    )
     return engine
 
 
