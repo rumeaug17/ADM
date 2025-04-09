@@ -27,6 +27,9 @@ import numpy as np
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, Response, session, flash
 
+# Import du module de base de données
+from database import init_db, get_session_factory, Application, Evaluation
+
 app = Flask(__name__)
 # Configuration de l'application
 app.config["DATA_FILE"] = "applications.json"
@@ -86,6 +89,13 @@ def compute_scoring_map(questions: dict) -> dict:
 
 SCORING_MAP: Dict[str, Optional[int]] = compute_scoring_map(QUESTIONS)
 CATEGORIES: Dict[str, List[str]] = compute_categories(QUESTIONS)
+
+# --- Initialisation de la connexion à la base de données ---
+
+# La chaîne de connexion est attendue dans la configuration de l'application Flask.
+app.config["DB_CONNECTION"] = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
+engine = init_db(app.config["DB_CONNECTION"])
+Session = get_session_factory(engine)
 
 # --- Gestion des données ---
 
@@ -170,9 +180,8 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def get_app_by_name(name: str, data: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    """Retourne l'application dont le nom correspond ou None si non trouvée."""
-    return next((app for app in data if app["name"] == name), None)
+def get_app_by_name(name: str, session_db) -> Application:
+    return session_db.query(Application).filter_by(name=name).first()
 
 # --- Calcul des métriques et graphiques ---
 
@@ -384,76 +393,84 @@ def logout() -> Any:
 
 @app.route('/')
 @login_required
-def index() -> Any:
-    """
-    Affiche la liste des applications et met à jour leurs métriques.
-    """
-    applications = load_data()
-    update_all_metrics(applications)
-    return render_template("index.html", applications=applications)
+def index():
+    session_db = Session()
+    try:
+        applications = session_db.query(Application).all()
+        # Vous pouvez recalculer les métriques ici si nécessaire
+        return render_template("index.html", applications=applications)
+    finally:
+        session_db.close()
 
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
-def add_application() -> Any:
-    """
-    Permet d'ajouter une nouvelle application.
-    En POST, crée et enregistre l'application.
-    """
+def add_application():
     if request.method == 'POST':
-        data = load_data()
-        new_app = {
-            "name": request.form["name"],
-            "rda": request.form["rda"],
-            "possession": request.form["possession"],
-            "type_app": request.form["type_app"],
-            "hosting": request.form["hosting"],
-            "criticite": request.form["criticite"],
-            "disponibilite": request.form["disponibilite"],
-            "integrite": request.form["integrite"],
-            "confidentialite": request.form["confidentialite"],
-            "perennite": request.form["perennite"],
-            "score": None,
-            "answered_questions": 0,
-            "last_evaluation": None,
-            "responses": {},
-            "comments": {},
-            "evaluations": []
-        }
-        data.append(new_app)
-        save_data(data)
-        return redirect(url_for("index"))
+        session_db = Session()
+        try:
+            # Création d'une nouvelle application
+            new_app = Application(
+                name=request.form["name"],
+                rda=request.form["rda"],
+                possession=request.form["possession"],
+                type_app=request.form["type_app"],
+                hosting=request.form["hosting"],
+                criticite=request.form["criticite"],
+                disponibilite=request.form["disponibilite"],
+                integrite=request.form["integrite"],
+                confidentialite=request.form["confidentialite"],
+                perennite=request.form["perennite"],
+                score=None,
+                answered_questions=0,
+                last_evaluation=None,
+                responses={},
+                comments={}
+            )
+            session_db.add(new_app)
+            session_db.commit()
+            return redirect(url_for("index"))
+        finally:
+            session_db.close()
     return render_template("add.html")
 
 @app.route('/edit/<name>', methods=['GET', 'POST'])
 @login_required
-def edit_application(name: str) -> Any:
-    """
-    Permet de modifier une application existante.
-    Renvoie une erreur 404 si l'application n'est pas trouvée.
-    """
-    data = load_data()
-    app_to_edit = get_app_by_name(name, data)
-    if not app_to_edit:
-        abort(404, description="Application non trouvée")
-    
-    if request.method == "POST":
-        # Mise à jour des champs modifiables
-        for field in ["name", "rda", "possession", "type_app", "hosting", "criticite",
-                      "disponibilite", "integrite", "confidentialite", "perennite"]:
-            app_to_edit[field] = request.form[field]
-        save_data(data)
-        return redirect(url_for("index"))
-    
-    return render_template("edit.html", application=app_to_edit)
+def edit_application(name):
+    session_db = Session()
+    try:
+        app_to_edit = get_app_by_name(name, session_db)
+        if not app_to_edit:
+            abort(404, description="Application non trouvée")
+        if request.method == "POST":
+            # Mise à jour des champs modifiables
+            app_to_edit.rda = request.form["rda"]
+            app_to_edit.possession = request.form["possession"]
+            app_to_edit.type_app = request.form["type_app"]
+            app_to_edit.hosting = request.form["hosting"]
+            app_to_edit.criticite = request.form["criticite"]
+            app_to_edit.disponibilite = request.form["disponibilite"]
+            app_to_edit.integrite = request.form["integrite"]
+            app_to_edit.confidentialite = request.form["confidentialite"]
+            app_to_edit.perennite = request.form["perennite"]
+            session_db.commit()
+            return redirect(url_for("index"))
+        return render_template("edit.html", application=app_to_edit)
+    finally:
+        session_db.close()
 
 @app.route('/delete/<name>', methods=['POST'])
 @login_required
-def delete_application(name: str) -> Any:
-    """Supprime une application par nom et redirige vers l'index."""
-    data = load_data()
-    data = [app for app in data if app["name"] != name]
-    save_data(data)
-    return redirect(url_for("index"))
+def delete_application(name):
+    session_db = Session()
+    try:
+        app_to_delete = get_app_by_name(name, session_db)
+        if not app_to_delete:
+            abort(404, description="Application non trouvée")
+        session_db.delete(app_to_delete)
+        session_db.commit()
+        return redirect(url_for("index"))
+    finally:
+        session_db.close()
 
 @app.route('/score/<name>', methods=['GET', 'POST'])
 @login_required
