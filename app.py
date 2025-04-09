@@ -474,45 +474,22 @@ def delete_application(name):
 
 @app.route('/score/<name>', methods=['GET', 'POST'])
 @login_required
-def score_application(name: str) -> Any:
-    """
-    Permet d'évaluer une application.
-    En POST, sauvegarde soit un brouillon, soit l'évaluation finale.
-    """
-    data = load_data()
-    application = get_app_by_name(name, data)
-    if not application:
-        abort(404, description="Application non trouvée")
-    
-    # Initialisation de l'historique des évaluations si nécessaire
-    application.setdefault("evaluations", [])
-    
-    if request.method == 'POST':
-        responses = request.form.to_dict()
-        # Sauvegarde brouillon
-        if "save_draft" in request.form:
-            application.setdefault("responses", {})
-            application.setdefault("comments", {})
-            for key, value in responses.items():
-                if key.endswith("_comment"):
-                    application["comments"][key] = value
-                elif value in SCORING_MAP:
-                    application["responses"][key] = value
-            application["evaluator_name"] = responses.get("evaluator_name", "")
-            save_data(data)
-            flash("Brouillon enregistré.", "success")
-        else:
-            # Validation que tous les commentaires sont renseignés
-            for key, value in responses.items():
-                if key.endswith("_comment") and not value.strip():
-                    flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
-                    return render_template("score.html", application=application, questions=QUESTIONS)
-            # Calcul de l'évaluation finale
-            score = 0
-            answered_questions = 0
+def score_application(name):
+    session_db = Session()
+    try:
+        app_item = get_app_by_name(name, session_db)
+        if not app_item:
+            abort(404, description="Application non trouvée")
+            
+        # Initialisation de l'historique des évaluations si nécessaire (déjà géré par la relation evaluations)
+        if request.method == 'POST':
+            responses = {}
             evaluation_responses = {}
             evaluation_comments = {}
-            for key, value in responses.items():
+            score = 0
+            answered_questions = 0
+            # Récupération des réponses issues du formulaire
+            for key, value in request.form.items():
                 if key.endswith("_comment"):
                     evaluation_comments[key] = value
                 elif value in SCORING_MAP:
@@ -520,60 +497,66 @@ def score_application(name: str) -> Any:
                     if SCORING_MAP[value] is not None:
                         score += SCORING_MAP[value]
                         answered_questions += 1
-            evaluation = {
-                "score": score,
-                "answered_questions": answered_questions,
-                "last_evaluation": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "evaluator_name": responses.get("evaluator_name", ""),
-                "responses": evaluation_responses,
-                "comments": evaluation_comments
-            }
-            application["evaluations"].append(evaluation)
-            # Mise à jour rapide de l'affichage
-            application["score"] = score
-            application["answered_questions"] = answered_questions
-            application["last_evaluation"] = evaluation["last_evaluation"]
-            application["evaluator_name"] = evaluation["evaluator_name"]
-            application["responses"] = evaluation_responses
-            application["comments"] = evaluation_comments
-            save_data(data)
+            new_eval = Evaluation(
+                score=score,
+                answered_questions=answered_questions,
+                last_evaluation=datetime.now(),
+                evaluator_name=request.form.get("evaluator_name", ""),
+                responses=evaluation_responses,
+                comments=evaluation_comments
+            )
+            # Ajout de l'évaluation à l'application
+            app_item.evaluations.append(new_eval)
+            # Mise à jour de l'application avec les scores et la dernière évaluation
+            app_item.score = score
+            app_item.answered_questions = answered_questions
+            app_item.last_evaluation = new_eval.last_evaluation
+            app_item.responses = evaluation_responses
+            app_item.comments = evaluation_comments
+            session_db.commit()
             flash("Évaluation enregistrée.", "success")
-        return redirect(url_for("index"))
-    
-    # Filtrer les questions à afficher en fonction du type d'application
-    filtered_questions = filter_questions_by_type(QUESTIONS, application["type_app"], application["hosting"])
-    
-    return render_template("score.html", application=application, questions=filtered_questions)
+            return redirect(url_for("index"))
+        return render_template("score.html", application=app_item, questions=QUESTIONS)
+    finally:
+        session_db.close()
 
 @app.route('/reset/<name>', methods=['POST'])
 @login_required
-def reset_evaluation(name: str) -> Any:
-    """Réinitialise l'évaluation d'une application sans toucher aux réponses enregistrées."""
-    data = load_data()
-    app_to_reset = get_app_by_name(name, data)
-    if not app_to_reset:
-        abort(404, description="Application non trouvée")
-    app_to_reset["score"] = None
-    app_to_reset["answered_questions"] = 0
-    app_to_reset["last_evaluation"] = None
-    app_to_reset["evaluator_name"] = ""
-    save_data(data)
-    flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
-    return redirect(url_for("index"))
+def reset_evaluation(name):
+    session_db = Session()
+    try:
+        app_to_reset = get_app_by_name(name, session_db)
+        if not app_to_reset:
+            abort(404, description="Application non trouvée")
+        # Réinitialiser les évaluations de l'application
+        app_to_reset.score = None
+        app_to_reset.answered_questions = 0
+        app_to_reset.last_evaluation = None
+        app_to_reset.responses = {}
+        app_to_reset.comments = {}
+        session_db.commit()
+        flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
+        return redirect(url_for("index"))
+    finally:
+        session_db.close()
 
 @app.route('/reevaluate_all', methods=['POST'])
 @login_required
-def reevaluate_all() -> Any:
-    """Réinitialise l'évaluation de toutes les applications."""
-    data = load_data()
-    for app_item in data:
-        app_item["score"] = None
-        app_item["answered_questions"] = 0
-        app_item["last_evaluation"] = None
-        app_item["evaluator_name"] = ""
-    save_data(data)
-    flash("Toutes les évaluations ont été réinitialisées.", "success")
-    return redirect(url_for("index"))
+def reevaluate_all():
+    session_db = Session()
+    try:
+        applications = session_db.query(Application).all()
+        for app_item in applications:
+            app_item.score = None
+            app_item.answered_questions = 0
+            app_item.last_evaluation = None
+            app_item.responses = {}
+            app_item.comments = {}
+        session_db.commit()
+        flash("Toutes les évaluations ont été réinitialisées.", "success")
+        return redirect(url_for("index"))
+    finally:
+        session_db.close()
 
 @app.route('/radar/<name>')
 @login_required
