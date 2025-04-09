@@ -8,18 +8,19 @@ from datetime import datetime, timedelta
 # Importer les fonctions du module database pour initialiser la base et obtenir une session
 from database import init_db, get_session_factory, Application
 
-# Nombre d'applications de test à générer
-NUM_APPS = 20
-
 # Listes pour générer des noms d'applications
 adjectives = ["Alpha", "Beta", "Gamma", "Delta", "Sigma", "Omega", "Tech", "Info", "Net", "Data", "Service"]
 nouns = ["Manager", "App", "System", "Suite", "Portal", "Service", "Platform", "Engine", "Truc", "Machin", "Bidule"]
 
 # Listes pour générer des noms de RDA (responsables)
-first_names = ["Laurent", "Bernard", "Eric", "Antoine", "François", "Alice", "Julien", "Sophie", "Nicolas", "Camille",
-               "Guillaume", "Léon", "Caroline", "Michel", "Omar", "Alexandra", "Michèle"]
-last_names = ["Labit", "Campan", "Cantona", "Dupond", "Beranger", "Martin", "Durand", "Bernard", "Lefevre", "Petit",
-              "Dupont", "Lhabit", "Ben Hamida", "Leveaux", "Legrand", "Sy"]
+first_names = [
+    "Laurent", "Bernard", "Eric", "Antoine", "François", "Alice", "Julien", "Sophie",
+    "Nicolas", "Camille", "Guillaume", "Léon", "Caroline", "Michel", "Omar", "Alexandra", "Michèle"
+]
+last_names = [
+    "Labit", "Campan", "Cantona", "Dupond", "Beranger", "Martin", "Durand", "Bernard",
+    "Lefevre", "Petit", "Dupont", "Lhabit", "Ben Hamida", "Leveaux", "Legrand", "Sy"
+]
 
 # Nouveaux critères pour la séparation
 type_apps = ["Interne", "Editeur", "Open source"]
@@ -50,18 +51,17 @@ def generate_comment(key: str, app_name: str) -> str:
     """Génère un commentaire fictif pour une question donnée."""
     return f"Commentaire pour {key} de l'application {app_name}"
 
-def generate_applications(questions_config):
+def generate_applications(num_apps, questions_config):
     """
-    Génère une liste d'applications de test (objets Application) avec des réponses et commentaires générés
-    pour chaque question.
+    Génère une liste d'applications de test (objets Application) avec des réponses et commentaires générés pour chaque question.
     """
     applications = []
-    for i in range(NUM_APPS):
+    for i in range(num_apps):
         # Choix aléatoire pour type d'application et hébergement
         type_app = random.choice(type_apps)
         hosting = random.choice(hostings)
         
-        # Génération du nom d'application et du RDA
+        # Génération du nom de l'application et du RDA
         name = f"{random.choice(adjectives)} {random.choice(nouns)} {random.randint(1, 100)}"
         rda = random.choice(first_names) + " " + random.choice(last_names)
         possession = datetime.strptime(random_date_only(365), "%Y-%m-%d").date()
@@ -71,17 +71,21 @@ def generate_applications(questions_config):
         confidentialite = random_dicp("C")
         perennite = random_dicp("P")
         
-        # Générer les réponses et commentaires en parcourant les questions
+        # Génération des réponses et commentaires en parcourant les questions
         responses = {}
         comments = {}
         for category, qs in questions_config.items():
             for q_key, q_def in qs.items():
-                # Choisir aléatoirement une option parmi celles de la question
-                option = random.choice(q_def.get("options", []))
-                responses[q_key] = option.get("value")
+                # Si des options existent, choisir une option aléatoirement
+                opts = q_def.get("options", [])
+                if opts:
+                    option = random.choice(opts)
+                    responses[q_key] = option.get("value")
+                else:
+                    responses[q_key] = ""
                 comments[q_key + "_comment"] = generate_comment(q_key, name)
         
-        # Créer l'application sans évaluation initiale
+        # Création de l'application
         app_obj = Application(
             name=name,
             rda=rda,
@@ -102,13 +106,13 @@ def generate_applications(questions_config):
         applications.append(app_obj)
     return applications
 
-def main(config_path):
+def main(config_path, num_apps=5):
     # Charger la configuration depuis le fichier passé en paramètre
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
     connection_url = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
 
-    # Charger la configuration des questions. Supposons que questions.json se trouve dans le dossier 'static'
+    # Charger la configuration des questions (supposé dans le dossier static, ajustez le chemin si nécessaire)
     questions_file = os.path.join(os.path.dirname(__file__), "static", "questions.json")
     with open(questions_file, "r", encoding="utf-8") as f:
         questions_config = json.load(f)
@@ -119,10 +123,10 @@ def main(config_path):
     session_db = Session()
     
     try:
-        apps = generate_applications(questions_config)
+        apps = generate_applications(num_apps, questions_config)
         session_db.add_all(apps)
         session_db.commit()
-        print(f"{NUM_APPS} applications de test ont été insérées dans la base de données.")
+        print(f"{num_apps} applications de test ont été insérées dans la base de données.")
     except Exception as e:
         session_db.rollback()
         print(f"Erreur lors de l'insertion : {e}")
@@ -131,7 +135,19 @@ def main(config_path):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: generate-data.py <chemin_du_config.json>")
+        print("Usage: generate-data.py <chemin_du_config.json> [nombre_d_applications]")
         sys.exit(1)
+    
     config_file_path = sys.argv[1]
-    main(config_file_path)
+    
+    # Si le nombre d'applications est fourni en second argument, on le convertit en entier, sinon on utilise la valeur par défaut 5
+    if len(sys.argv) >= 3:
+        try:
+            num_apps = int(sys.argv[2])
+        except ValueError:
+            print("Le second argument doit être un entier représentant le nombre d'applications.")
+            sys.exit(1)
+    else:
+        num_apps = 5
+
+    main(config_file_path, num_apps)
