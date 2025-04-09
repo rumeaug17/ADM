@@ -15,6 +15,9 @@ pip install -r requirements.txt
 % --proxy=http://USER:PWD@PROXY:PORT
 git describe --tags --abbrev=0 > static/version.txt
 
+# edit config
+vi config.json
+
 python app.py
 http://127.0.0.1:5000/
 ```
