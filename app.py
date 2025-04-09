@@ -331,12 +331,16 @@ def logout() -> Any:
 def index():
     session_db = Session()
     try:
-        applications = session_db.query(Application).all()
-        # Vous pouvez recalculer les métriques ici si nécessaire
+        app_objs = session_db.query(Application).all()
+        # Convertir les objets ORM en dictionnaires
+        applications = [app_to_dict(app) for app in app_objs]
+        # Mettre à jour les métriques pour chaque application convertie
+        for app_item in applications:
+            update_app_metrics(app_item)
         return render_template("index.html", applications=applications)
     finally:
         session_db.close()
-
+        
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_application():
