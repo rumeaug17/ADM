@@ -312,7 +312,7 @@ def handle_exception(e):
     # Récupération d'un code d'erreur si disponible, sinon 500
     code = getattr(e, "code", 500)
     # Affichez le template error.html en passant le message d'erreur
-    return render_template("error.html", error_message=str(e)), code=code)
+    return render_template("error.html", error_message=str(e)), code
 
 
 @app.route('/login', methods=['GET', 'POST'])
