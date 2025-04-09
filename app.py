@@ -27,14 +27,26 @@ import numpy as np
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, Response, session, flash
 
-# Import du module de base de données
-from database import init_db, get_session_factory, Application, Evaluation
-
 app = Flask(__name__)
 # Configuration de l'application
 app.config["QUESTIONS_FILE"] = "questions.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
 app.config["CONFIG"] = "config.json"
+
+# --- Injection de la dépendance du backend de données ---
+
+# Selon la configuration, choisir le backend à utiliser.
+# Par convention, le fichier config.json devrait contenir une clé "db_backend"
+# qui peut avoir la valeur "mysql" pour utiliser le module MySQL (database.py)
+# ou "json" pour utiliser le module JSON (par exemple, database_json.py).
+db_backend = config.get("db_backend", "mysql").lower()
+if db_backend == "mysql":
+    from database import init_db, get_session_factory, Application, Evaluation
+elif db_backend == "json":
+    # Assurez-vous d'avoir un module database_json.py qui implémente l'interface de database.
+    from database_json import init_db, get_session_factory, Application, Evaluation
+else:
+    abort(500, description="Configuration du backend incorrecte")
 
 # --- Chargement des configurations ---
 
