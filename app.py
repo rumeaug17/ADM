@@ -193,7 +193,7 @@ def app_to_dict(app_obj: Application) -> dict:
         "possession": app_obj.possession.isoformat() if app_obj.possession else None,
         "type_app": app_obj.type_app,
         "hosting": app_obj.hosting,
-        "criticite": app_obj.criticite,
+        "criticite": str(app_obj.criticite) if app_obj.criticite is not None else None,
         "disponibilite": app_obj.disponibilite,
         "integrite": app_obj.integrite,
         "confidentialite": app_obj.confidentialite,
