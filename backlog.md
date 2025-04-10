@@ -11,8 +11,8 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 ### User Stories
 - **US1.1** : *Précision de l'estimation du score de dette *  
   Augmenter le nombre des questions à répondre et avoir des questions plus précises
-- **US1.2** : *Pondération des scores *  
-  Pondérer le poids des questions pour le calcul du score (toutes les dettes ne se valent pas)
+- ~~**US1.2** : *Pondération des scores *~~  
+  ~~Pondérer le poids des questions pour le calcul du score (toutes les dettes ne se valent pas)~~
 
 ## Epic 2 : Sauvegarde et Historique des Données
 

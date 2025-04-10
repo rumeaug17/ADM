@@ -9,7 +9,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+      "weight": 2
     },
     "decommissionnement": {
       "label": "Existence d'une procédure de décommissionnement",
@@ -34,7 +35,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+      "weight": 2
     },
     "team": {
       "label": "Équipe clairement identifiée",
@@ -68,7 +70,8 @@
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Editeur", "Open source"]
+	  "app_types": ["Editeur", "Open source"],
+      "weight": 2
     }
   },
   "Obsolescence": {
@@ -82,7 +85,8 @@
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Interne", "Open source"]
+	  "app_types": ["Interne", "Open source"],
+      "weight": 2
     },
 	"mco": {
       "label": "Maintien en condition opérationnelle difficile",
@@ -104,7 +108,8 @@
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+      "weight": 3
     },
 	"version_recente": {
       "label": "Existe-t-il une version plus récente du progiciel non déployée",
@@ -174,7 +179,8 @@
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Editeur", "Open source"]
+	  "app_types": ["Editeur", "Open source"],
+      "weight": 2
     },
 	"tests": {
       "label": "Tests automatisés",
@@ -199,7 +205,8 @@
         {"value": "Insuffisant", "score": 2},
         {"value": "Non total", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+      "weight": 3
     },
 	"vulnerabilites": {
       "label": "Vulnérabilités connues non corrigées",

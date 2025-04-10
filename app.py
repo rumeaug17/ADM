@@ -91,7 +91,18 @@ def compute_categories(questions: dict) -> dict:
         q_keys = [key for key in questions_dict.keys() if not key.startswith("_")]
         categories[category] = q_keys
     return categories
-
+    
+def get_question_def(q_key: str) -> dict:
+    """
+    Recherche dans le dictionnaire global QUESTIONS la définition 
+    de la question ayant pour clé q_key.
+    Renvoie un dictionnaire vide si non trouvé.
+    """
+    for category, qs in QUESTIONS.items():
+        if q_key in qs:
+            return qs[q_key]
+    return {}
+    
 def compute_scoring_map(questions: dict) -> dict:
     """
     Construit un dictionnaire qui associe chaque option de réponse à sa note,
@@ -182,7 +193,7 @@ def app_to_dict(app_obj: Application) -> dict:
         "possession": app_obj.possession.isoformat() if app_obj.possession else None,
         "type_app": app_obj.type_app,
         "hosting": app_obj.hosting,
-        "criticite": app_obj.criticite,
+        "criticite": str(app_obj.criticite) if app_obj.criticite is not None else None,
         "disponibilite": app_obj.disponibilite,
         "integrite": app_obj.integrite,
         "confidentialite": app_obj.confidentialite,
@@ -258,38 +269,37 @@ def update_all_metrics(apps: List[Dict[str, Any]]) -> None:
         update_app_metrics(app_item)
 
 def calculate_category_sums(app_item: Dict[str, Any]) -> Dict[str, int]:
-    """
-    Calcule la somme des scores pour chaque catégorie, en se basant sur les réponses et SCORING_MAP.
-    Les réponses dont le score est None sont ignorées.
-    """
     responses = app_item.get("responses", {})
     category_sums = {}
     for category, question_keys in CATEGORIES.items():
         total = 0
         for key in question_keys:
             response_value = responses.get(key, "Non applicable")
+            # Récupérer la définition de la question pour obtenir le poids (par défaut 1)
+            q_def = get_question_def(key)
+            weight = q_def.get("weight", 1)
             score = SCORING_MAP.get(response_value)
             if score is not None:
-                total += score
+                total += score * weight
         category_sums[category] = total
     return category_sums
 
 def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
-    """
-    Calcule la note moyenne par axe (catégorie) pour une liste d'applications.
-    """
     axis_scores: Dict[str, List[float]] = {key: [] for key in CATEGORIES}
     for app_item in data:
         responses = app_item.get("responses", {})
         for category, question_keys in CATEGORIES.items():
-            scores = [
-                SCORING_MAP[responses.get(q, "Non applicable")]
-                for q in question_keys
-                if responses.get(q, "Non applicable") in SCORING_MAP and SCORING_MAP[responses.get(q, "Non applicable")] is not None
-            ]
-            if scores:
-                axis_scores[category].append(sum(scores) / len(scores))
-    return {key: round(sum(values)/len(values), 2) if values else 0 for key, values in axis_scores.items()}
+            weighted_scores = []
+            for q in question_keys:
+                if q in responses:
+                    q_def = get_question_def(q)
+                    weight = q_def.get("weight", 1)
+                    opt_score = SCORING_MAP.get(responses.get(q, "Non applicable"))
+                    if opt_score is not None:
+                        weighted_scores.append(opt_score * weight)
+            if weighted_scores:
+                axis_scores[category].append(sum(weighted_scores) / len(weighted_scores))
+    return {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
 
 
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
@@ -487,8 +497,11 @@ def score_application(name):
                     elif value in SCORING_MAP:
                         evaluation_responses[key] = value
                         if SCORING_MAP[value] is not None:
-                            score += SCORING_MAP[value]
-                            answered_questions += 1
+                            # Récupérer la définition de la question pour déterminer le poids (par défaut 1)
+                            q_def = get_question_def(key)
+                            weight = q_def.get("weight", 1)
+                            score += SCORING_MAP[value] * weight
+                            answered_questions += weight
                 
                 new_eval = Evaluation(
                     score=score,
@@ -532,8 +545,7 @@ def reset_evaluation(name):
         app_to_reset.score = None
         app_to_reset.answered_questions = 0
         app_to_reset.last_evaluation = None
-        app_to_reset.responses = {}
-        app_to_reset.comments = {}
+        app_to_reset.evaluator_name = None
         session_db.commit()
         flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
         return redirect(url_for("index"))
@@ -550,8 +562,7 @@ def reevaluate_all():
             app_item.score = None
             app_item.answered_questions = 0
             app_item.last_evaluation = None
-            app_item.responses = {}
-            app_item.comments = {}
+            app_item.evaluator_name = None
         session_db.commit()
         flash("Toutes les évaluations ont été réinitialisées.", "success")
         return redirect(url_for("index"))
