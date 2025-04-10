@@ -203,6 +203,7 @@ def app_to_dict(app_obj: Application) -> dict:
         "last_evaluation": app_obj.last_evaluation.isoformat() if app_obj.last_evaluation else None,
         "responses": app_obj.responses,
         "comments": app_obj.comments,
+        "evaluator_name": app_obj.evaluator_name,
         "evaluations": [
             {
                 "score": ev.score,
