@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Importation des données - ADM{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="text-primary">Réimporter les données</h2>
+  <p>Vous pouvez réimporter un fichier JSON précédemment sauvegardé contenant toutes les données et l'historique des évaluations.</p>
+  <form method="POST" action="{{ url_for('import_data') }}" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="file" class="form-label">Sélectionnez le fichier JSON à importer :</label>
+      <input type="file" class="form-control" id="file" name="file" accept=".json" required>
+    </div>
+    <!-- Ajout d'une zone pour la confirmation -->
+    <div class="mb-3">
+      <div class="alert alert-warning">
+        Attention : cela supprimera TOUTE la base et remplacera les données par celles du fichier importé.
+      </div>
+    </div>
+    <button type="submit" class="btn btn-danger">Confirmer l'importation</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Annuler</a>
+  </form>
+</div>
+{% endblock %}
