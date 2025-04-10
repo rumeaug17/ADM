@@ -764,6 +764,25 @@ def resume(name):
     finally:
         session_db.close()
 
+@app.route('/export_all')
+@login_required
+def export_all():
+    session_db = Session()
+    try:
+        # Récupérer toutes les applications via la session (quelle que soit leur origine)
+        db_apps = session_db.query(Application).all()
+        # Convertir les objets en dictionnaire (incluant l'historique des évaluations)
+        apps_list = [app_to_dict(app) for app in db_apps]
+        # Exporter au format JSON avec une mise en forme lisible
+        json_data = json.dumps(apps_list, indent=4, ensure_ascii=False)
+        # Retourne une réponse avec les en-têtes appropriés pour télécharger un fichier
+        return Response(
+            json_data,
+            mimetype="application/json",
+            headers={"Content-Disposition": "attachment; filename=export_all.json"}
+        )
+    finally:
+        session_db.close()
 
 
 if __name__ == '__main__':
