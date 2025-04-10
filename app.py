@@ -514,6 +514,7 @@ def score_application(name):
                 # Ajoute la nouvelle évaluation à l'historique de l'application
                 app_item.evaluations.append(new_eval)
                 # Met à jour l'application avec la nouvelle évaluation
+                app_item.evaluator_name = new_eval.evaluator_name
                 app_item.score = score
                 app_item.answered_questions = answered_questions
                 app_item.last_evaluation = new_eval.last_evaluation
