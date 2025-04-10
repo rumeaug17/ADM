@@ -43,6 +43,72 @@ class Application(Base):
     def __repr__(self):
         return f"<Application(name={self.name}, type_app={self.type_app}, hosting={self.hosting})>"
 
+    def to_dict(self) -> dict:
+        """Convertit l'objet Application en dictionnaire serialisable en JSON."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "rda": self.rda,
+            "possession": self.possession.isoformat() if self.possession and hasattr(self.possession, "isoformat") else self.possession,
+            "type_app": self.type_app,
+            "hosting": self.hosting,
+            "criticite": self.criticite,
+            "disponibilite": self.disponibilite,
+            "integrite": self.integrite,
+            "confidentialite": self.confidentialite,
+            "perennite": self.perennite,
+            "score": self.score,
+            "answered_questions": self.answered_questions,
+            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
+            "responses": self.responses,
+            "comments": self.comments,
+            "evaluator_name": self.evaluator_name,
+            "evaluations": [ev.to_dict() for ev in self.evaluations]
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        """Crée une instance de Application à partir d'un dictionnaire."""
+        # Conversion de la date de possession
+        possession = data.get("possession")
+        if possession and isinstance(possession, str):
+            try:
+                possession = datetime.strptime(possession, "%Y-%m-%d").date()
+            except Exception:
+                possession = None
+
+        # Conversion de last_evaluation
+        last_eval = data.get("last_evaluation")
+        if last_eval and isinstance(last_eval, str):
+            try:
+                last_eval = datetime.fromisoformat(last_eval)
+            except Exception:
+                last_eval = None
+
+        # Importation de l'historique des évaluations
+        evaluations_data = data.get("evaluations", [])
+        evaluations = [Evaluation.from_dict(ev) for ev in evaluations_data]
+
+        return cls(
+            id=data.get("id"),
+            name=data.get("name"),
+            rda=data.get("rda"),
+            possession=possession,
+            type_app=data.get("type_app"),
+            hosting=data.get("hosting"),
+            criticite=data.get("criticite"),
+            disponibilite=data.get("disponibilite"),
+            integrite=data.get("integrite"),
+            confidentialite=data.get("confidentialite"),
+            perennite=data.get("perennite"),
+            score=data.get("score"),
+            answered_questions=data.get("answered_questions"),
+            last_evaluation=last_eval,
+            responses=data.get("responses", {}),
+            comments=data.get("comments", {}),
+            evaluator_name=data.get("evaluator_name"),
+            evaluations=evaluations
+        )
 
 class Evaluation(Base):
     __tablename__ = 'evaluations'
@@ -63,6 +129,48 @@ class Evaluation(Base):
     def __repr__(self):
         return f"<Evaluation(app_id={self.application_id}, score={self.score}, evaluator={self.evaluator_name})>"
 
+    def to_dict(self) -> dict:
+        """Convertit l'objet Evaluation en dictionnaire serialisable en JSON."""
+        return {
+            "id": self.id,
+            "application_id": self.application_id,
+            "score": self.score,
+            "answered_questions": self.answered_questions,
+            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
+            "evaluator_name": self.evaluator_name,
+            "responses": self.responses,
+            "comments": self.comments,
+            "created_at": self.created_at.isoformat() if self.created_at and hasattr(self.created_at, "isoformat") else self.created_at
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        """Crée une instance d'Evaluation à partir d'un dictionnaire."""
+        last_eval = data.get("last_evaluation")
+        if last_eval and isinstance(last_eval, str):
+            try:
+                last_eval = datetime.fromisoformat(last_eval)
+            except Exception:
+                last_eval = None
+
+        created_at = data.get("created_at")
+        if created_at and isinstance(created_at, str):
+            try:
+                created_at = datetime.fromisoformat(created_at)
+            except Exception:
+                created_at = None
+
+        return cls(
+            id=data.get("id"),
+            application_id=data.get("application_id"),
+            score=data.get("score"),
+            answered_questions=data.get("answered_questions", 0),
+            last_evaluation=last_eval,
+            evaluator_name=data.get("evaluator_name", ""),
+            responses=data.get("responses", {}),
+            comments=data.get("comments", {}),
+            created_at=created_at
+        )
 
 def get_engine(connection_url):
     """
