@@ -106,7 +106,10 @@ def compute_scoring_map(questions: dict) -> dict:
                     if isinstance(option, dict):
                         value = option.get("value")
                         score = option.get("score")
-                        scoring_map[value] = score * weight
+                        if score is not None:
+                            scoring_map[value] = score * weight
+                        else:
+                            scoring_map[value] = score
     return scoring_map
 
 SCORING_MAP: Dict[str, Optional[int]] = compute_scoring_map(QUESTIONS)
