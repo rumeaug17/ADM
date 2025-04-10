@@ -545,8 +545,7 @@ def reset_evaluation(name):
         app_to_reset.score = None
         app_to_reset.answered_questions = 0
         app_to_reset.last_evaluation = None
-        app_to_reset.responses = {}
-        app_to_reset.comments = {}
+        app_to_reset.evaluator_name = None
         session_db.commit()
         flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
         return redirect(url_for("index"))
@@ -563,8 +562,7 @@ def reevaluate_all():
             app_item.score = None
             app_item.answered_questions = 0
             app_item.last_evaluation = None
-            app_item.responses = {}
-            app_item.comments = {}
+            app_item.evaluator_name = None
         session_db.commit()
         flash("Toutes les évaluations ont été réinitialisées.", "success")
         return redirect(url_for("index"))
