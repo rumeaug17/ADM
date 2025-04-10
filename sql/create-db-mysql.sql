@@ -16,6 +16,7 @@ CREATE TABLE applications (
     last_evaluation DATETIME DEFAULT NULL,
     responses JSON,
     comments JSON,
+    evaluator_name VARCHAR(255),
     UNIQUE(name)  -- Facultatif, si le nom de l'application doit être unique
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
