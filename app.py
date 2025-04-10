@@ -91,7 +91,18 @@ def compute_categories(questions: dict) -> dict:
         q_keys = [key for key in questions_dict.keys() if not key.startswith("_")]
         categories[category] = q_keys
     return categories
-
+    
+def get_question_def(q_key: str) -> dict:
+    """
+    Recherche dans le dictionnaire global QUESTIONS la définition 
+    de la question ayant pour clé q_key.
+    Renvoie un dictionnaire vide si non trouvé.
+    """
+    for category, qs in QUESTIONS.items():
+        if q_key in qs:
+            return qs[q_key]
+    return {}
+    
 def compute_scoring_map(questions: dict) -> dict:
     """
     Construit un dictionnaire qui associe chaque option de réponse à sa note,
@@ -101,15 +112,11 @@ def compute_scoring_map(questions: dict) -> dict:
     for _, questions_dict in questions.items():
         for q_key, q_def in questions_dict.items():
             if isinstance(q_def, dict) and "options" in q_def:
-                weight = q_def.get("weight", 1)
                 for option in q_def["options"]:
                     if isinstance(option, dict):
                         value = option.get("value")
                         score = option.get("score")
-                        if score is not None:
-                            scoring_map[value] = score * weight
-                        else:
-                            scoring_map[value] = score
+                        scoring_map[value] = score
     return scoring_map
 
 SCORING_MAP: Dict[str, Optional[int]] = compute_scoring_map(QUESTIONS)
