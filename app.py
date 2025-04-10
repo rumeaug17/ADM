@@ -784,6 +784,49 @@ def export_all():
     finally:
         session_db.close()
 
+@app.route('/import_data', methods=['GET', 'POST'])
+@login_required
+def import_data():
+    if request.method == 'POST':
+        # Vérifier que le fichier a bien été transmis
+        if 'file' not in request.files:
+            flash("Aucun fichier n'a été sélectionné.", "danger")
+            return redirect(url_for('import_data'))
+        file = request.files['file']
+        if file.filename == '':
+            flash("Aucun fichier n'a été sélectionné.", "danger")
+            return redirect(url_for('import_data'))
+        try:
+            # Charger le contenu JSON du fichier transmis
+            data = json.load(file)
+        except Exception as e:
+            flash("Erreur lors du traitement du fichier : " + str(e), "danger")
+            return redirect(url_for('import_data'))
+
+        # Ouvrir une session pour effectuer la réimportation
+        session_db = Session()
+        try:
+            # 1. Supprimer toutes les applications existantes.
+            apps_to_delete = session_db.query(Application).all()
+            for app_obj in apps_to_delete:
+                session_db.delete(app_obj)
+            session_db.commit()
+            
+            # 2. Réimporter toutes les applications depuis le fichier JSON.
+            for record in data:
+                new_app = Application.from_dict(record)
+                session_db.add(new_app)
+            session_db.commit()
+            flash("Les données ont été réimportées avec succès.", "success")
+        except Exception as e:
+            session_db.rollback()
+            flash("Erreur lors de l'importation : " + str(e), "danger")
+        finally:
+            session_db.close()
+        return redirect(url_for("index"))
+    # En GET, on affiche le formulaire de sélection de fichier avec modale.
+    return render_template("import_data.html")
+
 
 if __name__ == '__main__':
     app.run(debug=False)
