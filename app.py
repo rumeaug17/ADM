@@ -498,8 +498,11 @@ def score_application(name):
                     elif value in SCORING_MAP:
                         evaluation_responses[key] = value
                         if SCORING_MAP[value] is not None:
-                            score += SCORING_MAP[value]
-                            answered_questions += 1
+                            # Récupérer la définition de la question pour déterminer le poids (par défaut 1)
+                            q_def = get_question_def(key)
+                            weight = q_def.get("weight", 1)
+                            score += SCORING_MAP[value] * weight
+                            answered_questions += weight
                 
                 new_eval = Evaluation(
                     score=score,
