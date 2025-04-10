@@ -34,7 +34,7 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 
 ### User Stories
 - **US5.1** : *Liste des composants*  
-  Ajouter et lister un ensemble de composants techniques (BDD, Langages, Frameworks, outillage)
+  Ajouter et lister un ensemble de composants techniques (BDD, Langages, Frameworks, outillage, infrastructure, os)
   Chaque composant à un cycle de vie (états)
 - **US5.2** : *Dépendance des composants*  
   Pour chaque application, lister les composants techniques associés
