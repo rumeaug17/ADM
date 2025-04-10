@@ -15,7 +15,7 @@ class Application:
     def __init__(self, id=None, name="", rda="", possession=None, type_app="",
                  hosting="", criticite=None, disponibilite="", integrite="",
                  confidentialite="", perennite="", score=None, answered_questions=0,
-                 last_evaluation=None, responses=None, comments=None, evaluations=None):
+                 last_evaluation=None, responses=None, comments=None, evaluator_name="", evaluations=None):
         self.id = id
         self.name = name
         self.rda = rda
@@ -32,6 +32,7 @@ class Application:
         self.last_evaluation = last_evaluation  # datetime ou None
         self.responses = responses if responses is not None else {}
         self.comments = comments if comments is not None else {}
+        self.evaluator_name = evaluator_name
         self.evaluations = evaluations if evaluations is not None else []  # Liste d'objets Evaluation
 
     def to_dict(self):
@@ -53,6 +54,7 @@ class Application:
             "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
             "responses": self.responses,
             "comments": self.comments,
+            "evaluator_name": self.evaluator_name,  # Ajout dans le dictionnaire
             "evaluations": [ev.to_dict() for ev in self.evaluations]
         }
 
@@ -92,6 +94,7 @@ class Application:
             last_evaluation=last_eval,
             responses=data.get("responses", {}),
             comments=data.get("comments", {}),
+            evaluator_name=data.get("evaluator_name", ""),  # Importation de l'attribut evaluator_name
             evaluations=evaluations
         )
 
