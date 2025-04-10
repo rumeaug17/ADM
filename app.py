@@ -101,11 +101,12 @@ def compute_scoring_map(questions: dict) -> dict:
     for _, questions_dict in questions.items():
         for q_key, q_def in questions_dict.items():
             if isinstance(q_def, dict) and "options" in q_def:
+                weight = q_def.get("weight", 1)
                 for option in q_def["options"]:
                     if isinstance(option, dict):
                         value = option.get("value")
                         score = option.get("score")
-                        scoring_map[value] = score
+                        scoring_map[value] = score * weight
     return scoring_map
 
 SCORING_MAP: Dict[str, Optional[int]] = compute_scoring_map(QUESTIONS)
