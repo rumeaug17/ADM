@@ -35,6 +35,7 @@ class Application(Base):
     last_evaluation = Column(DateTime, default=None)
     responses = Column(SA_JSON)
     comments = Column(SA_JSON)
+    evaluator_name = Column(String(255)) 
     
     # Relation avec la table Evaluation
     evaluations = relationship("Evaluation", back_populates="application", cascade="all, delete-orphan")
