@@ -15,8 +15,8 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 ## Epic 2 : Sauvegarde et Historique des Données
 
 ### User Stories
-- **US2.1** : *Sauvegarde en bdd *  
-  Sauvegarde dans une BDD avec historique
+- **US2.3** : *Import / Export *  
+  Proposer un export global du catalogue, avec les évaluations et historique, puis un import global
 
 ## Epic 3 : Amélioration de la Qualité du Code et Tests
 
