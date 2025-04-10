@@ -30,4 +30,16 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage
 
+## Epic 5 : Gestion des composants
+
+### User Stories
+- **US5.1** : *Liste des composants*  
+  Ajouter et lister un ensemble de composants techniques (BDD, Langages, Frameworks, outillage)
+  Chaque composant à un cycle de vie (états)
+- **US5.2** : *Dépendance des composants*  
+  Pour chaque application, lister les composants techniques associés
+- **US5.3** : *Intégration des composants dans le score*  
+  Utiliser l'état des composants dans le calcul de la dette
+  
+
 ---
