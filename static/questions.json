@@ -239,6 +239,19 @@
       ],
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"infra": {
+      "label": "L'infrastructure et les composants matériels nécessaires sont compatibles avec les standards",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
   }
 }
