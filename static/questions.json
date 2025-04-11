@@ -1,3 +1,4 @@
+
 {
   "Architecture & Intégration": {
 	"api": {
@@ -6,7 +7,7 @@
 	  "weight": 2,
       "options": [
         {"value": "Oui uniquement", "score": 0},
-        {"value": "Partiellement", "score": 1},
+        {"value": "Quelques exceptions", "score": 1},
         {"value": "API incomplètes", "score": 2},
         {"value": "Aucune API", "score": 3},
         {"value": "Non applicable", "score": null}
@@ -47,7 +48,7 @@
 	  "weight": 1,
       "options": [
         {"value": "Non", "score": 0},
-        {"value": "Partiellement", "score": 1},
+        {"value": "Un peu", "score": 1},
         {"value": "Majoritairement", "score": 2},
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
@@ -215,7 +216,7 @@
 	"langages": {
       "label": "Les langages et Frameworks de programmation utilisés sont-ils à jour, couramment utilisés, et supportés officiellement ?",
       "type": "select",
-	  "weight": 1,
+	  "weight": 2,
       "options": [
         {"value": "Oui totalement", "score": 0},
         {"value": "Oui, en déclin", "score": 1},
@@ -229,7 +230,7 @@
 	"outils": {
       "label": "Les dépendances technologiques (Bases de données, middleware, utilitaires) sont-ils à jour, couramment utilisés, et supportés officiellement ?",
       "type": "select",
-	  "weight": 1,
+	  "weight": 2,
       "options": [
         {"value": "Oui totalement", "score": 0},
         {"value": "Oui, en déclin", "score": 1},
@@ -241,7 +242,7 @@
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
 	"infra": {
-      "label": "L'infrastructure et les composants matériels nécessaires sont compatibles avec les standards",
+      "label": "L'infrastructure et les composants matériels nécessaires sont compatibles avec les standards ?",
       "type": "select",
 	  "weight": 1,
       "options": [
@@ -253,5 +254,69 @@
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
+  },
+  "Qualité du Code & Maintenance": {
+	"code": {
+      "label": "Le code source est-il propre, maintenable et modulaire ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"code_doc": {
+      "label": "Le code source est-il documenté ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques manques", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"tests": {
+      "label": "Existe-t-il une couverture significative par des tests automatisés (unitaires, intégration, régression) ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"specifique": {
+      "label": "Existe-t-il des développements spécifiques propriétaires au delà du paramétrage et des adaptations standards de la solution ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Un peu", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    }
+  },
+  
+  "Exploitation": {
+  },
+  
+  "Adéquation Fonctionnelle": {
   }
 }
