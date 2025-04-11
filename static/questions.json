@@ -1,119 +1,108 @@
 {
-  "Urbanisation": {
-    "couplage": {
-      "label": "Faible couplage de l'application dans le SI",
+  "Architecture & Intégration": {
+	"api": {
+      "label": "L'application utilise-t-elle des API standardisées pour interagir avec les autres systèmes ?",
       "type": "select",
+	  "weight": 2,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
+        {"value": "Oui uniquement", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "API incomplètes", "score": 2},
+        {"value": "Aucune API", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-      "weight": 2
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
-    "decommissionnement": {
-      "label": "Existence d'une procédure de décommissionnement",
+	"couplage": {
+      "label": "Le couplage avec les autres applications du SI est-il minimal et documenté ?",
       "type": "select",
+	  "weight": 1,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
+        {"value": "Couplage minimal", "score": 0},
+        {"value": "Couplage intrusif", "score": 1},
+        {"value": "Dépendances biridectionnelles", "score": 2},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Editeur", "Open source"]
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"décommissionnement": {
+      "label": "Existe-t-il une procédure claire de décommissionnement ou de remplacement de l'application ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplète", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, ou avec beaucoup de travail", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"recouvrement": {
+      "label": "Existe-il un recouvrement fonctionnel avec d’autres parties du SI ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Partiellement", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
-  },
-  "Organisation": {
-    "doc": {
-      "label": "Documentation complète et à jour",
+  }
+  "Documentation & Gouvernance": {
+	"documentation": {
+      "label": "La documentation fonctionnelle et technique est-elle complète et à jour ?",
       "type": "select",
+	  "weight": 2,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplète", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Documentation inexistante", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-      "weight": 2
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
-    "team": {
-      "label": "Équipe clairement identifiée",
+	"équipe": {
+      "label": "Une équipe dédiée est-elle clairement identifiée avec des rôles précis et à jour ?",
       "type": "select",
+	  "weight": 1,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    },
-    "roadmap": {
-      "label": "Roadmap claire",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    },
-    "support_contrat": {
-      "label": "Support assuré sur 24 mois",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplète", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, personne", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Editeur", "Open source"],
-      "weight": 2
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"roadmap": {
+      "label": "Existe-t-il une roadmap claire et compatible avec la stratégie d'entreprise ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplète", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, ou incompatible", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
-  },
-  "Obsolescence": {
-	"tech_obsolete": {
-      "label": "Technologies obsolètes",
-      "type": "select",
-      "options": [
-        {"value": "Non", "score": 0},
-        {"value": "Partiellement", "score": 1},
-        {"value": "Majoritairement", "score": 2},
-        {"value": "Totalement", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ],
-	  "app_types": ["Interne", "Open source"],
-      "weight": 2
-    },
-	"mco": {
-      "label": "Maintien en condition opérationnelle difficile",
-      "type": "select",
-      "options": [
-        {"value": "Non", "score": 0},
-        {"value": "Partiellement", "score": 1},
-        {"value": "Majoritairement", "score": 2},
-        {"value": "Totalement", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    },
-	"support": {
-      "label": "Composants tiers non supportés",
-      "type": "select",
-      "options": [
-        {"value": "Non", "score": 0},
-        {"value": "Partiellement", "score": 1},
-        {"value": "Majoritairement", "score": 2},
-        {"value": "Totalement", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ],
-      "weight": 3
-    },
 	"version_recente": {
-      "label": "Existe-t-il une version plus récente du progiciel non déployée",
+      "label": "Existe-t-il une version plus récente de la solution non déployée ?",
       "type": "select",
+	  "weight": 1, 
       "options": [
         {"value": "Non", "score": 0},
         {"value": "Oui, patch", "score": 1},
@@ -122,194 +111,135 @@
         {"value": "Non applicable", "score": null}
       ],
 	  "app_types": ["Editeur", "Open source"]
-    }
-  },
-  "Qualité et Développement": {
-	"etat_art": {
-      "label": "Alignement avec l’état de l’art",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
     },
-	"respect": {
-      "label": "Respect des standards et des principes d'architecture",
+	"compétences": {
+      "label": "Les compétences nécessaires au MCO de l’application sont-elles faciles à trouver sur le marché ?",
       "type": "select",
+	  "weight": 2,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    },
-	"code_source": {
-      "label": "Code source maintenable et documenté",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    },
-	"echanges_api": {
-      "label": "Échanges via des API",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    },
-	"specifique": {
-      "label": "Pour un progiciel, développements spécifiques intégrés",
-      "type": "select",
-      "options": [
-        {"value": "Non", "score": 0},
-        {"value": "Partiellement", "score": 1},
-        {"value": "Majoritairement", "score": 2},
-        {"value": "Totalement", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplète", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, difficiles à trouver", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Editeur", "Open source"],
-      "weight": 2
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
-	"tests": {
-      "label": "Tests automatisés",
+	"support": {
+      "label": "Le support est-il assuré sur 24 mois ?",
       "type": "select",
+	  "weight": 2,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplet", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, pas de support", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "hosting_types": ["On prem", "Cloud", "Hybride"]
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
   },
-  "Sécurité et Conformité": {
-	"securite": {
-      "label": "Conformité aux exigences de sécurité",
+  "Sécurité & Conformité": {
+	"habilitations": {
+      "label": "Un mécanisme efficace de gestion et une revue régulière des habilitations existent-ils ?",
       "type": "select",
+	  "weight": 2,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplet", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, inexistant", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-      "weight": 3
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
-	"vulnerabilites": {
-      "label": "Vulnérabilités connues non corrigées",
+	"sauvegarde": {
+      "label": "L'application dispose-t-elle d’un système efficace de sauvegarde et de restauration, testé régulièrement ?",
       "type": "select",
+	  "weight": 2,
       "options": [
-        {"value": "Non", "score": 0},
-        {"value": "Partiellement", "score": 1},
-        {"value": "Majoritairement", "score": 2},
-        {"value": "Totalement", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplet", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, inexistant", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
-	"surveillance": {
-      "label": "Mécanismes de surveillance et d’alerte",
+	"logs": {
+      "label": "Les logs applicatifs et systèmes sont-ils accessibles et analysés régulièrement ?",
       "type": "select",
+	  "weight": 1,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplet", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, inexistant", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"vulnérabilités": {
+      "label": "Toutes les vulnérabilités identifiées sont-elles corrigées dans les délais recommandés ?",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"réglements": {
+      "label": "L'application respecte-t-elle les exigences réglementaires (RGPD, DORA, etc.) ?",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
   },
-  "Exploitation et Performance": {
-	"incidents": {
-      "label": "Incidents récurrents",
+  
+  "Technologies": {
+	"langages": {
+      "label": "Les langages et Frameworks de programmation utilisés sont-ils à jour, couramment utilisés, et supportés officiellement ?",
       "type": "select",
+	  "weight": 1,
       "options": [
-        {"value": "Non", "score": 0},
-        {"value": "Partiellement", "score": 1},
-        {"value": "Majoritairement", "score": 2},
-        {"value": "Totalement", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, en déclin", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
-    }, 
-	"performances": {
-      "label": "Performances satisfaisantes",
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"outils": {
+      "label": "Les dépendances technologiques (Bases de données, middleware, utilitaires) sont-ils à jour, couramment utilisés, et supportés officiellement ?"
       "type": "select",
+	  "weight": 1,
       "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, en déclin", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
         {"value": "Non applicable", "score": null}
-      ]
-    }, 
-	"scalable": {
-      "label": "Application scalable",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    }
-  },
-  "Fonctionnel": {
-	"besoins_metier": {
-      "label": "Couverture des besoins métier",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    }, 
-	"recouvrement": {
-      "label": "Périmètre applicatif spécifique identifié",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    }, 
-	"evolutivite": {
-      "label": "Évolutivité pour nouvelles demandes métier",
-      "type": "select",
-      "options": [
-        {"value": "Oui total", "score": 0},
-        {"value": "Partiel", "score": 1},
-        {"value": "Insuffisant", "score": 2},
-        {"value": "Non total", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
-    }, 
-	"fonctions": {
-      "label": "Fonctionnalités obsolètes ou inutilisées",
-      "type": "select",
-      "options": [
-        {"value": "Non", "score": 0},
-        {"value": "Partiellement", "score": 1},
-        {"value": "Majoritairement", "score": 2},
-        {"value": "Totalement", "score": 3},
-        {"value": "Non applicable", "score": null}
-      ]
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
   }
 }
