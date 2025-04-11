@@ -15,19 +15,19 @@ import csv
 import io
 import base64
 
-import math
 
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-import matplotlib.pyplot as plt
-from matplotlib.path import Path
-from matplotlib.patches import PathPatch
-import matplotlib.colors as mcolors
 import matplotlib.tri as tri
 
-
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
+import math
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
+
 
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, Response, session, flash
@@ -341,25 +341,9 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     ax.set_yticklabels([str(i) for i in range(-1, max_score + 1)])
     ax.axhline(y=0, color='black', linestyle='--')
 
-    # Tracer le contour du polygone
-    ax.plot(angles, scores, color='black', linewidth=2, linestyle='solid')
-
-    # Convertir les points en coordonnées cartésiennes pour créer le masque
+    # Convertir les points du polygone radar en coordonnées cartésiennes
     x_coords = np.array(scores) * np.sin(angles)
     y_coords = np.array(scores) * np.cos(angles)
-    
-    # Ajouter le polygone qui servira de limite pour le dégradé
-    polygon_path = Path(np.column_stack([angles, scores]))
-    patch = PathPatch(polygon_path, transform=ax.transData, edgecolor='none')
-    ax.add_patch(patch)
-    
-    # Créer une grille cartésienne pour appliquer le dégradé
-    x = np.linspace(-max_score, max_score, 500)
-    y = np.linspace(-max_score, max_score, 500)
-    X, Y = np.meshgrid(x, y)
-    R = np.sqrt(X**2 + Y**2)
-    THETA = np.arctan2(Y, X)
-    Z = np.clip(R, -1, max_score)  # Limiter les valeurs radiales
 
     # Définir une colormap avec les couleurs spécifiées
     cmap = mcolors.LinearSegmentedColormap.from_list(
@@ -367,12 +351,21 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
         [(0, "blue"), (0.25, "yellow"), (0.5, "red"), (1.0, "purple")]
     )
 
-    # Appliquer le dégradé uniquement à l'intérieur du polygone
-    ax.imshow(Z, extent=(-max_score, max_score, -max_score, max_score), 
-              transform=ax.transData, origin='lower', cmap=cmap, alpha=0.7)
+    # Générer un dégradé radial (grille cartésienne)
+    x = np.linspace(-max_score, max_score, 500)
+    y = np.linspace(-max_score, max_score, 500)
+    X, Y = np.meshgrid(x, y)
+    R = np.sqrt(X**2 + Y**2)  # Rayon pour chaque point
+    THETA = np.arctan2(Y, X)
+    Z = np.clip(R, -1, max_score)  # Limiter les valeurs radiales
 
-    # S'assurer que l'extérieur reste blanc
-    ax.fill(angles, scores, color="white", zorder=2)
+    # Appliquer le dégradé en arrière-plan
+    ax.imshow(Z, extent=(-max_score, max_score, -max_score, max_score), 
+              transform=ax.transData, origin='lower', cmap=cmap, alpha=0.5)
+
+    # Ajouter le polygone avec le masquage correct
+    radar_polygon = Polygon(np.column_stack([angles, scores]), closed=True, edgecolor='black', linewidth=2, facecolor='white')
+    ax.add_patch(radar_polygon)
 
     # Sauvegarder l'image dans un buffer
     buf = io.BytesIO()
