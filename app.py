@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.path import Path
 import matplotlib.colors as mcolors
+import matplotlib.tri as tri
 
 import numpy as np
 
@@ -306,12 +307,10 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
     return {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
 
 
-import matplotlib.colors as mcolors
-
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
     Génère un graphique radar (en PNG encodé en base64) à partir des scores moyens par axe.
-    L'intérieur de l'étoile est rempli avec un dégradé de couleurs :
+    L'intérieur de l'étoile est rempli avec un dégradé de couleurs progressif :
       - Bleu entre -1 et 1
       - Jaune entre 1 et 2
       - Rouge entre 2 et 3
@@ -340,34 +339,28 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     ax.set_yticklabels([str(i) for i in range(-1, max_score + 1)])
     ax.axhline(y=0, color='black', linestyle='--')
 
-    # Tracer les contours et remplir avec un dégradé
-    gradient_colors = []
-    for score in scores:
-        if score <= 1:
-            gradient_colors.append("blue")
-        elif 1 < score <= 2:
-            gradient_colors.append("yellow")
-        elif 2 < score <= 3:
-            gradient_colors.append("red")
-        else:
-            gradient_colors.append("purple")
+    # Tracer les contours
+    ax.plot(angles, scores, color='black', linewidth=2, linestyle='solid')
 
-    # Tracer les données avec des patches
-    polygon = Polygon(
-        np.column_stack([angles, scores]),
-        closed=True,
-        edgecolor='black',
-        linewidth=2
+    # Définir une colormap avec les couleurs spécifiées
+    cmap = mcolors.LinearSegmentedColormap.from_list(
+        "custom_gradient", 
+        [(0, "blue"), (0.25, "yellow"), (0.5, "red"), (1.0, "purple")]
     )
-    ax.add_patch(polygon)
-    
-    # Ajouter le dégradé de couleurs
-    cmap = mcolors.LinearSegmentedColormap.from_list("custom_gradient", gradient_colors)
-    path = Path(polygon.get_path().vertices)
-    patch = Polygon(polygon.get_path().vertices, closed=True, facecolor="none")
-    ax.add_patch(patch)
-    patch.set_facecolor(cmap(0.5))  # Utiliser un gradient unique
-    
+
+    # Créer une grille triangulaire pour remplir le polygone avec un dégradé
+    r, theta = np.meshgrid(
+        np.linspace(0, max_score, 500),  # Radial grid (pour le gradient)
+        np.linspace(0, 2 * np.pi, 500)  # Angular grid
+    )
+    z = np.clip(r, -1, max_score)  # Les scores doivent être limités à l'échelle
+
+    # Appliquer la colormap en fonction des valeurs radiales
+    ax.pcolormesh(theta, r, z, cmap=cmap, shading='auto', alpha=0.5)
+
+    # Remplir l'étoile avec transparence sur les zones non atteintes
+    ax.fill(angles, scores, color="white", alpha=0.5)
+
     # Sauvegarder l'image dans un buffer
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
