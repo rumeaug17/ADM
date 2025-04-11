@@ -308,6 +308,13 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
     return {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
 
 
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import numpy as np
+import math
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
+
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
     Génère un graphique radar (en PNG encodé en base64) à partir des scores moyens par axe.
@@ -344,28 +351,31 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     # Convertir les points du polygone radar en coordonnées cartésiennes
     x_coords = np.array(scores) * np.sin(angles)
     y_coords = np.array(scores) * np.cos(angles)
+    points = np.column_stack([x_coords, y_coords])
 
-    # Définir une colormap avec les couleurs spécifiées
+    # Créer une colormap avec les couleurs spécifiées
     cmap = mcolors.LinearSegmentedColormap.from_list(
         "custom_gradient", 
-        [(0, "blue"), (0.25, "yellow"), (0.5, "red"), (1.0, "purple")]
+        [(0, "blue"), (0.33, "yellow"), (0.66, "red"), (1.0, "purple")]
     )
 
-    # Générer un dégradé radial (grille cartésienne)
+    # Créer une grille pour appliquer le dégradé
     x = np.linspace(-max_score, max_score, 500)
     y = np.linspace(-max_score, max_score, 500)
     X, Y = np.meshgrid(x, y)
-    R = np.sqrt(X**2 + Y**2)  # Rayon pour chaque point
-    THETA = np.arctan2(Y, X)
-    Z = np.clip(R, -1, max_score)  # Limiter les valeurs radiales
+    R = np.sqrt(X**2 + Y**2)  # Calcul du rayon pour chaque point
+    Z = np.clip(R, 0, max_score) / max_score  # Normalisation pour correspondre au dégradé
 
-    # Appliquer le dégradé en arrière-plan
+    # Remplir l'intérieur du polygone avec le dégradé
     ax.imshow(Z, extent=(-max_score, max_score, -max_score, max_score), 
-              transform=ax.transData, origin='lower', cmap=cmap, alpha=0.5)
+              origin='lower', cmap=cmap, alpha=1, zorder=0)
 
-    # Ajouter le polygone avec le masquage correct
-    radar_polygon = Polygon(np.column_stack([angles, scores]), closed=True, edgecolor='black', linewidth=2, facecolor='white')
+    # Ajouter le polygone par-dessus pour masquer les zones extérieures
+    radar_polygon = Polygon(points, closed=True, edgecolor='black', linewidth=2, facecolor='none', zorder=1)
     ax.add_patch(radar_polygon)
+
+    # Masquer les zones extérieures avec un remplissage blanc
+    ax.fill(x_coords, y_coords, 'white', zorder=2)
 
     # Sauvegarder l'image dans un buffer
     buf = io.BytesIO()
