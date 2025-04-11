@@ -310,10 +310,11 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
     categories = list(avg_axis_scores.keys())
     scores = list(avg_axis_scores.values())
-    
-    # Détermine le score maximal pour ajuster l'échelle
-    max_score = max(scores) if scores else 3  # Valeur par défaut à 3 si aucune donnée
-    max_score = max(max_score, 3)  # L'échelle minimale reste à 3
+
+    import math
+
+    # Détermine le score maximal et s'assure qu'il est un entier
+    max_score = math.ceil(max(scores)) if scores else 3  # Arrondi vers le haut pour inclure toutes les valeurs
 
     # Boucler les scores pour fermer le graphique radar
     scores += scores[:1]
