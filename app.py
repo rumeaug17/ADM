@@ -21,10 +21,11 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
 from matplotlib.path import Path
+from matplotlib.patches import PathPatch
 import matplotlib.colors as mcolors
 import matplotlib.tri as tri
+
 
 import numpy as np
 
@@ -315,6 +316,7 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
       - Jaune entre 1 et 2
       - Rouge entre 2 et 3
       - Violet au-delà de 3
+    L'extérieur du polygone reste blanc.
     """
     categories = list(avg_axis_scores.keys())
     scores = list(avg_axis_scores.values())
@@ -339,8 +341,25 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     ax.set_yticklabels([str(i) for i in range(-1, max_score + 1)])
     ax.axhline(y=0, color='black', linestyle='--')
 
-    # Tracer les contours
+    # Tracer le contour du polygone
     ax.plot(angles, scores, color='black', linewidth=2, linestyle='solid')
+
+    # Convertir les points en coordonnées cartésiennes pour créer le masque
+    x_coords = np.array(scores) * np.sin(angles)
+    y_coords = np.array(scores) * np.cos(angles)
+    
+    # Ajouter le polygone qui servira de limite pour le dégradé
+    polygon_path = Path(np.column_stack([angles, scores]))
+    patch = PathPatch(polygon_path, transform=ax.transData, edgecolor='none')
+    ax.add_patch(patch)
+    
+    # Créer une grille cartésienne pour appliquer le dégradé
+    x = np.linspace(-max_score, max_score, 500)
+    y = np.linspace(-max_score, max_score, 500)
+    X, Y = np.meshgrid(x, y)
+    R = np.sqrt(X**2 + Y**2)
+    THETA = np.arctan2(Y, X)
+    Z = np.clip(R, -1, max_score)  # Limiter les valeurs radiales
 
     # Définir une colormap avec les couleurs spécifiées
     cmap = mcolors.LinearSegmentedColormap.from_list(
@@ -348,18 +367,12 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
         [(0, "blue"), (0.25, "yellow"), (0.5, "red"), (1.0, "purple")]
     )
 
-    # Créer une grille triangulaire pour remplir le polygone avec un dégradé
-    r, theta = np.meshgrid(
-        np.linspace(0, max_score, 500),  # Radial grid (pour le gradient)
-        np.linspace(0, 2 * np.pi, 500)  # Angular grid
-    )
-    z = np.clip(r, -1, max_score)  # Les scores doivent être limités à l'échelle
+    # Appliquer le dégradé uniquement à l'intérieur du polygone
+    ax.imshow(Z, extent=(-max_score, max_score, -max_score, max_score), 
+              transform=ax.transData, origin='lower', cmap=cmap, alpha=0.7)
 
-    # Appliquer la colormap en fonction des valeurs radiales
-    ax.pcolormesh(theta, r, z, cmap=cmap, shading='auto', alpha=0.5)
-
-    # Remplir l'étoile avec transparence sur les zones non atteintes
-    ax.fill(angles, scores, color="white", alpha=0.5)
+    # S'assurer que l'extérieur reste blanc
+    ax.fill(angles, scores, color="white", zorder=2)
 
     # Sauvegarder l'image dans un buffer
     buf = io.BytesIO()
