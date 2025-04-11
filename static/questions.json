@@ -98,7 +98,7 @@
       ],
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
-    }
+    },
 	"version_recente": {
       "label": "Existe-t-il une version plus récente de la solution non déployée ?",
       "type": "select",
