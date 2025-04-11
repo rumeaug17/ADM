@@ -14,13 +14,16 @@ import json
 import csv
 import io
 import base64
+
+import math
+
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.path import Path
-from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.colors as mcolors
 
 import numpy as np
 
@@ -303,18 +306,23 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
     return {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
 
 
+import matplotlib.colors as mcolors
+
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
     Génère un graphique radar (en PNG encodé en base64) à partir des scores moyens par axe.
-    L'échelle s'adapte dynamiquement en fonction du score maximal.
+    L'intérieur de l'étoile est rempli avec un dégradé de couleurs :
+      - Bleu entre -1 et 1
+      - Jaune entre 1 et 2
+      - Rouge entre 2 et 3
+      - Violet au-delà de 3
     """
     categories = list(avg_axis_scores.keys())
     scores = list(avg_axis_scores.values())
-
-    import math
-
-    # Détermine le score maximal et s'assure qu'il est un entier
-    max_score = math.ceil(max(scores)) if scores else 3  # Arrondi vers le haut pour inclure toutes les valeurs
+    
+    # Détermine le score maximal pour ajuster l'échelle
+    max_score = math.ceil(max(scores)) if scores else 3  # Arrondi vers le haut
+    max_score = max(max_score, 3)  # L'échelle minimale reste à 3
 
     # Boucler les scores pour fermer le graphique radar
     scores += scores[:1]
@@ -331,10 +339,34 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     ax.set_yticks(range(-1, max_score + 1))  # Crée des ticks jusqu'au score maximal
     ax.set_yticklabels([str(i) for i in range(-1, max_score + 1)])
     ax.axhline(y=0, color='black', linestyle='--')
+
+    # Tracer les contours et remplir avec un dégradé
+    gradient_colors = []
+    for score in scores:
+        if score <= 1:
+            gradient_colors.append("blue")
+        elif 1 < score <= 2:
+            gradient_colors.append("yellow")
+        elif 2 < score <= 3:
+            gradient_colors.append("red")
+        else:
+            gradient_colors.append("purple")
+
+    # Tracer les données avec des patches
+    polygon = Polygon(
+        np.column_stack([angles, scores]),
+        closed=True,
+        edgecolor='black',
+        linewidth=2
+    )
+    ax.add_patch(polygon)
     
-    # Tracer les données
-    ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid')
-    ax.fill(angles, scores, color='blue', alpha=0.25)
+    # Ajouter le dégradé de couleurs
+    cmap = mcolors.LinearSegmentedColormap.from_list("custom_gradient", gradient_colors)
+    path = Path(polygon.get_path().vertices)
+    patch = Polygon(polygon.get_path().vertices, closed=True, facecolor="none")
+    ax.add_patch(patch)
+    patch.set_facecolor(cmap(0.5))  # Utiliser un gradient unique
     
     # Sauvegarder l'image dans un buffer
     buf = io.BytesIO()
