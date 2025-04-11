@@ -202,6 +202,13 @@
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Étude du marché</li><li>Documentation technique</li</ul>"
 	],
+	"infra": [
+		"<strong>Les composants d'infrastructure nécessaires au fonctionnement nominal de la solution sont compatibles avec les standards de l'entreprise ?</strong>",
+		"<br>S'il y a du matériel, des solutions réseaux ou d'infrastructure spécifiques à mettre en oeuvre, alors la maintenance de la soltion sera plus complexe.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture technique</li><li>Documentation technique</li</ul>"
+	],
 
 	"_" : ""
 }
