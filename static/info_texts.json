@@ -65,176 +65,143 @@
 		"<li><strong>P4 - Critique : </strong>Pérennité impérative, conservation des données à très long terme (ex. archives réglementaires, historiques médicaux).</li>",
 		"</ul>"
 	],										
+
+	"_comment_" : "****************************************",
+	"_comment_" : "Nouvelle zone de question",
 	
-	"_comment_" : "Urbanisation",
-    "couplage": [
+	"_comment_" : "Architecture & Intégration",
+    	"api" :[
+		"<strong>Les échanges avec le reste du SI est effectué à travers des API sur des technologies standards ?</strong>",
+		"<br>Par API standards il faut comprendre des échanges via des procoles standardisés tels que des API REST, des services SOAP avec contrat de service.",
+		"<br>Un échange par fichier, en mode batch, peut également être considéré comme un échange standard, si le format est standard.",
+		"<br>Ces services sont standards s'ils ne sont pas développés spécifiquement pour l'intégration dans le SI cible.",
+		"<br>L'usage d'API standards simplifie l'intégration de la solution, et sa maintenance.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture applicative</li><li>Contrat de service</li></ul>"
+	],
+	"couplage": [
 		"<strong>L’application est-elle faiblement couplée avec le reste du SI ?</strong>",
+		"<br>Ces services sont standards s'ils ne sont pas développés spécifiquement pour l'intégration dans le SI cible.",
+		"<br>Plus un couplage est important et intrusif dans un SI, plus la gestion des évolutions et des remplacements devient complexe.",
 		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Cartographie applicative</li><li>interfaces de l'application</li><li>schémas d’architecture</li><li>impacts en cas d'indisponibilité</li></ul>"
-		],
-	"decommissionnement": [
-		"<strong>Une procédure de décommissionnement ou de remplacement de l'application existe ?</strong>",
+	],
+	"décommissionnement": [
+		"<strong>Existe-t-il une procédure de décommissionnement de la solution, ou une procédure de remplacement par une autre solution sur le même périmètre ?</strong>",
+		"<br>Dans l'idéal cette procédure a été testée.",
+		"<br>Par définition, l'ajout dans le SI d'une application que l'on ne peut pas remplacer ou décommissionner simplement est une dette.",
 		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Cartographie applicative</li><li>procédures et contrats</li></ul>"
-		],
-	
-	"_comment_" : "Organisation",
-    "doc": [
-		"<strong>L’application dispose-t-elle d’une documentation complète et à jour ?</strong>",
-		"<br>Une documentation insuffisante rend difficile la maintenance et l’évolution de l’application.<br>",
+		"<ul><li>Cartographie applicative</li><li>procédures et contrats</li><li>Documentation produit</li><li>Architecture d'intégration</li></ul>"
+	],
+	"recouvrement": [
+		"<strong>Les fonctionnalités principales de la solution existe ailleurs dans le SI ?</strong>",
+		"<br>Le périmètre de l’application doit être clairement identifié et ne pas entrer en conflit avec d’autres applications.",
+		"<br>Un chevauchement fonctionnel complique la gestion du SI et augmente la dette applicative.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Manuels d’utilisation</li><li>guides techniques</li><li>schémas d’architecture</li><li>Mise à jour récente</li></ul>"
-		],
-	"team": [
-		"<strong>L’équipe en charge de l’application est-elle clairement identifiée ?</strong>",
-		"<br>L’absence de responsabilité claire entraîne des difficultés de support et d’évolution.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Existence d’une équipe référencée</li><li>rôles définis</li><li>contacts accessibles</li></ul>"
-		],
-    "roadmap": [
-		"<strong>Existe-t-il une roadmap claire pour l’évolution de l’application ?</strong>",
-		"<br>Une roadmap absente ou floue peut indiquer un manque de vision stratégique et indique un manque de visibilité sur la pérennité de l'application.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Présence de plans d’évolution</li><li>backlog de développement</li><li>alignement avec la stratégie et le SDSI</li></ul>"
-		],
-	"support_contrat" : [
-		"<strong>Le support de la solution existe et est assuré pour les 24 prochains mois ?</strong>",
-		"<br>Le suppoort de la solution, dans la version utilisée, est nécessaire pour la maintenance et les corrections de sécurité.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Contrat de support</li><li>Prérequis de la solution</li></ul>"
+		"<ul><li>Cartographie fonctionnelle du SI</li><li>Analyse des interactions entre applications</li></ul>"
 	],
 	
-	"_comment_" : "Obsolescence",
-    "tech_obsolete": [
-		"<strong>L’application repose-t-elle sur des technologies obsolètes ?</strong>",
-		"<br>Les technologies obsolètes sont difficiles à maintenir et exposent à des risques de sécurité.<br>",
+	"_comment_" : "Documentation & Gouvernance",
+	"documentation": [
+		"<strong>L’application dispose-t-elle d’une documentation complète et à jour ?</strong>",
+		"<br>Une documentation insuffisante rend difficile la maintenance et l’évolution de l’application.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Versions des langages et frameworks utilisés</li><li>fin de support par les éditeurs</li></ul>"
-		],
-    "mco": [
-		"<strong>Le maintien en condition opérationnelle de l’application est-il difficile ?</strong>",
-		"<br>Une maintenance complexe peut entraîner une augmentation des coûts et des risques opérationnels.<br>",
+		"<ul><li>Manuels d’utilisation</li><li>Guides techniques</li><li>Schémas d’architecture</li><li>Mises à jour récentes</li></ul>"
+	],
+	"équipe": [
+		"<strong>L’équipe en charge de l’application est-elle clairement identifiée ?</strong>",
+		"<br>L’absence de responsabilité claire entraîne des difficultés de support et d’évolution.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Disponibilité des compétences</li><li>fréquence des mises à jour</li><li>facilité de déploiement</li></ul>"
-		],
-    "support": [
-		"<strong>L’application repose-t-elle sur des composants tiers non supportés ?</strong>",
-		"<br>Un composant tiers non maintenu représente un risque élevé en termes de sécurité et de pérennité.<br>",
+		"<ul><li>Existence d’une équipe référencée</li><li>Rôles définis</li><li>Contacts accessibles</li></ul>"
+	],
+	"roadmap": [
+		"<strong>Une roadmap a été publiée indiquant les prochaines évolutions envisagées de la solution ?</strong>",
+		"<br>Une roadmap absente ou floue peut indiquer un manque de vision stratégique et indique un manque de visibilité sur la pérennité de l'application.",
+		"<br>Une roadmap allant dans une direction incompatible avec celle envisagée par l'entreprise indique une solution à remplacer.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Bibliothèques et dépendances utilisées</li><li>support officiel disponible</li></ul>"
-		],
-    "version_recente": [
+		"<ul><li>Présence de plans d’évolution</li><li>backlog de développement</li><li>alignement avec la stratégie et le SDSI</li></ul>"
+	],
+	"version_recente": [
 		"<strong>La version de la solution est-elle la dernière version disponible ?</strong>",
-		"<br>S'il existe une version pluis récente non déployée, il y a des risques de trou de maintenance ou de problèmes de sécurité non corrigés.<br>",
+		"<br>S'il existe une version pluis récente non déployée, il y a des risques de trou de maintenance ou de problèmes de sécurité non corrigés.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Roadmap</li><li>support officiel</li></ul>"
-		],
-
-	"_comment_" : "Qualité et Développement",
-    "etat_art": [
-		"<strong>L’application est-elle alignée avec l’état de l’art ?</strong>",
-		"<br>Une application trop en retard sur les bonnes pratiques entraîne une dette technique accrue.<br>",
+	],
+	"compétences": [
+		"<strong>Est-il facile de trouver des personnes ayant les compétences nécessaires pour le maintient en condition opérationnelle de la solution ?</strong>",
+		"<br>La difficulté à trouver des personnes peut rendre la maintenance complexe voire impossible dans des coûts acceptables.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Adoption des patterns modernes</li><li>architecture modulaire</li></ul>"
-		],
-    "respect": [
-		"<strong>L’application et son code respectent-ils les standards et principes d’architecture de l’organisation ?</strong>",
-		"<br> Un non-alignement peut entraîner des incompatibilités et des coûts supplémentaires, ainsi qu'un manque d'homogénéité dans le SI.<br>",
+		"<ul><li>Support</li><li>Contrat avec un intégrateur ou une TMA</li><li>veille de marché</li></ul>"
+	],
+	"support": [
+		"<strong>Le support de la solution existe et est assuré pour les 24 prochains mois ?</strong>",
+		"<br>Le support de la solution, dans la version utilisée, est nécessaire pour la maintenance et les corrections de sécurité.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Conformité aux principes et aux standards</li><li>conformité aux décisions d'architecture</li><li>audit de code</li></ul>"
-		],
-    "code_source": [
-		"<strong>Le code source est-il maintenable et documenté ?</strong>",
-		"<br>Un code non maintenable augmente la complexité des évolutions et des corrections.<br>",
+		"<ul><li>Contrat de support</li><li>Communauté active</li><li>Prérequis de la solution</li></ul>"
+	],
+    
+	"_comment_" : "Sécurité & Conformité",
+	"habilitations": [
+		"<strong>Les accès et habilitations de la solution sont correctement gérés, une procédure de revue et de contrôle existe ?</strong>",
+		"<br>Tout accès à une solution du SI doit être protégée et la gestion des habilitations ", 
+			"doit se faire dans le respects des standards et des procédures en vigueur dans l'entreprise.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Présence de commentaires</li><li>structure modulaire</li><li>normes de codage respectées</li></ul>"
-		],
-    "echanges_api": [
-		"<strong>Les échanges avec le reste du SI est effectué à travers des API sur des technologies standards ?</strong>",
-		"<br>L'usage d'API standards simplifie l'intégration de la solution, et sa maintenance.<br>",
+		"<ul><li>Standards et procédures</li><li>Documentation</li></ul>"
+	],
+	"sauvegarde": [
+		"<strong>Un système de sauvegarde et de restauration existe et est testé régulièrement ?</strong>",
+		"<br>En cas de problème technique ou humain, il est parfois nécessaire de restaurer une version stable de la solution ou de ses données.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Architecture applicative</li><li>Contrat de service</li></ul>"
-		],
-    "specifique": [
-		"<strong>Y a-t-il des développements spécifiques, au delà du paramétrage prévu par la solution pour intégrer l'application dans le SI ?</strong>",
-		"<br>Les développements spécifiques sont toujuors des ralentisseurs sur la maintenance et l'évolution.<br>",
+		"<ul><li>Standards et procédures</li><li>Documentation</li></ul>"
+	],
+	"logs": [
+		"<strong>L'application propose-t-elle un moyen simple d'accéder aux logs ?</strong>",
+		"<br>Les logs sont-ils intégrables et utilisables dans un système de surveillance externe ?",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Architecture applicative</li><li>Dossier d'intégration</li></ul>"
-		],
-    "tests": [
-		"<strong>Des tests automatisés sont-ils en place ?</strong>",
-		"<br>L’absence de tests automatisés complique les évolutions et augmente le risque de régressions.<br>",
+		"<ul><li>Standards et procédures</li><li>Documentation</li></ul>"
+	],
+	"vulnérabilités": [
+		"<strong>Les vulnérabilités et problèmes de sécurité sont-ils identifiés rapidement et corrigés dans les délais acceptables ?</strong>",
+		"<br>Un système qui ne peut être corrigé correctement pose des problèmes de sécurité et de maintenance.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Couverture des tests</li><li>intégration continue</li><li>tests unitaires et fonctionnels</li></ul>"
-		],
-
-	"_comment_" : "Sécurité et Conformité",
-    "securite": [
-		"<strong>L’application est-elle conforme aux exigences de sécurité ?</strong>",
-		"<br>Un défaut de conformité expose l’entreprise à des cyberattaques et des sanctions réglementaires.<br>",
+		"<ul><li>Standards et procédures</li><li>Documentation</li><li>Historique de sécurité</li></ul>"
+	],
+	"réglements": [
+		"<strong>Les règlements applicables sur le périmètre de la solution sont pleinement respectés et implémentés ?</strong>",
+		"<br>Un défaut de conformité doit être corrigé, c'est une dette par définition.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Tests de sécurité</li><li>audits</li><li>respect des normes et des règlements (DORA, RGPD, etc.)</li></ul>"
-		],
-    "vulnerabilites": [
-		"<strong>Des vulnérabilités connues sont-elles non corrigées ?</strong>",
-		"<br>Des failles non corrigées augmentent considérablement les risques de cyberattaques.<br>",
+		"<ul><li>Standards et procédures</li><li>Documentation</li</ul>"
+	],
+	"_comment_" : "Technologies",
+	"langages": [
+		"<strong>Les langages et framework de développement utilisés sont-ils obsolètes ?</strong>",
+		"<br>Cela peut rendre la maintenance plus complexe, voire impossible.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Résultats d’analyses de vulnérabilités</li><li>fréquence des correctifs appliqués</li></ul>"
-		],
-    "surveillance": [
-		"<strong>Des mécanismes de surveillance et d’alerte en cas d’incident de sécurité sont-ils en place ?</strong>",
-		"<br>L’absence de surveillance empêche la détection rapide des attaques.<br>",
+		"<ul><li>Étude du marché</li><li>Documentation technique</li</ul>"
+	],
+	"outils": [
+		"<strong>Les outils et dépendances utilisés sont-ils obsolètes ?</strong>",
+		"<br>Cela peut rendre la maintenance plus complexe, voire impossible.",
+		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Logs</li><li>SIEM</li><li>alertes en cas d’anomalies</li><li>audit de sécurité</li></ul>"
-		],
-
-	"_comment_" : "Exploitation et Performance",
-    "incidents": [
-		"<strong>L’application présente-t-elle des incidents récurrents ?</strong>",
-		"<br>Un taux élevé d’incidents réduit la disponibilité et la satisfaction des utilisateurs.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Statistiques de tickets</li><li>temps moyen de résolution</li><li>impact des incidents</li></ul>"
-		],
-    "performances": [
-		"<strong>Les performances de l’application sont-elles satisfaisantes ?</strong>",
-		"<br>Une application lente nuit à l’expérience utilisateur et à la productivité.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Temps de réponse</li><li>taux d’erreur</li><li>monitoring des performances</li></ul>"
-		],
-    "scalable": [
-		"<strong>L’application est-elle scalable ?</strong>",
-		"<br>Une application non scalable devient rapidement un goulot d’étranglement en cas de montée en charge.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Architecture distribuée</li><li>support du cloud</li><li>capacité d’auto-scaling</li></ul>"
-		],
-
-	"_comment_" : "Fonctionnel",
-    "besoins_metier": [
-		"<strong>L’application couvre-t-elle efficacement les besoins métier ?</strong>",
-		"<br>Une application mal adaptée entraîne une perte d’efficacité et une démultiplication des outils.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li> Retour des utilisateurs</li><li>adéquation avec les processus métier</li></ul>"
-		],
-    "recouvrement": [
-		"<strong>Le périmètre de l’application est-il clairement identifié et n’entre pas en conflit avec d’autres applications ?</strong>",
-		"<br>Un chevauchement fonctionnel complique la gestion du SI et augmente la dette applicative.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Cartographie du SI</li><li>analyse des interactions entre applications</li></ul>"
-		],
-    "evolutivite": [
-		"<strong>L’application est-elle facilement évolutive pour répondre aux nouvelles demandes métier ?</strong>",
-		"<br>Une application rigide empêche l’innovation et nécessite des développements coûteux.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Modularité de l’architecture</li><li>facilité d’ajout de nouvelles fonctionnalités</li></ul>"
-		],
-    "fonctions": [
-		"<strong>Existe-t-il des fonctionnalités obsolètes ou inutilisées ?</strong>",
-		"<br>Le maintien de fonctionnalités inutiles alourdit l’application et accroît les coûts de maintenance.<br>",
-		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Analyse des usages</li><li>désactivation des modules non utilisés</li></ul>"
-		],
+		"<ul><li>Étude du marché</li><li>Documentation technique</li</ul>"
+	],
 
 	"_" : ""
 }
