@@ -1,3 +1,4 @@
+
 """
 Application Flask de gestion d'un catalogue d'applications selon la classification DICP.
 
@@ -15,19 +16,17 @@ import csv
 import io
 import base64
 
+import math
 
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-import matplotlib.tri as tri
-
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-import numpy as np
-import math
 from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
+from matplotlib.path import Path
+import matplotlib.colors as mcolors
 
+import numpy as np
 
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, Response, session, flash
@@ -308,22 +307,16 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
     return {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
 
 
-import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-import numpy as np
-import math
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
 
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
     Génère un graphique radar (en PNG encodé en base64) à partir des scores moyens par axe.
-    L'intérieur de l'étoile est rempli avec un dégradé de couleurs progressif :
+    L'intérieur de l'étoile est rempli avec un dégradé de couleurs :
       - Bleu entre -1 et 1
       - Jaune entre 1 et 2
       - Rouge entre 2 et 3
       - Violet au-delà de 3
-    L'extérieur du polygone reste blanc.
     """
     categories = list(avg_axis_scores.keys())
     scores = list(avg_axis_scores.values())
@@ -348,35 +341,34 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     ax.set_yticklabels([str(i) for i in range(-1, max_score + 1)])
     ax.axhline(y=0, color='black', linestyle='--')
 
-    # Convertir les points du polygone radar en coordonnées cartésiennes
-    x_coords = np.array(scores) * np.sin(angles)
-    y_coords = np.array(scores) * np.cos(angles)
-    points = np.column_stack([x_coords, y_coords])
+    # Tracer les contours et remplir avec un dégradé
+    gradient_colors = []
+    for score in scores:
+        if score <= 1:
+            gradient_colors.append("blue")
+        elif 1 < score <= 2:
+            gradient_colors.append("yellow")
+        elif 2 < score <= 3:
+            gradient_colors.append("red")
+        else:
+            gradient_colors.append("purple")
 
-    # Créer une colormap avec les couleurs spécifiées
-    cmap = mcolors.LinearSegmentedColormap.from_list(
-        "custom_gradient", 
-        [(0, "blue"), (0.33, "yellow"), (0.66, "red"), (1.0, "purple")]
+    # Tracer les données avec des patches
+    polygon = Polygon(
+        np.column_stack([angles, scores]),
+        closed=True,
+        edgecolor='black',
+        linewidth=2
     )
-
-    # Créer une grille pour appliquer le dégradé
-    x = np.linspace(-max_score, max_score, 500)
-    y = np.linspace(-max_score, max_score, 500)
-    X, Y = np.meshgrid(x, y)
-    R = np.sqrt(X**2 + Y**2)  # Calcul du rayon pour chaque point
-    Z = np.clip(R, 0, max_score) / max_score  # Normalisation pour correspondre au dégradé
-
-    # Remplir l'intérieur du polygone avec le dégradé
-    ax.imshow(Z, extent=(-max_score, max_score, -max_score, max_score), 
-              origin='lower', cmap=cmap, alpha=1, zorder=0)
-
-    # Ajouter le polygone par-dessus pour masquer les zones extérieures
-    radar_polygon = Polygon(points, closed=True, edgecolor='black', linewidth=2, facecolor='none', zorder=1)
-    ax.add_patch(radar_polygon)
-
-    # Masquer les zones extérieures avec un remplissage blanc
-    ax.fill(x_coords, y_coords, 'white', zorder=2)
-
+    ax.add_patch(polygon)
+    
+    # Ajouter le dégradé de couleurs
+    cmap = mcolors.LinearSegmentedColormap.from_list("custom_gradient", gradient_colors)
+    path = Path(polygon.get_path().vertices)
+    patch = Polygon(polygon.get_path().vertices, closed=True, facecolor="none")
+    ax.add_patch(patch)
+    patch.set_facecolor(cmap(0.5))  # Utiliser un gradient unique
+    
     # Sauvegarder l'image dans un buffer
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
