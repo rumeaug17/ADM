@@ -306,27 +306,36 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
 def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     """
     Génère un graphique radar (en PNG encodé en base64) à partir des scores moyens par axe.
+    L'échelle s'adapte dynamiquement en fonction du score maximal.
     """
     categories = list(avg_axis_scores.keys())
     scores = list(avg_axis_scores.values())
     
-    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
+    # Détermine le score maximal pour ajuster l'échelle
+    max_score = max(scores) if scores else 3  # Valeur par défaut à 3 si aucune donnée
+    max_score = max(max_score, 3)  # L'échelle minimale reste à 3
+
+    # Boucler les scores pour fermer le graphique radar
     scores += scores[:1]
+    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     angles += angles[:1]
     
+    # Création du graphique
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={"projection": "polar"})
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(categories)
-    ax.set_ylim(-1, 3)
-    ax.set_yticks([-1, 0, 1, 2, 3])
-    ax.set_yticklabels(["-1", "0", "1", "2", "3"])
+    ax.set_ylim(-1, max_score)  # Ajuste l'échelle Y au score maximal
+    ax.set_yticks(range(-1, max_score + 1))  # Crée des ticks jusqu'au score maximal
+    ax.set_yticklabels([str(i) for i in range(-1, max_score + 1)])
     ax.axhline(y=0, color='black', linestyle='--')
     
+    # Tracer les données
     ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid')
     ax.fill(angles, scores, color='blue', alpha=0.25)
     
+    # Sauvegarder l'image dans un buffer
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
@@ -334,6 +343,7 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     buf.close()
     plt.close()
     return chart_data
+    
 
 # --- Routes et gestion de l'authentification ---
 
