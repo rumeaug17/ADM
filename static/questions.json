@@ -55,7 +55,7 @@
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
-  }
+  },
   "Documentation & Gouvernance": {
 	"documentation": {
       "label": "La documentation fonctionnelle et technique est-elle complète et à jour ?",
@@ -211,7 +211,6 @@
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
   },
-  
   "Technologies": {
 	"langages": {
       "label": "Les langages et Frameworks de programmation utilisés sont-ils à jour, couramment utilisés, et supportés officiellement ?",
