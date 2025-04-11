@@ -227,7 +227,7 @@
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
 	"outils": {
-      "label": "Les dépendances technologiques (Bases de données, middleware, utilitaires) sont-ils à jour, couramment utilisés, et supportés officiellement ?"
+      "label": "Les dépendances technologiques (Bases de données, middleware, utilitaires) sont-ils à jour, couramment utilisés, et supportés officiellement ?",
       "type": "select",
 	  "weight": 1,
       "options": [
