@@ -301,7 +301,7 @@
 	"specifique": {
       "label": "Existe-t-il des développements spécifiques propriétaires au delà du paramétrage et des adaptations standards de la solution ?",
       "type": "select",
-	  "weight": 1,
+	  "weight": 2,
       "options": [
         {"value": "Non", "score": 0},
         {"value": "Un peu", "score": 1},
@@ -311,12 +311,110 @@
       ],
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"standards": {
+      "label": "L'application et son implémentation respectent les standards d'architecture de l'entreprise ?",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
   },
   
   "Exploitation": {
+	"incidents": {
+      "label": "L'application souffre-t-elle fréquemment d'incidents impactant les utilisateurs ?",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Un peu", "score": 1},
+        {"value": "Souvent", "score": 2},
+        {"value": "Tout le temps", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    }, 
+	"performances": {
+      "label": "Les performances actuelles sont-elles conformes aux attentes ?",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    }, 
+	"scalabilité": {
+      "label": "L'application est-elle scalable facilement en cas de montée en charge ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    }
   },
   
   "Adéquation Fonctionnelle": {
+	"couverture_fonctionnelle": {
+      "label": "L'application couvre-t-elle efficacement l'ensemble des besoins métier actuels ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"fonctions_inutilisées": {
+      "label": "Les fonctionnalités inutilisées ou obsolètes sont-elles régulièrement supprimées ou désactivées ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"adaptable": {
+      "label": "L’application est-elle facilement adaptable à l’évolution des besoins métier ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    }
   }
 }
