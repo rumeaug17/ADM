@@ -268,7 +268,50 @@
 	],
 	
 	"_comment_" : "Exploitation",
+	"incidents": [
+		"<strong>L’application présente-t-elle des incidents récurrents ?</strong>",
+		"<br>Un taux élevé d’incidents réduit la disponibilité et la satisfaction des utilisateurs.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Statistiques de tickets</li><li>temps moyen de résolution</li><li>impact des incidents</li></ul>"
+	],
+	"performances": [
+		"<strong>Les performances de l’application sont-elles satisfaisantes ?</strong>",
+		"<br>Une application lente nuit à l’expérience utilisateur et à la productivité.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Temps de réponse</li><li>taux d’erreur</li><li>monitoring des performances</li></ul>"
+	],
+	"scalabilité": [
+		"<strong>L’application est-elle suffisamment scalable par rapport aux besoins et évolution du besoin ?</strong>",
+		"<br>Une application non scalable devient rapidement un goulot d’étranglement en cas de montée en charge.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture distribuée</li><li>support du cloud</li><li>capacité d’auto-scaling</li></ul>"
+	],
+	
 	"_comment_" : "Adéquation Fonctionnelle",
+	"couverture_fonctionnelle": [
+		"<strong>L’application couvre-t-elle efficacement les besoins métier ?</strong>",
+		"<br>Une application mal adaptée entraîne une perte d’efficacité et une démultiplication des outils.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li> Retour des utilisateurs</li><li>adéquation avec les processus métier</li></ul>"
+	],
+	"fonctions_inutilisées": [
+		"<strong>Existe-t-il des fonctionnalités obsolètes ou inutilisées ?</strong>",
+		"<br>Le maintien de fonctionnalités inutiles alourdit l’application et accroît les coûts de maintenance.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Analyse des usages</li><li>désactivation des modules non utilisés</li></ul>"
+	],
+	"adaptable": [
+		"<strong>L’application est-elle facilement évolutive pour répondre aux nouvelles demandes métier ?</strong>",
+		"<br>Une application rigide empêche l’innovation et nécessite des développements coûteux.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Modularité de l’architecture</li><li>facilité d’ajout de nouvelles fonctionnalités</li></ul>"
+	],
 	
 	"_" : ""
 }
