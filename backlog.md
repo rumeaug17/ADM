@@ -13,6 +13,9 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
   Augmenter le nombre des questions à répondre et avoir des questions plus précises
 - ~~**US1.2** : *Pondération des scores *~~  
   ~~Pondérer le poids des questions pour le calcul du score (toutes les dettes ne se valent pas)~~
+  - **US1.3** : *Ajouter un score de dette global *  
+  Ajouter un score de dette correspondant aux applications non évaluées. Par exemple 30 points par application non évaluées.
+  Le nombre total d'application dans le SI est un paramètre de configuration (?)
 
 ## Epic 2 : Sauvegarde et Historique des Données
 
