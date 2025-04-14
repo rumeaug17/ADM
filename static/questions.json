@@ -256,7 +256,35 @@
     }
   },
   "Qualité du Code & Maintenance": {
-	"code": {
+	"etat_art": {
+      "label": "Alignement avec l’état de l’art",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"respect": {
+      "label": "Respect des standards et des principes d'architecture",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	  "code": {
       "label": "Le code source est-il propre, maintenable et modulaire ?",
       "type": "select",
 	  "weight": 1,
