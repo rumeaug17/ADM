@@ -111,6 +111,27 @@ Par définition, l'ajout dans le SI d'une application que l'on ne peut pas rempl
 
 ---
 
+### Question : L'application peut-elle être migrée ou portée facilement sur un autre environnement ?
+
+**Clé :** `portabilite`  
+**Type :** select
+
+**Applicable pour le type d'application :** Interne, Editeur, Open source
+
+**Applicable pour le type d'hébergement :** On prem, Hybride, Cloud, SaaS
+
+**Options :**
+
+- Oui totalement (Score: 0)
+- Oui, incomplète (Score: 1)
+- À vérifier (Score: 2)
+- Non, ou avec beaucoup de travail (Score: 3)
+- Non applicable (Score: N/A)
+
+**Aide :** _Aucune aide disponible._
+
+---
+
 ### Question : Existe-il un recouvrement fonctionnel avec d’autres parties du SI ?
 
 **Clé :** `recouvrement`  
@@ -342,6 +363,27 @@ Le support de la solution, dans la version utilisée, est nécessaire pour la ma
 - Contrat de support
 - Communauté active
 - Prérequis de la solution
+
+---
+
+### Question : Une date de fin de vie est planifiée ou estimée ?
+
+**Clé :** `fin`  
+**Type :** select
+
+**Applicable pour le type d'application :** Interne, Editeur, Open source
+
+**Applicable pour le type d'hébergement :** On prem, Hybride, Cloud, SaaS
+
+**Options :**
+
+- Non (Score: 0)
+- Oui, à lon terme (Score: 1)
+- Oui, à moyen terme (Score: 2)
+- Oui, à court terme (Score: 3)
+- Non applicable (Score: N/A)
+
+**Aide :** _Aucune aide disponible._
 
 ---
 
@@ -1064,5 +1106,26 @@ Une application rigide empêche l’innovation et nécessite des développements
 **Éléments à vérifier :**
 - Modularité de l’architecture
 - facilité d’ajout de nouvelles fonctionnalités
+
+---
+
+### Question : L’expérience utilisateur (ui/ux) est-elle en adéquation avec les standards actuels ?
+
+**Clé :** `ux`  
+**Type :** select
+
+**Applicable pour le type d'application :** Interne, Editeur, Open source
+
+**Applicable pour le type d'hébergement :** On prem, Hybride, Cloud, SaaS
+
+**Options :**
+
+- Oui totalement (Score: 0)
+- Quelques exceptions (Score: 1)
+- Partiellement (Score: 2)
+- Non, insatisfaisant (Score: 3)
+- Non applicable (Score: N/A)
+
+**Aide :** _Aucune aide disponible._
 
 ---
