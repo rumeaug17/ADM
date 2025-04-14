@@ -209,6 +209,66 @@
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Architecture technique</li><li>Documentation technique</li</ul>"
 	],
-
+	"composants": [
+		"<strong>Des composants tiers obsolètes ou non supportés sont-ils nécessaires pour le bon fonctionnement ?</strong>",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture technique</li><li>Documentation technique</li</ul>"
+	],
+	"ci_cd": [
+		"<strong>L'application est-elle intégrée dans les processus standards de CI/CD de l'entreprise ou dans un pipeline spécifique aux technologies en jeux mais standard ?</strong>",
+		"<br>Un pipeline CI/CD permet une gestion des montées de version et des corrections fluides et en suivant les processus de l'entreprise.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture technique</li><li>Documentation technique</li</ul>"
+	],
+	
+	"_comment_" : "Qualité du Code & Maintenance",
+	"etat_art": [
+		"<strong>L’application est-elle alignée avec l’état de l’art ?</strong>",
+		"<br>Une application trop en retard sur les bonnes pratiques entraîne une dette technique accrue.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Adoption des patterns modernes</li><li>architecture modulaire</li></ul>"
+	],
+	"code": [
+		"<strong>Le code source de l'application est-il lisible, modulaire, maintenable et évolutif ?</strong>",
+		"<br>Une code de mauvaise qualité est plus difficile à maintenir et à faire évoluer.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Documentation du code</li><li>Code source</li><li>Avis des mainteneurs</li><li>Analyses d'outils tels que Sonar</li></ul>"
+	],
+	"code_doc": [
+		"<strong>Le code source est-il suffisamment documenté ?</strong>",
+		"<br>Une code doit être documenté afin d'aider à son évolution.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Documentation du code</li><li>Code source</li><li>Avis des mainteneurs</li><li>Analyses d'outils tels que Sonar</li></ul>"
+	],
+	"tests": [
+		"<strong>Des tests automatisés sont-ils en place ?</strong>",
+		"<br>L’absence de tests automatisés complique les évolutions et augmente le risque de régressions.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Couverture des tests</li><li>intégration continue</li><li>tests unitaires et fonctionnels</li></ul>"
+	],
+	"specifique": [
+		"<strong>Y a-t-il des développements spécifiques, au delà du paramétrage prévu par la solution pour intégrer l'application dans le SI ?</strong>",
+		"<br>Les développements spécifiques sont toujours des ralentisseurs sur la maintenance et l'évolution.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture applicative</li><li>Dossier d'intégration</li></ul>"
+	],
+	"standards": [
+		"<strong>L'application, son implémentation et son intégration respectent-ils les standards en vigueur et les principes d'architecture ?</strong>",
+		"<br>Des exceptions ou des dérogations ont-elles été décidées, ou implémentées pour cette solution ?",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Architecture applicative</li><li>Dossier d'architecture</li><li>Dossier d'intégration</li><li>Registre des décisions d'architecture</li><li>Analyses d'outils tels que Sonar</li></ul>"
+	],
+	
+	"_comment_" : "Exploitation",
+	"_comment_" : "Adéquation Fonctionnelle",
+	
 	"_" : ""
 }
