@@ -9,18 +9,18 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 ## Epic 1 : Fonctionnel
 
 ### User Stories
-- ~~**US1.1** : *Précision de l'estimation du score de dette *~~
+- ~~**US1.1** : *Précision de l'estimation du score de dette*~~
   ~~Augmenter le nombre des questions à répondre et avoir des questions plus précises~~
-- ~~**US1.2** : *Pondération des scores *~~  
+- ~~**US1.2** : *Pondération des scores*~~  
   ~~Pondérer le poids des questions pour le calcul du score (toutes les dettes ne se valent pas)~~
-- **US1.3** : *Ajouter un score de dette global *  
+- **US1.3** : *Ajouter un score de dette global*  
   Ajouter un score de dette correspondant aux applications non évaluées. Par exemple 30 points par application non évaluées.
   Le nombre total d'application dans le SI est un paramètre de configuration (?)
 
 ## Epic 2 : Sauvegarde et Historique des Données
 
 ### User Stories
-- ~~**US2.3** : *Import / Export *~~  
+- ~~**US2.3** : *Import / Export*~~  
   ~~Proposer un export global du catalogue, avec les évaluations et historique, puis un import global~~
 
 ## Epic 3 : Amélioration de la Qualité du Code et Tests
