@@ -41,6 +41,20 @@
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
+    	"portabilite": {
+      "label": "L'application peut-elle être migrée ou portée facilement sur un autre environnement ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplète", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, ou avec beaucoup de travail", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
 	"recouvrement": {
       "label": "Existe-il un recouvrement fonctionnel avec d’autres parties du SI ?",
       "type": "select",
@@ -444,6 +458,20 @@
     },
 	"adaptable": {
       "label": "L’application est-elle facilement adaptable à l’évolution des besoins métier ?",
+      "type": "select",
+	  "weight": 1,
+      "options": [
+        {"value": "Oui totalement", "score": 0},
+        {"value": "Quelques exceptions", "score": 1},
+        {"value": "Partiellement", "score": 2},
+        {"value": "Non, insatisfaisant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"ux": {
+      "label": "L’expérience utilisateur (ui/ux) est-elle en adéquation avec les standards actuels ?",
       "type": "select",
 	  "weight": 1,
       "options": [
