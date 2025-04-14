@@ -153,6 +153,20 @@
       ],
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"fin": {
+      "label": "Une date de fin de vie est planifiée ou estimée ?",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Oui, à lon terme", "score": 1},
+        {"value": "Oui, à moyen terme", "score": 2},
+        {"value": "Oui, à court terme", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     }
   },
   "Sécurité & Conformité": {
