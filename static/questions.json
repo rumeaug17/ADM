@@ -228,7 +228,7 @@
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
 	"outils": {
-      "label": "Les dépendances technologiques (Bases de données, middleware, utilitaires) sont-ils à jour, couramment utilisés, et supportés officiellement ?",
+      "label": "Les dépendances technologiques (Bases de données, middleware) sont-ils à jour, couramment utilisés, et supportés officiellement ?",
       "type": "select",
 	  "weight": 2,
       "options": [
@@ -253,6 +253,34 @@
       ],
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+	"composants": {
+      "label": "Le système repose-t-il de composants tiers obsolètes ou non supportés ?",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+        {"value": "Non", "score": 0},
+        {"value": "Un peu", "score": 1},
+        {"value": "Majoritairement", "score": 2},
+        {"value": "Totalement", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+    },
+    	"ci_cd": {
+      "label": "Le système est-il intégré dans les chaines standards CI/CD de l'entreprise ?",
+      "type": "select",
+	  "weight": 2,
+      "options": [
+         {"value": "Oui totalement", "score": 0},
+        {"value": "Oui, incomplet", "score": 1},
+        {"value": "À vérifier", "score": 2},
+        {"value": "Non, inexistant", "score": 3},
+        {"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud"]
     }
   },
   "Qualité du Code & Maintenance": {
