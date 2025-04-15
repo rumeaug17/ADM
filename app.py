@@ -246,9 +246,10 @@ def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
         criticite = 0
     if criticite == 0:
         return None
-    // moyenne des facteurs dicp
+    # moyenne des facteurs dicp
     moy_dicp = (d * i * c * p) / 4
-    facteur = (moy_dicp * criticite) * 0.75 // réduction de 25% de la criticité dans le calcul du risque car la criticité est trop pépondérante
+    # réduction de 25% de la criticité dans le calcul du risque car la criticité est trop pépondérante
+    facteur = (moy_dicp * criticite) * 0.75 
     return score * facteur
 
 def update_app_metrics(app_item: Dict[str, Any]) -> None:
