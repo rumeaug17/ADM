@@ -27,3 +27,157 @@ def compute_scoring_map(questions: dict) -> dict:
                         score = option.get("score")
                         scoring_map[value] = score
     return scoring_map
+
+# --- Fonctions utilitaires ---
+
+def filter_questions_by_type(questions: dict, type_app: str, hosting: str) -> dict:
+    """
+    Filtre les questions en s'appuyant sur deux critères indépendants :
+      - Si une question contient la clé "app_types", le type_app de l'application doit être 
+        dans la liste (après normalisation).
+      - Si une question contient la clé "hosting_types", le hosting de l'application doit être 
+        dans la liste (après normalisation).
+    Si une question ne possède pas l'une ou l'autre de ces clés, le critère correspondant n'est pas appliqué.
+    Seules les questions satisfaisant tous les filtres spécifiés seront retournées.
+    """
+    filtered_questions = {}
+    # Normaliser les valeurs de l'application
+    type_app_norm = type_app.strip().lower()
+    hosting_norm = hosting.strip().lower()
+    for category, qs in questions.items():
+        filtered_qs = {}
+        for key, q_def in qs.items():
+            include = True
+            # Filtrage sur le type d'application
+            if "app_types" in q_def:
+                allowed_app = [val.strip().lower() for val in q_def["app_types"]]
+                if type_app_norm not in allowed_app:
+                    include = False
+            # Filtrage sur le type d'hébergement
+            if "hosting_types" in q_def:
+                allowed_hosting = [val.strip().lower() for val in q_def["hosting_types"]]
+                if hosting_norm not in allowed_hosting:
+                    include = False
+            if include:
+                filtered_qs[key] = q_def
+        filtered_questions[category] = filtered_qs
+    return filtered_questions
+
+def app_to_dict(app_obj: Application) -> dict:
+    return {
+        "name": app_obj.name,
+        "rda": app_obj.rda,
+        "possession": app_obj.possession.isoformat() if app_obj.possession else None,
+        "type_app": app_obj.type_app,
+        "hosting": app_obj.hosting,
+        "criticite": str(app_obj.criticite) if app_obj.criticite is not None else None,
+        "disponibilite": app_obj.disponibilite,
+        "integrite": app_obj.integrite,
+        "confidentialite": app_obj.confidentialite,
+        "perennite": app_obj.perennite,
+        "score": app_obj.score,
+        "answered_questions": app_obj.answered_questions,
+        "last_evaluation": app_obj.last_evaluation.isoformat() if app_obj.last_evaluation else None,
+        "responses": app_obj.responses,
+        "comments": app_obj.comments,
+        "evaluator_name": app_obj.evaluator_name,
+        "evaluations": [
+            {
+                "score": ev.score,
+                "answered_questions": ev.answered_questions,
+                "last_evaluation": ev.last_evaluation.isoformat() if ev.last_evaluation else None,
+                "evaluator_name": ev.evaluator_name,
+                "responses": ev.responses,
+                "comments": ev.comments,
+                "created_at": ev.created_at.isoformat() if ev.created_at else None,
+            }
+            for ev in app_obj.evaluations
+        ]
+    }
+
+# --- Calcul des métriques et graphiques ---
+
+def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
+    """
+    Calcule le risque d'une application à partir de son score et de ses indicateurs DICP.
+    La formule est : risque = score * (produit des indicateurs numériques / criticité).
+    """
+    score = app_item.get("score")
+    if score is None:
+        return None
+    try:
+        score = float(score)
+    except Exception:
+        return None
+    try:
+        d = int(''.join(filter(str.isdigit, app_item.get("disponibilite", "0"))))
+        i = int(''.join(filter(str.isdigit, app_item.get("integrite", "0"))))
+        c = int(''.join(filter(str.isdigit, app_item.get("confidentialite", "0"))))
+        p = int(''.join(filter(str.isdigit, app_item.get("perennite", "0"))))
+    except Exception:
+        return None
+    try:
+        criticite = int(app_item.get("criticite", "0"))
+    except Exception:
+        criticite = 0
+    if criticite == 0:
+        return None
+    # moyenne des facteurs dicp
+    moy_dicp = (d * i * c * p) / 4
+    # réduction de 50% du risque avec l'augmentation du nombre de questions
+    facteur = (moy_dicp / criticite) / 2
+    return score * facteur
+
+def update_app_metrics(app_item: Dict[str, Any]) -> None:
+    """
+    Met à jour 'max_score', 'percentage' et 'risque' pour une application.
+    Le score maximum est calculé en supposant 3 points par question répondue.
+    """
+    if app_item.get("score") is not None and app_item.get("answered_questions", 0) > 0:
+        max_score = app_item["answered_questions"] * 3
+        percentage = round((app_item["score"] / max_score) * 100, 2)
+        app_item["max_score"] = max_score
+        app_item["percentage"] = percentage
+        app_item["risque"] = calculate_risk(app_item)
+    else:
+        app_item["max_score"] = None
+        app_item["percentage"] = None
+        app_item["risque"] = None
+
+def update_all_metrics(apps: List[Dict[str, Any]]) -> None:
+    """Met à jour les métriques pour toutes les applications."""
+    for app_item in apps:
+        update_app_metrics(app_item)
+
+def calculate_category_sums(app_item: Dict[str, Any]) -> Dict[str, int]:
+    responses = app_item.get("responses", {})
+    category_sums = {}
+    for category, question_keys in CATEGORIES.items():
+        total = 0
+        for key in question_keys:
+            response_value = responses.get(key, "Non applicable")
+            # Récupérer la définition de la question pour obtenir le poids (par défaut 1)
+            q_def = get_question_def(key)
+            weight = q_def.get("weight", 1)
+            score = SCORING_MAP.get(response_value)
+            if score is not None:
+                total += score * weight
+        category_sums[category] = total
+    return category_sums
+
+def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
+    axis_scores: Dict[str, List[float]] = {key: [] for key in CATEGORIES}
+    for app_item in data:
+        responses = app_item.get("responses", {})
+        for category, question_keys in CATEGORIES.items():
+            weighted_scores = []
+            for q in question_keys:
+                if q in responses:
+                    q_def = get_question_def(q)
+                    weight = q_def.get("weight", 1)
+                    opt_score = SCORING_MAP.get(responses.get(q, "Non applicable"))
+                    if opt_score is not None:
+                        weighted_scores.append(opt_score * weight)
+            if weighted_scores:
+                axis_scores[category].append(sum(weighted_scores) / len(weighted_scores))
+    return {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
