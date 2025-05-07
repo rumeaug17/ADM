@@ -229,7 +229,7 @@
 		"<br>Une application trop en retard sur les bonnes pratiques entraîne une dette technique accrue.",
 		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
-		"<ul><li>Adoption des patterns modernes</li><li>architecture modulaire</li></ul>"
+		"<ul><li>Adoption des patterns modernes</li><li>architecture modulaire</li><li>Complexité technique en regard de la complexité fonctionnelle</li></ul>"
 	],
 	"code": [
 		"<strong>Le code source de l'application est-il lisible, modulaire, maintenable et évolutif ?</strong>",
