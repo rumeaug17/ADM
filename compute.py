@@ -63,38 +63,6 @@ def filter_questions_by_type(questions: dict, type_app: str, hosting: str) -> di
         filtered_questions[category] = filtered_qs
     return filtered_questions
 
-def app_to_dict(app_obj: Application) -> dict:
-    return {
-        "name": app_obj.name,
-        "rda": app_obj.rda,
-        "possession": app_obj.possession.isoformat() if app_obj.possession else None,
-        "type_app": app_obj.type_app,
-        "hosting": app_obj.hosting,
-        "criticite": str(app_obj.criticite) if app_obj.criticite is not None else None,
-        "disponibilite": app_obj.disponibilite,
-        "integrite": app_obj.integrite,
-        "confidentialite": app_obj.confidentialite,
-        "perennite": app_obj.perennite,
-        "score": app_obj.score,
-        "answered_questions": app_obj.answered_questions,
-        "last_evaluation": app_obj.last_evaluation.isoformat() if app_obj.last_evaluation else None,
-        "responses": app_obj.responses,
-        "comments": app_obj.comments,
-        "evaluator_name": app_obj.evaluator_name,
-        "evaluations": [
-            {
-                "score": ev.score,
-                "answered_questions": ev.answered_questions,
-                "last_evaluation": ev.last_evaluation.isoformat() if ev.last_evaluation else None,
-                "evaluator_name": ev.evaluator_name,
-                "responses": ev.responses,
-                "comments": ev.comments,
-                "created_at": ev.created_at.isoformat() if ev.created_at else None,
-            }
-            for ev in app_obj.evaluations
-        ]
-    }
-
 # --- Calcul des métriques et graphiques ---
 
 def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
