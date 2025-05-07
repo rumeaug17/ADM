@@ -104,6 +104,13 @@
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Cartographie fonctionnelle du SI</li><li>Analyse des interactions entre applications</li></ul>"
 	],
+	"portabilite": [
+		"<strong>Est-il possible de déployer l'application sur un autre environnement (un autre système, dans le cloud, sur un autre OS, etc.) ?</strong>",
+		"<br>Une application portable permet de faire évoluer son environnement plus facilement et évite les dépendances techniques implicites.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Cartographie technique</li><li>Documentation d'installation</li></ul>"
+	],
 	
 	"_comment_" : "Documentation & Gouvernance",
 	"documentation": [
@@ -148,6 +155,13 @@
 		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Contrat de support</li><li>Communauté active</li><li>Prérequis de la solution</li></ul>"
+	],
+	"fin": [
+		"<strong>Une date de fin de support ou de fin de vie a-t-elle été publiée ?</strong>",
+		"<br>Si une date de fin existe, même officieusement, cela veut dire que la solution est obsolète et un remplacement doit être envisagé",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Contrat de support</li><li>Feuille de route</li><li>Communications de l'éditeur</li></ul>"
 	],
     
 	"_comment_" : "Sécurité & Conformité",
@@ -311,6 +325,14 @@
 		"<br><br>",
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Modularité de l’architecture</li><li>facilité d’ajout de nouvelles fonctionnalités</li></ul>"
+	],
+	"ux": [
+		"<strong>L’interface utilisateur, et l'expérience utilisateur associée, sont-elle modernes et à jour ?</strong>",
+		"<br>Une interface viellote ou mal adaptée aux besoins actuels limitera le bon usage de l'application.",
+		"<br>Une interface peu appréciée est le premier élément incitant les utilisateurs à demander un changement d'application.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Satisfaction des utilisateurs</li></ul>"
 	],
 	
 	"_" : ""
