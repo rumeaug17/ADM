@@ -149,35 +149,4 @@ def update_all_metrics(apps: List[Dict[str, Any]]) -> None:
     for app_item in apps:
         update_app_metrics(app_item)
 
-def calculate_category_sums(app_item: Dict[str, Any]) -> Dict[str, int]:
-    responses = app_item.get("responses", {})
-    category_sums = {}
-    for category, question_keys in CATEGORIES.items():
-        total = 0
-        for key in question_keys:
-            response_value = responses.get(key, "Non applicable")
-            # Récupérer la définition de la question pour obtenir le poids (par défaut 1)
-            q_def = get_question_def(key)
-            weight = q_def.get("weight", 1)
-            score = SCORING_MAP.get(response_value)
-            if score is not None:
-                total += score * weight
-        category_sums[category] = total
-    return category_sums
 
-def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
-    axis_scores: Dict[str, List[float]] = {key: [] for key in CATEGORIES}
-    for app_item in data:
-        responses = app_item.get("responses", {})
-        for category, question_keys in CATEGORIES.items():
-            weighted_scores = []
-            for q in question_keys:
-                if q in responses:
-                    q_def = get_question_def(q)
-                    weight = q_def.get("weight", 1)
-                    opt_score = SCORING_MAP.get(responses.get(q, "Non applicable"))
-                    if opt_score is not None:
-                        weighted_scores.append(opt_score * weight)
-            if weighted_scores:
-                axis_scores[category].append(sum(weighted_scores) / len(weighted_scores))
-    return {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
