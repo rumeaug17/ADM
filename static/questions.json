@@ -378,7 +378,7 @@
         {"value": "Totalement", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "app_types": ["Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
 	"standards": {
