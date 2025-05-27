@@ -53,5 +53,10 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 - **US5.3** : *Intégration des composants dans le score*  
   Utiliser l'état des composants dans le calcul de la dette
   
+## Epic 6 : Habilitations et sécurité
 
+### User Stories
+- **US6.1** : *Habilitations*  
+  Ajouter une habilitation multi-comptes avec un backend paramétrable
+  
 ---
