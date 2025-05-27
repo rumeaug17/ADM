@@ -1,8 +1,17 @@
+import json
+import os
 from auth.mysql_backend import MySQLAuthBackend
 
-def get_auth_backend(config):
-    auth_backend = config.get("auth_backend", "mysql").lower()
-    if auth_backend == "mysql":
-        return MySQLAuthBackend(config["auth_sql_connection_url"])
+def load_config():
+    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
+    with open(config_path, "r") as f:
+        return json.load(f)
+
+def get_auth_backend():
+    config = load_config()
+    backend = config.get("auth_backend")
+
+    if backend == "mysql":
+        return MySQLAuthBackend()
     else:
-        raise ValueError("Auth Backend inconnu ou non configuré")
+        raise ValueError(f"Backend inconnu : {backend}")
