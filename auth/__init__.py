@@ -1,3 +1,4 @@
+from auth.mysql_backend import MySQLAuthBackend
 
 def get_auth_backend(config):
     if config["auth_backend"] == "mysql":
