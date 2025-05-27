@@ -84,7 +84,7 @@ engine = init_db(app.config["DB_CONNECTION"])
 Session = get_session_factory(engine)
 
 # --- Initialisation de l'authentification ---
-auth_backend = get_auth_backend(config)
+auth_backend = get_auth_backend()
     
 def get_question_def(q_key: str) -> dict:
     """
