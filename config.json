@@ -5,5 +5,8 @@
 	
 	"db_backend":"mysql",
 	"json_connection_url":"applications.json",
-	"sql_connection_url": "mysql+mysqlconnector://user:password@localhost/dbname"
+	"sql_connection_url": "mysql+mysqlconnector://user:password@localhost/dbname",
+
+	"auth_backend":"mysql",
+	"auth_sql_connection_url": "mysql+mysqlconnector://user:password@localhost/dbname",
 }
