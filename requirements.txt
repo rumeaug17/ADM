@@ -3,3 +3,5 @@ matplotlib
 numpy
 sqlalchemy 
 mysql-connector-python
+ldap3
+bcrypt
