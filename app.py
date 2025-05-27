@@ -29,6 +29,7 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, Response, session, flash
 
 from compute import *
+from auth import get_auth_backend
 
 app = Flask(__name__)
 # Configuration de l'application
@@ -82,6 +83,8 @@ else:
 engine = init_db(app.config["DB_CONNECTION"])
 Session = get_session_factory(engine)
 
+# --- Initialisation de l'authentification ---
+auth_backend = get_auth_backend(config)
     
 def get_question_def(q_key: str) -> dict:
     """
@@ -310,7 +313,7 @@ def login() -> Any:
     if request.method == 'POST':
         username = request.form.get("username")
         password = request.form.get("password")
-        if username == config["user"] and password == config["pwd"]:
+        if auth_backend.authenticate(username, password):
             session['logged_in'] = True
             flash("Connexion réussie.", "success")
             return redirect(url_for("index"))
