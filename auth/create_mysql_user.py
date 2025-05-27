@@ -1,6 +1,24 @@
 import bcrypt
 import mysql.connector
 import sys
+import json
+import os
+from urllib.parse import urlparse
+
+def load_config():
+    config_path = os.path.join(os.path.dirname(__file__), "config.json")
+    with open(config_path, "r") as f:
+        return json.load(f)
+
+def parse_mysql_url(url):
+    """Extrait les infos de connexion depuis une URL SQLAlchemy de type mysql+mysqlconnector://user:password@host/db"""
+    parsed = urlparse(url)
+    return {
+        "host": parsed.hostname,
+        "user": parsed.username,
+        "password": parsed.password,
+        "database": parsed.path.lstrip("/")
+    }
 
 def main():
     if len(sys.argv) != 3:
@@ -10,18 +28,20 @@ def main():
     username = sys.argv[1]
     plain_password = sys.argv[2]
 
-    # Configuration de connexion à MySQL
-    db_config = {
-        "host": "localhost",
-        "user": "auth_user",        # à adapter
-        "password": "auth_pass",    # à adapter
-        "database": "users_db"      # à adapter
-    }
+    # Chargement de la configuration
+    config = load_config()
 
-    # Hash du mot de passe avec bcrypt
+    if config.get("auth_backend") != "mysql":
+        print("❌ Seul le backend 'mysql' est supporté par ce script.")
+        sys.exit(1)
+
+    # Extraction des paramètres de connexion depuis l’URL SQLAlchemy
+    db_config = parse_mysql_url(config["auth_sql_connection_url"])
+
+    # Hash du mot de passe
     hashed_password = bcrypt.hashpw(plain_password.encode(), bcrypt.gensalt()).decode()
 
-    # Connexion à la base de données et insertion
+    # Insertion dans la base
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
