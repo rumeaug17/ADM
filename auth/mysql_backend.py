@@ -1,3 +1,4 @@
+import bcrypt
 import mysql.connector
 from auth.base import AuthBackend
 
@@ -15,5 +16,5 @@ class MySQLAuthBackend(AuthBackend):
         connection.close()
 
         if result:
-            return password == result[0]  # À remplacer par une comparaison hashée
+            return bcrypt.checkpw(password.encode(), result[0].encode())
         return False
