@@ -60,3 +60,31 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
   Ajouter une habilitation multi-comptes avec un backend paramétrable
   
 ---
+
+## Plan incrémental de refactorisation
+
+### Phase 1 : Sécurisation et hygiène de base (faible risque)
+- [ ] Remplacer les secrets en clair par des variables d’environnement et ajouter un exemple de configuration.  
+- [ ] Ajouter une protection CSRF pour toutes les routes `POST`.  
+- [ ] Centraliser la gestion des erreurs (messages génériques côté UI, logs détaillés côté serveur).  
+- [ ] Ajouter des validations d’entrée (formulaires et upload JSON).  
+
+### Phase 2 : Robustesse et transactions
+- [ ] Introduire un gestionnaire de session DB (context manager) pour commit/rollback automatiques.  
+- [ ] Rendre l’import JSON atomique (validation préalable + transaction unique).  
+- [ ] Ajouter des tests unitaires pour les fonctions de calcul et d’import/export.  
+
+### Phase 3 : Découpage du monolithe `app.py`
+- [ ] Créer des blueprints Flask (auth, applications, évaluations, export).  
+- [ ] Extraire les services métier (scoring, risk, synthèse) dans un module dédié.  
+- [ ] Remplacer `from compute import *` par des imports explicites.  
+
+### Phase 4 : Évolutivité du modèle et des validations
+- [ ] Introduire des schémas de validation (Pydantic/Marshmallow) pour formulaires et imports.  
+- [ ] Mettre en place Alembic pour les migrations.  
+- [ ] Documenter les invariants métier (scoring, poids, règles).  
+
+### Phase 5 : Nettoyage et lisibilité
+- [ ] Réduire la taille des fonctions longues en sous-fonctions testables.  
+- [ ] Harmoniser les conventions de nommage et ajouter des annotations de type.  
+- [ ] Documenter l’architecture (README + diagramme de modules).  
