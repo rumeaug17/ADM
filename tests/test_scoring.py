@@ -1,5 +1,6 @@
 import pytest
 
+from ADM.app import calculate_risk, update_app_metrics
 from ADM.scoring import (
     compute_categories,
     compute_scoring_map,
@@ -55,3 +56,25 @@ def test_filter_questions_normalizes_values_and_combines_filters() -> None:
 def test_filter_questions_rejects_empty_input() -> None:
     with pytest.raises(ValueError, match="type_app"):
         filter_questions_by_type(sample_questions(), " ", "Cloud")
+
+
+def test_calculate_risk_rejects_zero_criticality() -> None:
+    assert calculate_risk({"score": 4, "criticite": 0}) is None
+
+
+def test_update_app_metrics_calculates_percentage_and_risk() -> None:
+    application: dict[str, object] = {
+        "score": 3,
+        "answered_questions": 2,
+        "criticite": 2,
+        "disponibilite": "D2",
+        "integrite": "I2",
+        "confidentialite": "C2",
+        "perennite": "P2",
+    }
+
+    update_app_metrics(application)
+
+    assert application["max_score"] == 6
+    assert application["percentage"] == 50.0
+    assert application["risque"] == 3.0
