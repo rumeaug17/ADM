@@ -75,7 +75,7 @@ app.secret_key = secret_key
 # ou "json" pour utiliser le module JSON (par exemple, database_json.py).
 db_backend = os.environ.get("ADM_DB_BACKEND", config.get("db_backend", "json")).lower()
 if db_backend == "mysql":
-    from database import Application, Evaluation, get_session_factory, init_db
+    from ADM.database import Application, Evaluation, get_session_factory, init_db
 
     # La chaîne de connexion est attendue dans la configuration de l'application Flask.
     connection_url = os.environ.get("ADM_DATABASE_URL")
@@ -85,7 +85,7 @@ if db_backend == "mysql":
 
 elif db_backend == "json":
     # Assurez-vous d'avoir un module database_json.py qui implémente l'interface de database.
-    from database_json import Application, Evaluation, get_session_factory, init_db
+    from ADM.database_json import Application, Evaluation, get_session_factory, init_db
 
     # La chaîne de connexion est attendue dans la configuration de l'application Flask.
     app.config["DB_CONNECTION"] = config.get("json_connection_url", "applications.json")
