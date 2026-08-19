@@ -35,6 +35,13 @@ L'application est alors disponible sur <http://127.0.0.1:5000/>. Pour MySQL,
 définissez aussi `ADM_DB_BACKEND=mysql` et `ADM_DATABASE_URL` avec une URL de
 connexion provenant du gestionnaire de secrets de l'environnement.
 
+Tous les formulaires modifiant des données utilisent un jeton CSRF lié à la
+session. Les formulaires incomplets ou contenant une valeur hors des choix proposés
+sont refusés avec un message indiquant le champ concerné. Les imports sont limités
+à 5 Mio, doivent contenir une liste JSON et chaque application est validée avant
+le début de son enregistrement. Les détails techniques des erreurs restent dans les
+journaux serveur ; l'interface n'affiche jamais le contenu d'une exception interne.
+
 ## Organisation du code Python
 
 - `src/ADM/` contient le code installable, notamment l'application Flask, les calculs

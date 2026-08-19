@@ -70,12 +70,12 @@ refactorisation et évolution fonctionnelle.
 ### Phase 1 : Sécurisation et hygiène de base (faible risque)
 - [x] Remplacer les secrets en clair par des variables d’environnement et documenter
   la configuration locale sans valeur sensible.
-- [ ] Ajouter une protection CSRF pour toutes les routes `POST`.  
-- [ ] Centraliser la gestion des erreurs : messages génériques côté interface,
+- [x] Ajouter une protection CSRF pour toutes les routes `POST`.
+- [x] Centraliser la gestion des erreurs : messages génériques côté interface,
   exceptions précises et journaux sans donnée personnelle côté serveur.
-- [ ] Ajouter des validations d’entrée aux formulaires et aux imports JSON, avec
+- [x] Ajouter des validations d’entrée aux formulaires et aux imports JSON, avec
   un message distinct pour chaque champ invalide.
-- [ ] Remplacer les captures génériques de `Exception` par les exceptions attendues
+- [x] Remplacer les captures génériques de `Exception` par les exceptions attendues
   (`OSError`, `ValueError`, erreurs SQLAlchemy), puis tester chaque erreur gérée.
 
 ### Phase 2 : Robustesse et transactions

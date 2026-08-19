@@ -13,6 +13,7 @@ import csv
 import io
 import json
 import os
+import secrets
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
@@ -31,8 +32,17 @@ from flask import (
     session,
     url_for,
 )
+from sqlalchemy.exc import SQLAlchemyError
+from werkzeug.exceptions import HTTPException
 
 from ADM.scoring import compute_categories, compute_scoring_map, filter_questions_by_type
+from ADM.validation import (
+    InputValidationError,
+    validate_application_form,
+    validate_evaluation_form,
+    validate_import,
+    validate_login_form,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -45,6 +55,7 @@ app = Flask(
 app.config["QUESTIONS_FILE"] = "questions.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
 app.config["CONFIG"] = str(PROJECT_ROOT / "config.json")
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 
 # --- Chargement des configurations ---
 
@@ -171,18 +182,18 @@ def calculate_risk(app_item: dict[str, Any]) -> float | None:
         return None
     try:
         score = float(score)
-    except Exception:
+    except (TypeError, ValueError):
         return None
     try:
         d = int("".join(filter(str.isdigit, app_item.get("disponibilite", "0"))))
         i = int("".join(filter(str.isdigit, app_item.get("integrite", "0"))))
         c = int("".join(filter(str.isdigit, app_item.get("confidentialite", "0"))))
         p = int("".join(filter(str.isdigit, app_item.get("perennite", "0"))))
-    except Exception:
+    except (TypeError, ValueError):
         return None
     try:
         criticite = int(app_item.get("criticite", "0"))
-    except Exception:
+    except (TypeError, ValueError):
         criticite = 0
     if criticite == 0:
         return None
@@ -260,7 +271,7 @@ def get_version_from_file() -> str:
     try:
         with open(version_file) as f:
             return f.read().strip()
-    except Exception:
+    except OSError:
         return "v0.0.0"
 
 
@@ -337,22 +348,58 @@ def generate_radar_chart(avg_axis_scores: dict[str, float]) -> str:
 # --- Routes et gestion de l'authentification ---
 
 
+@app.before_request
+def protect_post_requests() -> None:
+    """Refuse toute requête POST sans jeton CSRF de la session courante."""
+    if request.method != "POST":
+        return
+    expected_token = session.get("csrf_token", "")
+    submitted_token = request.form.get("csrf_token", "")
+    if not expected_token or not secrets.compare_digest(expected_token, submitted_token):
+        abort(400, description="Jeton de formulaire invalide")
+
+
+@app.context_processor
+def inject_csrf_token() -> dict[str, str]:
+    """Expose un jeton CSRF stable pour la session aux formulaires Jinja."""
+    token = session.get("csrf_token")
+    if not isinstance(token, str):
+        token = secrets.token_urlsafe(32)
+        session["csrf_token"] = token
+    return {"csrf_token": token}
+
+
+@app.errorhandler(HTTPException)
+def handle_http_error(error: HTTPException) -> tuple[str, int]:
+    """Affiche un message public générique pour les erreurs HTTP attendues."""
+    messages = {
+        400: "La requête envoyée est invalide.",
+        403: "Vous n'êtes pas autorisé à effectuer cette action.",
+        404: "La ressource demandée est introuvable.",
+        413: "Le fichier envoyé est trop volumineux.",
+        503: "Le service est temporairement indisponible.",
+    }
+    return render_template(
+        "error.html", error_message=messages.get(error.code, "Une erreur est survenue.")
+    ), error.code or 500
+
+
 @app.errorhandler(Exception)
-def handle_exception(e):
-    # Loggez l'erreur (optionnel)
-    app.logger.error("Unhandled Exception: %s", e)
-    # Récupération d'un code d'erreur si disponible, sinon 500
-    code = getattr(e, "code", 500)
-    # Affichez le template error.html en passant le message d'erreur
-    return render_template("error.html", error_message=str(e)), code
+def handle_unexpected_error(error: Exception) -> tuple[str, int]:
+    """Journalise l'exception sans contenu utilisateur et masque le détail au client."""
+    app.logger.error("Erreur serveur non gérée (%s).", type(error).__name__)
+    return render_template("error.html", error_message="Une erreur interne est survenue."), 500
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login() -> Any:
     """Route de connexion avec authentification minimale."""
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+        try:
+            username, password = validate_login_form(request.form)
+        except InputValidationError as error:
+            flash(str(error), "danger")
+            return render_template("login.html"), 400
         expected_username = os.environ.get("ADM_USERNAME")
         expected_password = os.environ.get("ADM_PASSWORD")
         if not expected_username or not expected_password:
@@ -394,28 +441,30 @@ def index():
 @login_required
 def add_application():
     if request.method == "POST":
+        try:
+            fields = validate_application_form(request.form, require_name=True)
+        except InputValidationError as error:
+            flash(str(error), "danger")
+            return render_template("add.html"), 400
         session_db = Session()
         try:
             # Création d'une nouvelle application
             new_app = Application(
-                name=request.form["name"],
-                rda=request.form["rda"],
-                possession=datetime.strptime(request.form["possession"], "%Y-%m-%d").date(),
-                type_app=request.form["type_app"],
-                hosting=request.form["hosting"],
-                criticite=request.form["criticite"],
-                disponibilite=request.form["disponibilite"],
-                integrite=request.form["integrite"],
-                confidentialite=request.form["confidentialite"],
-                perennite=request.form["perennite"],
+                **fields,
                 score=None,
                 answered_questions=0,
                 last_evaluation=None,
                 responses={},
                 comments={},
             )
-            session_db.add(new_app)
-            session_db.commit()
+            try:
+                session_db.add(new_app)
+                session_db.commit()
+            except (SQLAlchemyError, ValueError, OSError):
+                session_db.rollback()
+                app.logger.warning("Echec d'enregistrement d'une application.")
+                flash("L'application n'a pas pu être enregistrée.", "danger")
+                return render_template("add.html"), 409
             return redirect(url_for("index"))
         finally:
             session_db.close()
@@ -431,18 +480,14 @@ def edit_application(name):
         if not app_to_edit:
             abort(404, description="Application non trouvée")
         if request.method == "POST":
+            try:
+                fields = validate_application_form(request.form, require_name=False)
+            except InputValidationError as error:
+                flash(str(error), "danger")
+                return render_template("edit.html", application=app_to_edit), 400
             # Mise à jour des champs modifiables
-            app_to_edit.rda = request.form["rda"]
-            app_to_edit.possession = datetime.strptime(
-                request.form["possession"], "%Y-%m-%d"
-            ).date()
-            app_to_edit.type_app = request.form["type_app"]
-            app_to_edit.hosting = request.form["hosting"]
-            app_to_edit.criticite = request.form["criticite"]
-            app_to_edit.disponibilite = request.form["disponibilite"]
-            app_to_edit.integrite = request.form["integrite"]
-            app_to_edit.confidentialite = request.form["confidentialite"]
-            app_to_edit.perennite = request.form["perennite"]
+            for field, value in fields.items():
+                setattr(app_to_edit, field, value)
             session_db.commit()
             return redirect(url_for("index"))
         return render_template("edit.html", application=app_to_edit)
@@ -475,6 +520,17 @@ def score_application(name):
             abort(404, description="Application non trouvée")
 
         if request.method == "POST":
+            question_keys = frozenset(
+                key
+                for questions_by_category in QUESTIONS.values()
+                for key in questions_by_category
+                if not key.startswith("_")
+            )
+            try:
+                validate_evaluation_form(request.form, question_keys, frozenset(SCORING_MAP))
+            except InputValidationError as error:
+                flash(str(error), "danger")
+                return render_template("score.html", application=app_item, questions=QUESTIONS), 400
             # Mode brouillon : on ne vérifie pas que tous les commentaires sont remplis
             if "save_draft" in request.form:
                 draft_responses = {}
@@ -853,10 +909,9 @@ def import_data():
             flash("Aucun fichier n'a été sélectionné.", "danger")
             return redirect(url_for("import_data"))
         try:
-            # Charger le contenu JSON du fichier transmis
-            data = json.load(file)
-        except Exception as e:
-            flash("Erreur lors du traitement du fichier : " + str(e), "danger")
+            applications = validate_import(file)
+        except InputValidationError as error:
+            flash(str(error), "danger")
             return redirect(url_for("import_data"))
 
         # Ouvrir une session pour effectuer la réimportation
@@ -869,14 +924,14 @@ def import_data():
             session_db.commit()
 
             # 2. Réimporter toutes les applications depuis le fichier JSON.
-            for record in data:
-                new_app = Application.from_dict(record)
+            for new_app in applications:
                 session_db.add(new_app)
             session_db.commit()
             flash("Les données ont été réimportées avec succès.", "success")
-        except Exception as e:
+        except (SQLAlchemyError, ValueError, OSError):
             session_db.rollback()
-            flash("Erreur lors de l'importation : " + str(e), "danger")
+            app.logger.warning("Echec de persistance d'un import JSON.")
+            flash("Les données importées n'ont pas pu être enregistrées.", "danger")
         finally:
             session_db.close()
         return redirect(url_for("index"))

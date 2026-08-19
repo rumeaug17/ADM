@@ -56,6 +56,7 @@
 	<h2 class="text-center text-primary mb-4">➕ Ajouter une application</h2>
     <div class="card p-4">
       <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div class="mb-3">
           <label class="form-label">Nom de l'application :</label>
           <input type="text" name="name" class="form-control" required>
