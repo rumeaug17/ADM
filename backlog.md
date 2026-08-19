@@ -79,9 +79,9 @@ refactorisation et évolution fonctionnelle.
   (`OSError`, `ValueError`, erreurs SQLAlchemy), puis tester chaque erreur gérée.
 
 ### Phase 2 : Robustesse et transactions
-- [ ] Introduire un gestionnaire de session DB (context manager) pour commit/rollback automatiques.  
-- [ ] Rendre l’import JSON atomique (validation préalable + transaction unique).  
-- [ ] Ajouter des tests unitaires pour les fonctions de calcul et d’import/export.  
+- [x] Introduire un gestionnaire de session DB (context manager) pour commit/rollback automatiques.
+- [x] Rendre l’import JSON atomique (validation préalable + transaction unique).
+- [x] Ajouter des tests unitaires pour les fonctions de calcul et d’import/export.
 
 ### Phase 3 : Découpage du monolithe `app.py`
 - [ ] Introduire une fabrique `create_app` pour supprimer l'initialisation de la base,

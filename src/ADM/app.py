@@ -35,6 +35,8 @@ from flask import (
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.exceptions import HTTPException
 
+from ADM.catalogue_io import replace_catalogue, serialize_catalogue
+from ADM.persistence import transactional_session
 from ADM.scoring import compute_categories, compute_scoring_map, filter_questions_by_type
 from ADM.validation import (
     InputValidationError,
@@ -883,9 +885,8 @@ def export_all():
         # Récupérer toutes les applications via la session (quelle que soit leur origine)
         db_apps = session_db.query(Application).all()
         # Convertir les objets en dictionnaire (incluant l'historique des évaluations)
-        apps_list = [app_to_dict(app) for app in db_apps]
         # Exporter au format JSON avec une mise en forme lisible
-        json_data = json.dumps(apps_list, indent=4, ensure_ascii=False)
+        json_data = serialize_catalogue(db_apps)
         # Retourne une réponse avec les en-têtes appropriés pour télécharger un fichier
         return Response(
             json_data,
@@ -914,26 +915,15 @@ def import_data():
             flash(str(error), "danger")
             return redirect(url_for("import_data"))
 
-        # Ouvrir une session pour effectuer la réimportation
-        session_db = Session()
         try:
-            # 1. Supprimer toutes les applications existantes.
-            apps_to_delete = session_db.query(Application).all()
-            for app_obj in apps_to_delete:
-                session_db.delete(app_obj)
-            session_db.commit()
-
-            # 2. Réimporter toutes les applications depuis le fichier JSON.
-            for new_app in applications:
-                session_db.add(new_app)
-            session_db.commit()
+            # Suppression et ajout appartiennent à une transaction unique : un échec
+            # conserve donc le catalogue dans son état antérieur.
+            with transactional_session(Session) as session_db:
+                replace_catalogue(session_db, applications)
             flash("Les données ont été réimportées avec succès.", "success")
         except (SQLAlchemyError, ValueError, OSError):
-            session_db.rollback()
             app.logger.warning("Echec de persistance d'un import JSON.")
             flash("Les données importées n'ont pas pu être enregistrées.", "danger")
-        finally:
-            session_db.close()
         return redirect(url_for("index"))
     # En GET, on affiche le formulaire de sélection de fichier avec modale.
     return render_template("import_data.html")
