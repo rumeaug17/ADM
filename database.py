@@ -1,10 +1,10 @@
 # database.py
 
-import json
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, ForeignKey, Text
-from sqlalchemy.orm import relationship, sessionmaker, scoped_session
+
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 
 # Utilisation du type JSON natif de SQLAlchemy si disponible, sinon on peut utiliser TEXT.
 try:
@@ -17,29 +17,31 @@ Base = declarative_base()
 
 
 class Application(Base):
-    __tablename__ = 'applications'
-    
+    __tablename__ = "applications"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False, unique=True)
     rda = Column(String(255), nullable=False)
     possession = Column(Date)
     type_app = Column(String(50), nullable=False)  # Exemple: "Interne", "Editeur", "Open source"
-    hosting = Column(String(50), nullable=False)   # Exemple: "On prem", "Cloud", "SaaS"
+    hosting = Column(String(50), nullable=False)  # Exemple: "On prem", "Cloud", "SaaS"
     criticite = Column(Integer, nullable=False)
     disponibilite = Column(String(2), nullable=False)  # Ex. "D1", "D2", "D3", "D4"
-    integrite = Column(String(2), nullable=False)       # Ex. "I1", "I2", ...
-    confidentialite = Column(String(2), nullable=False) # Ex. "C1", "C2", ...
-    perennite = Column(String(2), nullable=False)         # Ex. "P1", "P2", ...
+    integrite = Column(String(2), nullable=False)  # Ex. "I1", "I2", ...
+    confidentialite = Column(String(2), nullable=False)  # Ex. "C1", "C2", ...
+    perennite = Column(String(2), nullable=False)  # Ex. "P1", "P2", ...
     score = Column(Integer, default=None)
     answered_questions = Column(Integer, default=None)
     last_evaluation = Column(DateTime, default=None)
     responses = Column(SA_JSON)
     comments = Column(SA_JSON)
-    evaluator_name = Column(String(255)) 
-    
+    evaluator_name = Column(String(255))
+
     # Relation avec la table Evaluation
-    evaluations = relationship("Evaluation", back_populates="application", cascade="all, delete-orphan")
-    
+    evaluations = relationship(
+        "Evaluation", back_populates="application", cascade="all, delete-orphan"
+    )
+
     def __repr__(self):
         return f"<Application(name={self.name}, type_app={self.type_app}, hosting={self.hosting})>"
 
@@ -49,7 +51,9 @@ class Application(Base):
             "id": self.id,
             "name": self.name,
             "rda": self.rda,
-            "possession": self.possession.isoformat() if self.possession and hasattr(self.possession, "isoformat") else self.possession,
+            "possession": self.possession.isoformat()
+            if self.possession and hasattr(self.possession, "isoformat")
+            else self.possession,
             "type_app": self.type_app,
             "hosting": self.hosting,
             "criticite": self.criticite,
@@ -59,11 +63,13 @@ class Application(Base):
             "perennite": self.perennite,
             "score": self.score,
             "answered_questions": self.answered_questions,
-            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
+            "last_evaluation": self.last_evaluation.isoformat()
+            if self.last_evaluation and hasattr(self.last_evaluation, "isoformat")
+            else self.last_evaluation,
             "responses": self.responses,
             "comments": self.comments,
             "evaluator_name": self.evaluator_name,
-            "evaluations": [ev.to_dict() for ev in self.evaluations]
+            "evaluations": [ev.to_dict() for ev in self.evaluations],
         }
 
     @classmethod
@@ -107,14 +113,15 @@ class Application(Base):
             responses=data.get("responses", {}),
             comments=data.get("comments", {}),
             evaluator_name=data.get("evaluator_name"),
-            evaluations=evaluations
+            evaluations=evaluations,
         )
 
+
 class Evaluation(Base):
-    __tablename__ = 'evaluations'
-    
+    __tablename__ = "evaluations"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
-    application_id = Column(Integer, ForeignKey('applications.id'), nullable=False)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False)
     score = Column(Integer, nullable=False)
     answered_questions = Column(Integer, nullable=False)
     last_evaluation = Column(DateTime, nullable=False)
@@ -122,10 +129,10 @@ class Evaluation(Base):
     responses = Column(SA_JSON)
     comments = Column(SA_JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
     # Relation vers l'application évaluée
     application = relationship("Application", back_populates="evaluations")
-    
+
     def __repr__(self):
         return f"<Evaluation(app_id={self.application_id}, score={self.score}, evaluator={self.evaluator_name})>"
 
@@ -136,11 +143,15 @@ class Evaluation(Base):
             "application_id": self.application_id,
             "score": self.score,
             "answered_questions": self.answered_questions,
-            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
+            "last_evaluation": self.last_evaluation.isoformat()
+            if self.last_evaluation and hasattr(self.last_evaluation, "isoformat")
+            else self.last_evaluation,
             "evaluator_name": self.evaluator_name,
             "responses": self.responses,
             "comments": self.comments,
-            "created_at": self.created_at.isoformat() if self.created_at and hasattr(self.created_at, "isoformat") else self.created_at
+            "created_at": self.created_at.isoformat()
+            if self.created_at and hasattr(self.created_at, "isoformat")
+            else self.created_at,
         }
 
     @classmethod
@@ -169,8 +180,9 @@ class Evaluation(Base):
             evaluator_name=data.get("evaluator_name", ""),
             responses=data.get("responses", {}),
             comments=data.get("comments", {}),
-            created_at=created_at
+            created_at=created_at,
         )
+
 
 def get_engine(connection_url):
     """
@@ -180,8 +192,8 @@ def get_engine(connection_url):
     engine = create_engine(
         connection_url,
         echo=False,
-        pool_recycle=3600,    # recycle la connexion après 3600 secondes
-        pool_pre_ping=True    # vérifie la validité de la connexion avant son utilisation
+        pool_recycle=3600,  # recycle la connexion après 3600 secondes
+        pool_pre_ping=True,  # vérifie la validité de la connexion avant son utilisation
     )
     return engine
 
@@ -203,12 +215,12 @@ def init_db(connection_url=None):
     return engine
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Exemple de test : création de la base et insertion d'une application de test.
     engine = init_db()  # Utilise la chaîne de connexion par défaut ou celle passée en paramètre
     Session = get_session_factory(engine)
     session = Session()
-    
+
     # Création d'une application de test
     new_app = Application(
         name="Test Application",
@@ -225,7 +237,7 @@ if __name__ == '__main__':
         answered_questions=0,
         last_evaluation=None,
         responses={},
-        comments={}
+        comments={},
     )
     session.add(new_app)
     session.commit()

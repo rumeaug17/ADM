@@ -17,7 +17,7 @@ Avant toute modification, lire :
 - Ne pas introduire `Any` sans nécessité et éviter les `# type: ignore`.
 - Si un `# type: ignore` est réellement nécessaire, préciser le code d'erreur mypy concerné et justifier son usage dans un commentaire.
 - Valider les données d'entrée et gérer précisément les exceptions.
-- Placer le métier dans `src/exemple_python_project_df/` et l'orchestration dans `dags/`.
+- Placer le métier dans `src/ADM/` et l'orchestration dans `dags/`.
 - Ne jamais mettre de secret, notamment un mot de passe ou un jeton, dans le code ni dans un fichier de configuration versionné. Les secrets doivent être gérés par des variables d'environnement ou par un gestionnaire de secrets externe.
 - Ne jamais écrire de secret ni de donnée personnelle dans les logs, les tests, la documentation ou les exemples.
 - Déclarer toute dépendance dans `pyproject.toml` et justifier son ajout.

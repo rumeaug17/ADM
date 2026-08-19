@@ -5,17 +5,35 @@ pour que l'application Flask puisse fonctionner sans changement selon le backend
 La "chaine de connexion" dans ce cas est le chemin vers le fichier JSON.
 """
 
-import os
 import json
-from datetime import datetime, date
+import os
+from datetime import datetime
 
 ### CLASSES MODELES
 
+
 class Application:
-    def __init__(self, id=None, name="", rda="", possession=None, type_app="",
-                 hosting="", criticite=None, disponibilite="", integrite="",
-                 confidentialite="", perennite="", score=None, answered_questions=0,
-                 last_evaluation=None, responses=None, comments=None, evaluator_name="", evaluations=None):
+    def __init__(
+        self,
+        id=None,
+        name="",
+        rda="",
+        possession=None,
+        type_app="",
+        hosting="",
+        criticite=None,
+        disponibilite="",
+        integrite="",
+        confidentialite="",
+        perennite="",
+        score=None,
+        answered_questions=0,
+        last_evaluation=None,
+        responses=None,
+        comments=None,
+        evaluator_name="",
+        evaluations=None,
+    ):
         self.id = id
         self.name = name
         self.rda = rda
@@ -33,7 +51,9 @@ class Application:
         self.responses = responses if responses is not None else {}
         self.comments = comments if comments is not None else {}
         self.evaluator_name = evaluator_name
-        self.evaluations = evaluations if evaluations is not None else []  # Liste d'objets Evaluation
+        self.evaluations = (
+            evaluations if evaluations is not None else []
+        )  # Liste d'objets Evaluation
 
     def to_dict(self):
         return {
@@ -41,7 +61,9 @@ class Application:
             "name": self.name,
             "rda": self.rda,
             # Si possession est un objet date ou datetime, on le convertit en chaîne ISO.
-            "possession": self.possession.isoformat() if self.possession and hasattr(self.possession, "isoformat") else self.possession,
+            "possession": self.possession.isoformat()
+            if self.possession and hasattr(self.possession, "isoformat")
+            else self.possession,
             "type_app": self.type_app,
             "hosting": self.hosting,
             "criticite": self.criticite,
@@ -51,11 +73,13 @@ class Application:
             "perennite": self.perennite,
             "score": self.score,
             "answered_questions": self.answered_questions,
-            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
+            "last_evaluation": self.last_evaluation.isoformat()
+            if self.last_evaluation and hasattr(self.last_evaluation, "isoformat")
+            else self.last_evaluation,
             "responses": self.responses,
             "comments": self.comments,
             "evaluator_name": self.evaluator_name,  # Ajout dans le dictionnaire
-            "evaluations": [ev.to_dict() for ev in self.evaluations]
+            "evaluations": [ev.to_dict() for ev in self.evaluations],
         }
 
     @classmethod
@@ -94,16 +118,29 @@ class Application:
             last_evaluation=last_eval,
             responses=data.get("responses", {}),
             comments=data.get("comments", {}),
-            evaluator_name=data.get("evaluator_name", ""),  # Importation de l'attribut evaluator_name
-            evaluations=evaluations
+            evaluator_name=data.get(
+                "evaluator_name", ""
+            ),  # Importation de l'attribut evaluator_name
+            evaluations=evaluations,
         )
 
     def __repr__(self):
         return f"<Application id={self.id} name={self.name}>"
 
+
 class Evaluation:
-    def __init__(self, id=None, application_id=None, score=None, answered_questions=0,
-                 last_evaluation=None, evaluator_name="", responses=None, comments=None, created_at=None):
+    def __init__(
+        self,
+        id=None,
+        application_id=None,
+        score=None,
+        answered_questions=0,
+        last_evaluation=None,
+        evaluator_name="",
+        responses=None,
+        comments=None,
+        created_at=None,
+    ):
         self.id = id
         self.application_id = application_id
         self.score = score
@@ -120,11 +157,15 @@ class Evaluation:
             "application_id": self.application_id,
             "score": self.score,
             "answered_questions": self.answered_questions,
-            "last_evaluation": self.last_evaluation.isoformat() if self.last_evaluation and hasattr(self.last_evaluation, "isoformat") else self.last_evaluation,
+            "last_evaluation": self.last_evaluation.isoformat()
+            if self.last_evaluation and hasattr(self.last_evaluation, "isoformat")
+            else self.last_evaluation,
             "evaluator_name": self.evaluator_name,
             "responses": self.responses,
             "comments": self.comments,
-            "created_at": self.created_at.isoformat() if self.created_at and hasattr(self.created_at, "isoformat") else self.created_at
+            "created_at": self.created_at.isoformat()
+            if self.created_at and hasattr(self.created_at, "isoformat")
+            else self.created_at,
         }
 
     @classmethod
@@ -150,13 +191,15 @@ class Evaluation:
             evaluator_name=data.get("evaluator_name", ""),
             responses=data.get("responses", {}),
             comments=data.get("comments", {}),
-            created_at=created_at
+            created_at=created_at,
         )
 
     def __repr__(self):
         return f"<Evaluation id={self.id} score={self.score}>"
 
+
 ### CLASSE JSONQueryCustom
+
 
 class JSONQueryCustom:
     def __init__(self, objects):
@@ -180,7 +223,9 @@ class JSONQueryCustom:
     def first(self):
         return self.objects[0] if self.objects else None
 
+
 ### CLASSE JSONSession AVEC TRACKING DES OBJETS LIVE
+
 
 class JSONSession:
     """
@@ -188,6 +233,7 @@ class JSONSession:
     Elle charge les données du fichier et crée des instances "live" stockées dans _tracked.
     Les modifications sur ces instances sont synchronisées dans le fichier lors du commit.
     """
+
     def __init__(self, db_filename):
         self.db_filename = db_filename
         self._load()
@@ -204,7 +250,7 @@ class JSONSession:
             self._data = []
             self._save()
         else:
-            with open(self.db_filename, "r", encoding="utf-8") as f:
+            with open(self.db_filename, encoding="utf-8") as f:
                 try:
                     self._data = json.load(f)
                 except Exception:
@@ -263,7 +309,9 @@ class JSONSession:
     def close(self):
         pass  # Aucun nettoyage particulier nécessaire
 
+
 ### Fonctions d'interface
+
 
 def get_engine(connection_url):
     """
@@ -271,12 +319,16 @@ def get_engine(connection_url):
     """
     return None
 
+
 def get_session_factory(engine, db_filename=None):
     if db_filename is None:
         db_filename = "applications.json"
+
     def session_factory():
         return JSONSession(db_filename)
+
     return session_factory
+
 
 def init_db(connection_url):
     """
@@ -286,5 +338,6 @@ def init_db(connection_url):
         with open(connection_url, "w", encoding="utf-8") as f:
             json.dump([], f)
     return None
+
 
 # Fin du module database_json.py

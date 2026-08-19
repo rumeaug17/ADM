@@ -1,4 +1,3 @@
-
 """
 Application Flask de gestion d'un catalogue d'applications selon la classification DICP.
 
@@ -9,26 +8,30 @@ Fonctionnalités :
 - Lecture/écriture des données dans un fichier JSON.
 """
 
-import os
-import shutil
-import json
+import base64
 import csv
 import io
-import base64
+import json
+import os
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from functools import wraps
+from typing import Any
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from matplotlib.path import Path
-from matplotlib.colors import LinearSegmentedColormap
-
 import numpy as np
+from flask import (
+    Flask,
+    Response,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
-from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, abort, Response, session, flash
-
-from compute import *
+from compute import compute_categories, compute_scoring_map, filter_questions_by_type
 
 app = Flask(__name__)
 # Configuration de l'application
@@ -38,24 +41,31 @@ app.config["CONFIG"] = "config.json"
 
 # --- Chargement des configurations ---
 
+
 def load_json_file(path: str) -> Any:
     """Charge un fichier JSON et retourne son contenu."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
+
 
 def load_questions() -> dict:
     """Charge la configuration des questions depuis le fichier questions.json situé dans le dossier static."""
     questions_path = os.path.join(app.static_folder, app.config["QUESTIONS_FILE"])
     return load_json_file(questions_path)
 
-def load_config() -> List[Dict[str, Any]]:
+
+def load_config() -> list[dict[str, Any]]:
     """Charge la configuration depuis le fichier config.json."""
     return load_json_file(app.config["CONFIG"])
+
 
 # Charger les configurations au démarrage
 QUESTIONS = load_questions()
 config = load_config()
-app.secret_key = config["secret_key"]
+secret_key = os.environ.get("ADM_SECRET_KEY")
+if not secret_key:
+    raise RuntimeError("La variable d'environnement ADM_SECRET_KEY est obligatoire.")
+app.secret_key = secret_key
 
 # --- Injection de la dépendance du backend de données ---
 
@@ -63,15 +73,20 @@ app.secret_key = config["secret_key"]
 # Par convention, le fichier config.json devrait contenir une clé "db_backend"
 # qui peut avoir la valeur "mysql" pour utiliser le module MySQL (database.py)
 # ou "json" pour utiliser le module JSON (par exemple, database_json.py).
-db_backend = config.get("db_backend", "mysql").lower()
+db_backend = os.environ.get("ADM_DB_BACKEND", config.get("db_backend", "json")).lower()
 if db_backend == "mysql":
-    from database import init_db, get_session_factory, Application, Evaluation
+    from database import Application, Evaluation, get_session_factory, init_db
+
     # La chaîne de connexion est attendue dans la configuration de l'application Flask.
-    app.config["DB_CONNECTION"] = config.get("sql_connection_url", "mysql+mysqlconnector://root:password@localhost/adm_db")
+    connection_url = os.environ.get("ADM_DATABASE_URL")
+    if not connection_url:
+        raise RuntimeError("ADM_DATABASE_URL est obligatoire avec le backend MySQL.")
+    app.config["DB_CONNECTION"] = connection_url
 
 elif db_backend == "json":
     # Assurez-vous d'avoir un module database_json.py qui implémente l'interface de database.
-    from database_json import init_db, get_session_factory, Application, Evaluation
+    from database_json import Application, Evaluation, get_session_factory, init_db
+
     # La chaîne de connexion est attendue dans la configuration de l'application Flask.
     app.config["DB_CONNECTION"] = config.get("json_connection_url", "applications.json")
 
@@ -82,22 +97,24 @@ else:
 engine = init_db(app.config["DB_CONNECTION"])
 Session = get_session_factory(engine)
 
-    
+
 def get_question_def(q_key: str) -> dict:
     """
-    Recherche dans le dictionnaire global QUESTIONS la définition 
+    Recherche dans le dictionnaire global QUESTIONS la définition
     de la question ayant pour clé q_key.
     Renvoie un dictionnaire vide si non trouvé.
     """
-    for category, qs in QUESTIONS.items():
+    for qs in QUESTIONS.values():
         if q_key in qs:
             return qs[q_key]
     return {}
-    
-SCORING_MAP: Dict[str, Optional[int]] = compute_scoring_map(QUESTIONS)
-CATEGORIES: Dict[str, List[str]] = compute_categories(QUESTIONS)
+
+
+SCORING_MAP: dict[str, int | None] = compute_scoring_map(QUESTIONS)
+CATEGORIES: dict[str, list[str]] = compute_categories(QUESTIONS)
 
 # --- Fonctions utilitaires ---
+
 
 def app_to_dict(app_obj: Application) -> dict:
     return {
@@ -128,12 +145,14 @@ def app_to_dict(app_obj: Application) -> dict:
                 "created_at": ev.created_at.isoformat() if ev.created_at else None,
             }
             for ev in app_obj.evaluations
-        ]
+        ],
     }
+
 
 # --- Calcul des métriques et graphiques ---
 
-def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
+
+def calculate_risk(app_item: dict[str, Any]) -> float | None:
     """
     Calcule le risque d'une application à partir de son score et de ses indicateurs DICP.
     La formule est : risque = score * (produit des indicateurs numériques / criticité).
@@ -146,10 +165,10 @@ def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
     except Exception:
         return None
     try:
-        d = int(''.join(filter(str.isdigit, app_item.get("disponibilite", "0"))))
-        i = int(''.join(filter(str.isdigit, app_item.get("integrite", "0"))))
-        c = int(''.join(filter(str.isdigit, app_item.get("confidentialite", "0"))))
-        p = int(''.join(filter(str.isdigit, app_item.get("perennite", "0"))))
+        d = int("".join(filter(str.isdigit, app_item.get("disponibilite", "0"))))
+        i = int("".join(filter(str.isdigit, app_item.get("integrite", "0"))))
+        c = int("".join(filter(str.isdigit, app_item.get("confidentialite", "0"))))
+        p = int("".join(filter(str.isdigit, app_item.get("perennite", "0"))))
     except Exception:
         return None
     try:
@@ -164,7 +183,8 @@ def calculate_risk(app_item: Dict[str, Any]) -> Optional[float]:
     facteur = (moy_dicp / criticite) / 2
     return score * facteur
 
-def update_app_metrics(app_item: Dict[str, Any]) -> None:
+
+def update_app_metrics(app_item: dict[str, Any]) -> None:
     """
     Met à jour 'max_score', 'percentage' et 'risque' pour une application.
     Le score maximum est calculé en supposant 3 points par question répondue.
@@ -180,12 +200,14 @@ def update_app_metrics(app_item: Dict[str, Any]) -> None:
         app_item["percentage"] = None
         app_item["risque"] = None
 
-def update_all_metrics(apps: List[Dict[str, Any]]) -> None:
+
+def update_all_metrics(apps: list[dict[str, Any]]) -> None:
     """Met à jour les métriques pour toutes les applications."""
     for app_item in apps:
         update_app_metrics(app_item)
 
-def calculate_category_sums(app_item: Dict[str, Any]) -> Dict[str, int]:
+
+def calculate_category_sums(app_item: dict[str, Any]) -> dict[str, int]:
     responses = app_item.get("responses", {})
     category_sums = {}
     for category, question_keys in CATEGORIES.items():
@@ -201,8 +223,9 @@ def calculate_category_sums(app_item: Dict[str, Any]) -> Dict[str, int]:
         category_sums[category] = total
     return category_sums
 
-def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
-    axis_scores: Dict[str, List[float]] = {key: [] for key in CATEGORIES}
+
+def calculate_axis_scores(data: list[dict[str, Any]]) -> dict[str, float]:
+    axis_scores: dict[str, list[float]] = {key: [] for key in CATEGORIES}
     for app_item in data:
         responses = app_item.get("responses", {})
         for category, question_keys in CATEGORIES.items():
@@ -216,40 +239,48 @@ def calculate_axis_scores(data: List[Dict[str, Any]]) -> Dict[str, float]:
                         weighted_scores.append(opt_score * weight)
             if weighted_scores:
                 axis_scores[category].append(sum(weighted_scores) / len(weighted_scores))
-    return {key: round(sum(values) / len(values), 2) if values else 0 for key, values in axis_scores.items()}
-    
+    return {
+        key: round(sum(values) / len(values), 2) if values else 0
+        for key, values in axis_scores.items()
+    }
+
 
 def get_version_from_file() -> str:
     """Lit et retourne la version de l'application depuis version.txt situé dans static."""
     version_file = os.path.join(app.static_folder, "version.txt")
     try:
-        with open(version_file, "r") as f:
+        with open(version_file) as f:
             return f.read().strip()
     except Exception:
         return "v0.0.0"
 
+
 APP_VERSION = get_version_from_file()
+
 
 @app.context_processor
 def inject_version():
     """Injecte la version de l'application dans tous les templates."""
     return dict(app_version=APP_VERSION)
 
+
 def login_required(f):
     """Décorateur pour protéger les routes nécessitant une authentification."""
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('logged_in'):
-            return redirect(url_for('login'))
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 def get_app_by_name(name: str, session_db) -> Application:
     return session_db.query(Application).filter_by(name=name).first()
 
 
-
-def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
+def generate_radar_chart(avg_axis_scores: dict[str, float]) -> str:
     """
     Génère un graphique radar (en PNG encodé en base64) à partir des scores moyens par axe.
     L'échelle s'adapte dynamiquement en fonction du score maximal.
@@ -260,13 +291,15 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     import math
 
     # Détermine le score maximal et s'assure qu'il est un entier
-    max_score = math.ceil(max(scores)) if scores else 3  # Arrondi vers le haut pour inclure toutes les valeurs
+    max_score = (
+        math.ceil(max(scores)) if scores else 3
+    )  # Arrondi vers le haut pour inclure toutes les valeurs
 
     # Boucler les scores pour fermer le graphique radar
     scores += scores[:1]
     angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     angles += angles[:1]
-    
+
     # Création du graphique
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={"projection": "polar"})
     ax.set_theta_offset(np.pi / 2)
@@ -276,23 +309,24 @@ def generate_radar_chart(avg_axis_scores: Dict[str, float]) -> str:
     ax.set_ylim(-1, max_score)  # Ajuste l'échelle Y au score maximal
     ax.set_yticks(range(-1, max_score + 1))  # Crée des ticks jusqu'au score maximal
     ax.set_yticklabels([str(i) for i in range(-1, max_score + 1)])
-    ax.axhline(y=0, color='black', linestyle='--')
-    
+    ax.axhline(y=0, color="black", linestyle="--")
+
     # Tracer les données
-    ax.plot(angles, scores, color='blue', linewidth=2, linestyle='solid')
-    ax.fill(angles, scores, color='blue', alpha=0.25)
-    
+    ax.plot(angles, scores, color="blue", linewidth=2, linestyle="solid")
+    ax.fill(angles, scores, color="blue", alpha=0.25)
+
     # Sauvegarder l'image dans un buffer
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')
+    plt.savefig(buf, format="png", bbox_inches="tight")
     buf.seek(0)
-    chart_data = base64.b64encode(buf.getvalue()).decode('utf-8')
+    chart_data = base64.b64encode(buf.getvalue()).decode("utf-8")
     buf.close()
     plt.close()
     return chart_data
-    
+
 
 # --- Routes et gestion de l'authentification ---
+
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -304,28 +338,34 @@ def handle_exception(e):
     return render_template("error.html", error_message=str(e)), code
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login() -> Any:
     """Route de connexion avec authentification minimale."""
-    if request.method == 'POST':
+    if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        if username == config["user"] and password == config["pwd"]:
-            session['logged_in'] = True
+        expected_username = os.environ.get("ADM_USERNAME")
+        expected_password = os.environ.get("ADM_PASSWORD")
+        if not expected_username or not expected_password:
+            abort(503, description="Authentification non configurée")
+        if username == expected_username and password == expected_password:
+            session["logged_in"] = True
             flash("Connexion réussie.", "success")
             return redirect(url_for("index"))
         else:
             flash("Identifiants incorrects.", "danger")
     return render_template("login.html")
 
-@app.route('/logout')
+
+@app.route("/logout")
 def logout() -> Any:
     """Déconnexion et redirection vers la page de connexion."""
-    session.pop('logged_in', None)
+    session.pop("logged_in", None)
     flash("Vous êtes déconnecté.", "info")
     return redirect(url_for("login"))
 
-@app.route('/')
+
+@app.route("/")
 @login_required
 def index():
     session_db = Session()
@@ -339,11 +379,12 @@ def index():
         return render_template("index.html", applications=applications)
     finally:
         session_db.close()
-        
-@app.route('/add', methods=['GET', 'POST'])
+
+
+@app.route("/add", methods=["GET", "POST"])
 @login_required
 def add_application():
-    if request.method == 'POST':
+    if request.method == "POST":
         session_db = Session()
         try:
             # Création d'une nouvelle application
@@ -362,7 +403,7 @@ def add_application():
                 answered_questions=0,
                 last_evaluation=None,
                 responses={},
-                comments={}
+                comments={},
             )
             session_db.add(new_app)
             session_db.commit()
@@ -371,7 +412,8 @@ def add_application():
             session_db.close()
     return render_template("add.html")
 
-@app.route('/edit/<name>', methods=['GET', 'POST'])
+
+@app.route("/edit/<name>", methods=["GET", "POST"])
 @login_required
 def edit_application(name):
     session_db = Session()
@@ -382,7 +424,9 @@ def edit_application(name):
         if request.method == "POST":
             # Mise à jour des champs modifiables
             app_to_edit.rda = request.form["rda"]
-            app_to_edit.possession = datetime.strptime(request.form["possession"], "%Y-%m-%d").date()
+            app_to_edit.possession = datetime.strptime(
+                request.form["possession"], "%Y-%m-%d"
+            ).date()
             app_to_edit.type_app = request.form["type_app"]
             app_to_edit.hosting = request.form["hosting"]
             app_to_edit.criticite = request.form["criticite"]
@@ -396,7 +440,8 @@ def edit_application(name):
     finally:
         session_db.close()
 
-@app.route('/delete/<name>', methods=['POST'])
+
+@app.route("/delete/<name>", methods=["POST"])
 @login_required
 def delete_application(name):
     session_db = Session()
@@ -410,7 +455,8 @@ def delete_application(name):
     finally:
         session_db.close()
 
-@app.route('/score/<name>', methods=['GET', 'POST'])
+
+@app.route("/score/<name>", methods=["GET", "POST"])
 @login_required
 def score_application(name):
     session_db = Session()
@@ -418,8 +464,8 @@ def score_application(name):
         app_item = get_app_by_name(name, session_db)
         if not app_item:
             abort(404, description="Application non trouvée")
-            
-        if request.method == 'POST':
+
+        if request.method == "POST":
             # Mode brouillon : on ne vérifie pas que tous les commentaires sont remplis
             if "save_draft" in request.form:
                 draft_responses = {}
@@ -442,9 +488,13 @@ def score_application(name):
                 # Mode évaluation finale : on vérifie que tous les commentaires sont renseignés
                 for key, value in request.form.items():
                     if key.endswith("_comment") and not value.strip():
-                        flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
-                        return render_template("score.html", application=app_item, questions=QUESTIONS)
-                
+                        flash(
+                            "Tous les commentaires sont obligatoires pour l'évaluation.", "danger"
+                        )
+                        return render_template(
+                            "score.html", application=app_item, questions=QUESTIONS
+                        )
+
                 evaluation_responses = {}
                 evaluation_comments = {}
                 score = 0
@@ -460,14 +510,14 @@ def score_application(name):
                             weight = q_def.get("weight", 1)
                             score += SCORING_MAP[value] * weight
                             answered_questions += weight
-                
+
                 new_eval = Evaluation(
                     score=score,
                     answered_questions=answered_questions,
                     last_evaluation=datetime.now(),
                     evaluator_name=request.form.get("evaluator_name", ""),
                     responses=evaluation_responses,
-                    comments=evaluation_comments
+                    comments=evaluation_comments,
                 )
                 # Ajoute la nouvelle évaluation à l'historique de l'application
                 app_item.evaluations.append(new_eval)
@@ -481,18 +531,19 @@ def score_application(name):
                 session_db.commit()
                 flash("Évaluation enregistrée.", "success")
                 return redirect(url_for("index"))
-        
-        
+
         # return render_template("score.html", application=app_item, questions=QUESTIONS)
         # Filtrer les questions à afficher en fonction du type d'application
-        filtered_questions = filter_questions_by_type(QUESTIONS, app_item.type_app, app_item.hosting)
+        filtered_questions = filter_questions_by_type(
+            QUESTIONS, app_item.type_app, app_item.hosting
+        )
         return render_template("score.html", application=app_item, questions=filtered_questions)
-        
+
     finally:
         session_db.close()
 
 
-@app.route('/reset/<name>', methods=['POST'])
+@app.route("/reset/<name>", methods=["POST"])
 @login_required
 def reset_evaluation(name):
     session_db = Session()
@@ -511,7 +562,8 @@ def reset_evaluation(name):
     finally:
         session_db.close()
 
-@app.route('/reevaluate_all', methods=['POST'])
+
+@app.route("/reevaluate_all", methods=["POST"])
 @login_required
 def reevaluate_all():
     session_db = Session()
@@ -528,8 +580,9 @@ def reevaluate_all():
     finally:
         session_db.close()
 
+
 # --- Nouvelle route : Radar Chart ---
-@app.route('/radar/<name>')
+@app.route("/radar/<name>")
 @login_required
 def radar_chart(name):
     session_db = Session()
@@ -541,12 +594,13 @@ def radar_chart(name):
         # On suppose que la fonction calculate_axis_scores attend un dictionnaire avec la clé "responses".
         avg_axis_scores = calculate_axis_scores([{"responses": app_obj.responses}])
         chart_data = generate_radar_chart(avg_axis_scores)
-        return Response(base64.b64decode(chart_data), mimetype='image/png')
+        return Response(base64.b64decode(chart_data), mimetype="image/png")
     finally:
         session_db.close()
 
+
 # --- Nouvelle route : Synthèse ---
-@app.route('/synthese')
+@app.route("/synthese")
 @login_required
 def synthese():
     session_db = Session()
@@ -555,28 +609,40 @@ def synthese():
         db_apps = session_db.query(Application).all()
         # Conversion des objets ORM en dictionnaires
         data = [app_to_dict(app) for app in db_apps]
-        
+
         # Mise à jour des métriques pour chaque application
         for app_item in data:
             update_app_metrics(app_item)
-        evaluated_risks = [app_item.get("risque") for app_item in data if app_item.get("risque") is not None]
-        global_risk = round(sum(evaluated_risks) / len(evaluated_risks), 2) if evaluated_risks else None
+        evaluated_risks = [
+            app_item.get("risque") for app_item in data if app_item.get("risque") is not None
+        ]
+        global_risk = (
+            round(sum(evaluated_risks) / len(evaluated_risks), 2) if evaluated_risks else None
+        )
         total_apps = len(data)
-        
+
         if filter_score == "above_30":
             scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 30]
         elif filter_score == "above_60":
             scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 60]
         else:
             scored_apps = data.copy()
-            
-        avg_score = round(sum(app["score"] for app in data if app.get("score") is not None) / len(data), 2) if data else 0
-        apps_above_30 = len([app for app in data if app.get("percentage") and app["percentage"] > 30])
-        apps_above_60 = len([app for app in data if app.get("percentage") and app["percentage"] > 60])
+
+        avg_score = (
+            round(sum(app["score"] for app in data if app.get("score") is not None) / len(data), 2)
+            if data
+            else 0
+        )
+        apps_above_30 = len(
+            [app for app in data if app.get("percentage") and app["percentage"] > 30]
+        )
+        apps_above_60 = len(
+            [app for app in data if app.get("percentage") and app["percentage"] > 60]
+        )
         avg_axis_scores = calculate_axis_scores(data)
         chart_data = generate_radar_chart(avg_axis_scores)
         scored_apps.sort(key=lambda app: app.get("score") or 0, reverse=True)
-        
+
         # Calcul des pires scores (ou meilleurs, selon la logique)
         best_by_category = {}
         for category in CATEGORIES:
@@ -592,7 +658,7 @@ def synthese():
         for category, (app_name, score_val) in best_by_category.items():
             if app_name:
                 best_grouped.setdefault(app_name, []).append((category, score_val))
-        
+
         return render_template(
             "synthese.html",
             applications=scored_apps,
@@ -604,13 +670,14 @@ def synthese():
             avg_axis_scores=avg_axis_scores,
             chart_data=chart_data,
             global_risk=global_risk,
-            best_grouped=best_grouped
+            best_grouped=best_grouped,
         )
     finally:
         session_db.close()
 
+
 # --- Nouvelle route : Export CSV ---
-@app.route('/export_csv')
+@app.route("/export_csv")
 @login_required
 def export_csv():
     session_db = Session()
@@ -621,9 +688,23 @@ def export_csv():
         for app_item in applications:
             app_item["risque"] = calculate_risk(app_item)
         si = io.StringIO()
-        writer = csv.writer(si, delimiter=';')
-        header = ["Nom", "Type", "RDA", "Criticité", "Disponibilité", "Intégrité", "Confidentialité",
-                  "Pérennité", "Score", "Max Score", "Pourcentage", "Dernière évaluation", "Évaluateur", "Risque"]
+        writer = csv.writer(si, delimiter=";")
+        header = [
+            "Nom",
+            "Type",
+            "RDA",
+            "Criticité",
+            "Disponibilité",
+            "Intégrité",
+            "Confidentialité",
+            "Pérennité",
+            "Score",
+            "Max Score",
+            "Pourcentage",
+            "Dernière évaluation",
+            "Évaluateur",
+            "Risque",
+        ]
         writer.writerow(header)
         for app_item in applications:
             row = [
@@ -640,7 +721,7 @@ def export_csv():
                 app_item.get("percentage", ""),
                 app_item.get("last_evaluation", ""),
                 app_item.get("evaluator_name", ""),
-                "" if app_item.get("risque") is None else round(app_item.get("risque"))
+                "" if app_item.get("risque") is None else round(app_item.get("risque")),
             ]
             writer.writerow(row)
         output = si.getvalue()
@@ -648,12 +729,13 @@ def export_csv():
         return Response(
             output,
             mimetype="text/csv",
-            headers={"Content-Disposition": "attachment; filename=applications_export.csv"}
+            headers={"Content-Disposition": "attachment; filename=applications_export.csv"},
         )
     finally:
         session_db.close()
 
-@app.route('/resume/<name>')
+
+@app.route("/resume/<name>")
 @login_required
 def resume(name):
     session_db = Session()
@@ -661,53 +743,59 @@ def resume(name):
         app_obj = get_app_by_name(name, session_db)
         if not app_obj:
             abort(404, description="Application non trouvée")
-            
+
         # Convertir l'objet Application en dictionnaire pour faciliter le calcul des métriques
         app_item = app_to_dict(app_obj)
-        
+
         # Tri des évaluations par date de création (si created_at est nul, on utilise datetime.min)
         evaluations_sorted = sorted(
-            app_obj.evaluations, 
-            key=lambda ev: ev.created_at if ev.created_at is not None else datetime.min
+            app_obj.evaluations,
+            key=lambda ev: ev.created_at if ev.created_at is not None else datetime.min,
         )
-        
+
         # Si au moins une évaluation existe, on utilise la plus récente
         if evaluations_sorted:
             last_eval_obj = evaluations_sorted[-1]
             last_eval = {
                 "score": last_eval_obj.score,
                 "answered_questions": last_eval_obj.answered_questions,
-                "last_evaluation": last_eval_obj.last_evaluation.isoformat() if last_eval_obj.last_evaluation else None,
+                "last_evaluation": last_eval_obj.last_evaluation.isoformat()
+                if last_eval_obj.last_evaluation
+                else None,
                 "evaluator_name": last_eval_obj.evaluator_name,
                 "responses": last_eval_obj.responses,
-                "comments": last_eval_obj.comments
+                "comments": last_eval_obj.comments,
             }
             # Mettez à jour les données affichées avec la dernière évaluation
             app_item.update(last_eval)
         update_app_metrics(app_item)
-        
+
         current_responses = app_item.get("responses", {}) if evaluations_sorted else {}
         current_category_sums = calculate_category_sums({"responses": current_responses})
-        
+
         # Si au moins deux évaluations existent, on récupère l'évaluation précédente
         if len(evaluations_sorted) > 1:
             previous_eval_obj = evaluations_sorted[-2]
             previous_eval = {
                 "score": previous_eval_obj.score,
                 "answered_questions": previous_eval_obj.answered_questions,
-                "last_evaluation": previous_eval_obj.last_evaluation.isoformat() if previous_eval_obj.last_evaluation else None,
+                "last_evaluation": previous_eval_obj.last_evaluation.isoformat()
+                if previous_eval_obj.last_evaluation
+                else None,
                 "evaluator_name": previous_eval_obj.evaluator_name,
                 "responses": previous_eval_obj.responses,
-                "comments": previous_eval_obj.comments
+                "comments": previous_eval_obj.comments,
             }
-            previous_category_sums = calculate_category_sums({"responses": previous_eval.get("responses", {})})
+            previous_category_sums = calculate_category_sums(
+                {"responses": previous_eval.get("responses", {})}
+            )
         else:
             previous_eval = {}
             previous_category_sums = {}
-        
+
         current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
         radar_chart_data = generate_radar_chart(current_axis_scores)
-        
+
         return render_template(
             "resume.html",
             app=app_item,
@@ -716,12 +804,13 @@ def resume(name):
             previous_category_sums=previous_category_sums,
             questions=QUESTIONS,
             current_eval=last_eval if evaluations_sorted else {},
-            previous_eval=previous_eval
+            previous_eval=previous_eval,
         )
     finally:
         session_db.close()
 
-@app.route('/export_all')
+
+@app.route("/export_all")
 @login_required
 def export_all():
     session_db = Session()
@@ -736,29 +825,30 @@ def export_all():
         return Response(
             json_data,
             mimetype="application/json",
-            headers={"Content-Disposition": "attachment; filename=export_all.json"}
+            headers={"Content-Disposition": "attachment; filename=export_all.json"},
         )
     finally:
         session_db.close()
 
-@app.route('/import_data', methods=['GET', 'POST'])
+
+@app.route("/import_data", methods=["GET", "POST"])
 @login_required
 def import_data():
-    if request.method == 'POST':
+    if request.method == "POST":
         # Vérifier que le fichier a bien été transmis
-        if 'file' not in request.files:
+        if "file" not in request.files:
             flash("Aucun fichier n'a été sélectionné.", "danger")
-            return redirect(url_for('import_data'))
-        file = request.files['file']
-        if file.filename == '':
+            return redirect(url_for("import_data"))
+        file = request.files["file"]
+        if file.filename == "":
             flash("Aucun fichier n'a été sélectionné.", "danger")
-            return redirect(url_for('import_data'))
+            return redirect(url_for("import_data"))
         try:
             # Charger le contenu JSON du fichier transmis
             data = json.load(file)
         except Exception as e:
             flash("Erreur lors du traitement du fichier : " + str(e), "danger")
-            return redirect(url_for('import_data'))
+            return redirect(url_for("import_data"))
 
         # Ouvrir une session pour effectuer la réimportation
         session_db = Session()
@@ -768,7 +858,7 @@ def import_data():
             for app_obj in apps_to_delete:
                 session_db.delete(app_obj)
             session_db.commit()
-            
+
             # 2. Réimporter toutes les applications depuis le fichier JSON.
             for record in data:
                 new_app = Application.from_dict(record)
@@ -785,5 +875,5 @@ def import_data():
     return render_template("import_data.html")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=False)

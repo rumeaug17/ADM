@@ -9,17 +9,39 @@ Les questions pour l'estimation du score de dette pour chaque application est co
 
 Les questions par défaut sont décrites ici : [Documentation.md](/documentation.md)
 
-# INSTALL and RUN:
-```
-pip install -r requirements.txt
-% --proxy=http://USER:PWD@PROXY:PORT
+# Installation et exécution
+
+Les dépendances, y compris celles de développement, sont déclarées dans
+`pyproject.toml` :
+
+```bash
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -e '.[dev]'
 git describe --tags --abbrev=0 > static/version.txt
+```
 
-# edit config
-vi config.json
+Les secrets ne doivent pas être ajoutés à `config.json`. Pour une exécution
+locale avec le backend JSON, fournissez-les uniquement via l'environnement :
 
-python app.py
-http://127.0.0.1:5000/
+```bash
+export ADM_SECRET_KEY='valeur-locale-a-remplacer'
+export ADM_USERNAME='utilisateur-local'
+export ADM_PASSWORD='mot-de-passe-local-a-remplacer'
+python main.py
+```
+
+L'application est alors disponible sur <http://127.0.0.1:5000/>. Pour MySQL,
+définissez aussi `ADM_DB_BACKEND=mysql` et `ADM_DATABASE_URL` avec une URL de
+connexion provenant du gestionnaire de secrets de l'environnement.
+
+## Contrôles de qualité
+
+```bash
+ruff check .
+ruff format --check .
+mypy src main.py
+pytest
 ```
 # site de démo
 https://rg17.pythonanywhere.com/
