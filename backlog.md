@@ -84,12 +84,12 @@ refactorisation et évolution fonctionnelle.
 - [x] Ajouter des tests unitaires pour les fonctions de calcul et d’import/export.
 
 ### Phase 3 : Découpage du monolithe `app.py`
-- [ ] Introduire une fabrique `create_app` pour supprimer l'initialisation de la base,
+- [x] Introduire une fabrique `create_app` pour supprimer l'initialisation de la base,
   la lecture des fichiers et la validation des variables d'environnement à l'import.
-- [ ] Créer des blueprints Flask (auth, applications, évaluations, export).  
-- [ ] Extraire les services métier (scoring, risque, synthèse) dans des modules
+- [x] Créer des blueprints Flask (auth, applications, évaluations, export).
+- [x] Extraire les services métier (scoring, risque, synthèse) dans des modules
   dédiés de `src/ADM/`, sans dépendance à Flask.
-- [ ] Injecter la fabrique de sessions dans les routes afin de supprimer l'état global
+- [x] Injecter la fabrique de sessions dans les routes afin de supprimer l'état global
   et de faciliter les tests avec les deux backends.
 
 ### Phase 4 : Évolutivité du modèle et des validations

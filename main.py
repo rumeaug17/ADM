@@ -1,11 +1,11 @@
-"""Point d'entrée de l'application web ADM."""
+"""Point d’entrée de l’application web ADM."""
 
-from ADM.app import app
+from ADM.app import create_app
 
 
 def main() -> None:
     """Démarre le serveur de développement Flask."""
-    app.run(debug=False)
+    create_app().run(debug=False)
 
 
 if __name__ == "__main__":

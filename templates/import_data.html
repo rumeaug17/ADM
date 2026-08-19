@@ -6,7 +6,7 @@
 <div class="container my-4">
   <h2 class="text-primary">Réimporter les données</h2>
   <p>Vous pouvez réimporter un fichier JSON précédemment sauvegardé contenant toutes les données et l'historique des évaluations.</p>
-  <form method="POST" action="{{ url_for('import_data') }}" enctype="multipart/form-data">
+  <form method="POST" action="{{ url_for('exports.import_data') }}" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <div class="mb-3">
       <label for="file" class="form-label">Sélectionnez le fichier JSON à importer :</label>
@@ -19,7 +19,7 @@
       </div>
     </div>
     <button type="submit" class="btn btn-danger">Confirmer l'importation</button>
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">Annuler</a>
+    <a href="{{ url_for('applications.index') }}" class="btn btn-secondary">Annuler</a>
   </form>
 </div>
 {% endblock %}
