@@ -7,6 +7,7 @@
   <h2 class="text-primary">Réimporter les données</h2>
   <p>Vous pouvez réimporter un fichier JSON précédemment sauvegardé contenant toutes les données et l'historique des évaluations.</p>
   <form method="POST" action="{{ url_for('import_data') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <div class="mb-3">
       <label for="file" class="form-label">Sélectionnez le fichier JSON à importer :</label>
       <input type="file" class="form-control" id="file" name="file" accept=".json" required>
