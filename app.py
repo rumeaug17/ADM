@@ -31,7 +31,7 @@ from flask import (
     url_for,
 )
 
-from compute import compute_categories, compute_scoring_map, filter_questions_by_type
+from ADM.scoring import compute_categories, compute_scoring_map, filter_questions_by_type
 
 app = Flask(__name__)
 # Configuration de l'application

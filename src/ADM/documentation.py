@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 import json
 import re
+from pathlib import Path
+from typing import Any, cast
 
 
-def load_json(filename):
-    with open(filename, encoding="utf-8") as f:
-        return json.load(f)
+def load_json(filename: Path) -> dict[str, Any]:
+    with filename.open(encoding="utf-8") as f:
+        return cast(dict[str, Any], json.load(f))
 
 
-def clean_html(html_text):
+def clean_html(html_text: str | list[str]) -> str:
     """
     Convertit une chaîne HTML en texte brut avec une mise en forme minimale en markdown.
     """
@@ -25,14 +27,17 @@ def clean_html(html_text):
     return text.strip()
 
 
-def option_to_markdown(option):
+def option_to_markdown(option: dict[str, Any]) -> str:
     score = option.get("score")
     score_text = str(score) if score is not None else "N/A"
     return f"- {option['value']} (Score: {score_text})"
 
 
-def generate_markdown(questions_config, info_texts):
-    md_lines = []
+def generate_markdown(
+    questions_config: dict[str, dict[str, dict[str, Any]]],
+    info_texts: dict[str, str | list[str]],
+) -> str:
+    md_lines: list[str] = []
     md_lines.append("# Documentation des Questions\n")
     for category, qs in questions_config.items():
         md_lines.append(f"## Catégorie : {category}\n")
@@ -71,12 +76,13 @@ def generate_markdown(questions_config, info_texts):
     return "\n".join(md_lines)
 
 
-if __name__ == "__main__":
-    questions_config = load_json("static/questions.json")
-    info_texts = load_json("static/info_texts.json")
+def main(project_root: Path) -> None:
+    """Régénère la documentation à partir des fichiers statiques du projet."""
+    questions_config = load_json(project_root / "static" / "questions.json")
+    info_texts = load_json(project_root / "static" / "info_texts.json")
 
     markdown_text = generate_markdown(questions_config, info_texts)
-    with open("documentation.md", "w", encoding="utf-8") as f:
+    with (project_root / "documentation.md").open("w", encoding="utf-8") as f:
         f.write(markdown_text)
 
     print("Le fichier documentation.md a été généré.")
