@@ -4,6 +4,9 @@ import json
 import os
 import subprocess
 from datetime import datetime
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_config(config_path):
@@ -112,7 +115,7 @@ def main():
     )
     parser.add_argument(
         "--config",
-        default="config.json",
+        default=str(PROJECT_ROOT / "config.json"),
         help="Chemin vers le fichier de configuration (default: config.json)",
     )
     parser.add_argument(

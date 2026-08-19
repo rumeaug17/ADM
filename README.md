@@ -35,6 +35,20 @@ L'application est alors disponible sur <http://127.0.0.1:5000/>. Pour MySQL,
 définissez aussi `ADM_DB_BACKEND=mysql` et `ADM_DATABASE_URL` avec une URL de
 connexion provenant du gestionnaire de secrets de l'environnement.
 
+## Organisation du code Python
+
+- `src/ADM/` contient le code métier installable, notamment les calculs de score ;
+- `main.py` reste le point d'entrée minimal de l'application web ;
+- `scripts/` regroupe les utilitaires exécutés ponctuellement ;
+- `tests/` contient les tests automatisés.
+
+Les utilitaires peuvent être lancés depuis n'importe quel répertoire. Par
+exemple, la documentation fonctionnelle est régénérée avec :
+
+```bash
+python scripts/generate_md_doc.py
+```
+
 ## Contrôles de qualité
 
 ```bash
