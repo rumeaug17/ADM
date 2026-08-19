@@ -15,6 +15,7 @@ import json
 import os
 from datetime import datetime
 from functools import wraps
+from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -33,11 +34,17 @@ from flask import (
 
 from ADM.scoring import compute_categories, compute_scoring_map, filter_questions_by_type
 
-app = Flask(__name__)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+app = Flask(
+    __name__,
+    static_folder=str(PROJECT_ROOT / "static"),
+    template_folder=str(PROJECT_ROOT / "templates"),
+)
 # Configuration de l'application
 app.config["QUESTIONS_FILE"] = "questions.json"
 app.config["BACKUP_FILE"] = "applications-prec.json"
-app.config["CONFIG"] = "config.json"
+app.config["CONFIG"] = str(PROJECT_ROOT / "config.json")
 
 # --- Chargement des configurations ---
 
@@ -88,7 +95,9 @@ elif db_backend == "json":
     from ADM.database_json import Application, Evaluation, get_session_factory, init_db
 
     # La chaîne de connexion est attendue dans la configuration de l'application Flask.
-    app.config["DB_CONNECTION"] = config.get("json_connection_url", "applications.json")
+    app.config["DB_CONNECTION"] = config.get(
+        "json_connection_url", str(PROJECT_ROOT / "applications.json")
+    )
 
 else:
     abort(500, description="Configuration du backend incorrecte")
@@ -873,7 +882,3 @@ def import_data():
         return redirect(url_for("index"))
     # En GET, on affiche le formulaire de sélection de fichier avec modale.
     return render_template("import_data.html")
-
-
-if __name__ == "__main__":
-    app.run(debug=False)

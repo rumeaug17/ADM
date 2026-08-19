@@ -1,6 +1,6 @@
 """Point d'entrée de l'application web ADM."""
 
-from app import app
+from ADM.app import app
 
 
 def main() -> None:

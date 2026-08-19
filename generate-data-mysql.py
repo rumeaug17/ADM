@@ -5,8 +5,8 @@ import random
 import sys
 from datetime import datetime, timedelta
 
-# Importer les fonctions du module database pour initialiser la base et obtenir une session
-from database import Application, get_session_factory, init_db
+# Importer les fonctions du backend SQL installé.
+from ADM.database import Application, get_session_factory, init_db
 
 # Listes pour générer des noms d'applications
 adjectives = [
