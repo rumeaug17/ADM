@@ -37,10 +37,15 @@ connexion provenant du gestionnaire de secrets de l'environnement.
 
 ## Organisation du code Python
 
-- `src/ADM/` contient le code métier installable, notamment les calculs de score ;
+- `src/ADM/` contient le code métier installable, notamment les calculs de score et les
+  backends de persistance SQLAlchemy et JSON ;
 - `main.py` reste le point d'entrée minimal de l'application web ;
 - `scripts/` regroupe les utilitaires exécutés ponctuellement ;
 - `tests/` contient les tests automatisés.
+
+Les anciens modules racine `database.py` et `database_json.py` sont conservés comme
+points de compatibilité. Le nouveau code doit importer respectivement
+`ADM.database` et `ADM.database_json`, comme le fait l'application Flask.
 
 Les utilitaires peuvent être lancés depuis n'importe quel répertoire. Par
 exemple, la documentation fonctionnelle est régénérée avec :
