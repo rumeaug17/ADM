@@ -1,6 +1,6 @@
 # Guide de développement Python
 
-Ce document définit le socle minimal de qualité applicable au projet **Exemple Python Project DF**.
+Ce document définit le socle minimal de qualité applicable au projet **ADM**.
 
 Le code doit respecter **PEP 8** : indentation de quatre espaces, conventions de nommage, imports organisés, lignes raisonnablement courtes, commentaires utiles et priorité donnée à la lisibilité.
 
