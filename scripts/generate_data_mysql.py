@@ -171,7 +171,9 @@ def main(num_apps=5):
         raise RuntimeError("ADM_DATABASE_URL est obligatoire.")
 
     # Charger la configuration des questions (supposé dans le dossier static, ajustez le chemin si nécessaire)
-    questions_file = os.path.join(os.path.dirname(__file__), "static", "questions.json")
+    questions_file = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "static", "questions.json"
+    )
     with open(questions_file, encoding="utf-8") as f:
         questions_config = json.load(f)
 

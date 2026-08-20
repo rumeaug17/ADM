@@ -56,6 +56,10 @@ Les invariants du questionnaire, du scoring et des imports sont décrits dans
 [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md). Les documents externes sont
 validés dans `ADM.schemas` avant leur utilisation.
 
+Le découpage des modules, le sens de leurs dépendances, le parcours d'une requête
+et le vocabulaire de chaque couche sont détaillés dans
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 Le schéma MySQL est versionné avec Alembic. Après avoir fourni l'URL sans l'écrire
 dans un fichier versionné, une migration s'applique ainsi :
 

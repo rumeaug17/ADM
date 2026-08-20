@@ -3,6 +3,8 @@
 import base64
 import io
 import math
+from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol, TypeAlias
 
@@ -11,6 +13,28 @@ import numpy as np
 
 JsonData: TypeAlias = dict[str, object]
 Questions: TypeAlias = dict[str, dict[str, dict[str, object]]]
+ScoreMap: TypeAlias = dict[str, int | None]
+
+
+@dataclass(frozen=True)
+class EvaluationSubmission:
+    """Données calculées à partir d'un formulaire d'évaluation validé."""
+
+    responses: dict[str, str]
+    comments: dict[str, str]
+    score: int
+    answered_questions: int
+
+
+@dataclass(frozen=True)
+class CatalogueSummary:
+    """Indicateurs nécessaires à la page de synthèse."""
+
+    total_applications: int
+    average_score: float
+    applications_above_30: int
+    applications_above_60: int
+    global_risk: float | None
 
 
 class EvaluationLike(Protocol):
@@ -111,6 +135,45 @@ def update_app_metrics(application: JsonData) -> None:
 
 def question_definition(key: str, questions: Questions) -> dict[str, object]:
     return next((group[key] for group in questions.values() if key in group), {})
+
+
+def build_evaluation_submission(
+    form: Mapping[str, str], questions: Questions, scoring: ScoreMap
+) -> EvaluationSubmission:
+    """Transforme un formulaire déjà validé en résultat métier pondéré."""
+    responses: dict[str, str] = {}
+    comments: dict[str, str] = {}
+    score = 0
+    answered_questions = 0
+    for key, value in form.items():
+        if key.endswith("_comment"):
+            comments[key] = value
+            continue
+        option_score = scoring.get(value)
+        if value not in scoring:
+            continue
+        responses[key] = value
+        if option_score is not None:
+            weight = int(question_definition(key, questions).get("weight", 1))
+            score += option_score * weight
+            answered_questions += weight
+    return EvaluationSubmission(responses, comments, score, answered_questions)
+
+
+def summarize_catalogue(applications: list[JsonData]) -> CatalogueSummary:
+    """Calcule les indicateurs globaux sans dépendre de Flask."""
+    scores = [value for app in applications if isinstance(value := app.get("score"), int)]
+    percentages = [
+        value for app in applications if isinstance(value := app.get("percentage"), (int, float))
+    ]
+    risks = [value for app in applications if isinstance(value := app.get("risque"), (int, float))]
+    return CatalogueSummary(
+        total_applications=len(applications),
+        average_score=round(sum(scores) / len(applications), 2) if applications else 0,
+        applications_above_30=sum(value > 30 for value in percentages),
+        applications_above_60=sum(value > 60 for value in percentages),
+        global_risk=round(sum(risks) / len(risks), 2) if risks else None,
+    )
 
 
 def category_sums(
