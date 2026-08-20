@@ -6,11 +6,12 @@ import math
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Protocol, TypeAlias
+from typing import Protocol, TypeAlias, cast
 
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
+from matplotlib.projections.polar import PolarAxes
 
 from ADM.schemas import Questions
 
@@ -241,7 +242,7 @@ def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     angles += angles[:1]
     figure = Figure(figsize=(6, 6))
     FigureCanvasAgg(figure)
-    axis = figure.add_subplot(projection="polar")
+    axis = cast(PolarAxes, figure.add_subplot(projection="polar"))
     axis.set_theta_offset(np.pi / 2)
     axis.set_theta_direction(-1)
     axis.set_xticks(angles[:-1])
