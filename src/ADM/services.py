@@ -8,8 +8,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol, TypeAlias
 
-import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 
 from ADM.schemas import Questions
 
@@ -238,7 +239,9 @@ def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     scores += scores[:1]
     angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     angles += angles[:1]
-    figure, axis = plt.subplots(figsize=(6, 6), subplot_kw={"projection": "polar"})
+    figure = Figure(figsize=(6, 6))
+    FigureCanvasAgg(figure)
+    axis = figure.add_subplot(projection="polar")
     axis.set_theta_offset(np.pi / 2)
     axis.set_theta_direction(-1)
     axis.set_xticks(angles[:-1])
@@ -248,7 +251,6 @@ def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     axis.fill(angles, scores, color="blue", alpha=0.25)
     buffer = io.BytesIO()
     figure.savefig(buffer, format="png", bbox_inches="tight")
-    plt.close(figure)
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 

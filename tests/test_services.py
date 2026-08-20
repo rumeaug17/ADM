@@ -1,8 +1,9 @@
 """Tests unitaires des calculs de synthèse et de la génération graphique."""
 
 import base64
+from unittest.mock import patch
 
-import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from ADM.services import (
     axis_scores,
@@ -64,15 +65,14 @@ def test_axis_scores_averages_each_axis_across_answered_applications() -> None:
     }
 
 
-def test_generate_radar_chart_returns_a_png_and_closes_its_figure() -> None:
-    open_figures_before = set(plt.get_fignums())
+def test_generate_radar_chart_returns_a_png_without_pyplot() -> None:
+    with patch("ADM.services.FigureCanvasAgg", wraps=FigureCanvasAgg) as canvas_factory:
+        encoded_chart = generate_radar_chart({"Architecture": 2.5, "Exploitation": 1.0})
 
-    encoded_chart = generate_radar_chart({"Architecture": 2.5, "Exploitation": 1.0})
-
+    canvas_factory.assert_called_once()
     chart = base64.b64decode(encoded_chart, validate=True)
     assert chart.startswith(b"\x89PNG\r\n\x1a\n")
     assert len(chart) > 1_000
-    assert set(plt.get_fignums()) == open_figures_before
 
 
 def test_build_evaluation_submission_applies_weights() -> None:
