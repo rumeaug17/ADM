@@ -23,6 +23,10 @@ Les synthèses par axe appliquent le poids à chaque réponse, puis calculent la
 moyenne des questions renseignées de l'axe. Une application sans réponse
 applicable ne contribue pas à la moyenne.
 
+La moyenne globale du catalogue porte uniquement sur les applications évaluées.
+Les applications dont le score est absent ne sont donc pas assimilées à un score
+nul, mais restent comptabilisées dans le nombre total d'applications.
+
 ## Risque
 
 Le risque combine le score, les quatre niveaux DICP/P et la criticité :

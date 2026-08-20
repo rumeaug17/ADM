@@ -3,18 +3,19 @@
 import json
 from collections.abc import Mapping
 from datetime import date
+from typing import Final
 
 from ADM.database import Application
 
-APPLICATION_CHOICES: dict[str, frozenset[str]] = {
-    "type_app": frozenset({"Interne", "Editeur", "Open source"}),
-    "hosting": frozenset({"On prem", "Hybride", "Cloud", "SaaS"}),
-    "criticite": frozenset({"1", "2", "3", "4"}),
-    "disponibilite": frozenset({"D1", "D2", "D3", "D4"}),
-    "integrite": frozenset({"I1", "I2", "I3", "I4"}),
-    "confidentialite": frozenset({"C1", "C2", "C3", "C4"}),
-    "perennite": frozenset({"P1", "P2", "P3", "P4"}),
-}
+APPLICATION_CHOICES: Final[tuple[tuple[str, frozenset[str]], ...]] = (
+    ("type_app", frozenset({"Interne", "Editeur", "Open source"})),
+    ("hosting", frozenset({"On prem", "Hybride", "Cloud", "SaaS"})),
+    ("criticite", frozenset({"1", "2", "3", "4"})),
+    ("disponibilite", frozenset({"D1", "D2", "D3", "D4"})),
+    ("integrite", frozenset({"I1", "I2", "I3", "I4"})),
+    ("confidentialite", frozenset({"C1", "C2", "C3", "C4"})),
+    ("perennite", frozenset({"P1", "P2", "P3", "P4"})),
+)
 
 
 class InputValidationError(ValueError):
@@ -34,7 +35,7 @@ def validate_application_form(form: Mapping[str, str], *, require_name: bool) ->
         raise InputValidationError(
             "La date de mise en possession doit être une date valide."
         ) from error
-    for field, choices in APPLICATION_CHOICES.items():
+    for field, choices in APPLICATION_CHOICES:
         value = form.get(field, "")
         if value not in choices:
             raise InputValidationError(f"Le champ {field!r} contient une valeur invalide.")

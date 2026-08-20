@@ -98,11 +98,19 @@ def test_summarize_catalogue_ignores_unevaluated_metrics() -> None:
             {"score": 6, "percentage": 40.0, "risque": 2.0},
             {"score": 9, "percentage": 70.0, "risque": 4.0},
             {"score": None, "percentage": None, "risque": None},
+            {"score": True, "percentage": None, "risque": None},
         ]
     )
 
-    assert summary.total_applications == 3
-    assert summary.average_score == 5.0
+    assert summary.total_applications == 4
+    assert summary.average_score == 7.5
     assert summary.applications_above_30 == 2
     assert summary.applications_above_60 == 1
     assert summary.global_risk == 3.0
+
+
+def test_summarize_catalogue_returns_zero_without_evaluation() -> None:
+    summary = summarize_catalogue([{"score": None}, {"name": "Application fictive"}])
+
+    assert summary.total_applications == 2
+    assert summary.average_score == 0
