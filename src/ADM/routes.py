@@ -57,36 +57,45 @@ ViewParameters = ParamSpec("ViewParameters")
 
 
 def session_factory() -> Callable[[], TransactionSession]:
+    """Retourne la fabrique de sessions injectée lors de la création de l'application."""
     return cast(Callable[[], TransactionSession], current_app.extensions["adm_session_factory"])
 
 
 def questions() -> Questions:
+    """Retourne le questionnaire validé associé à l'application courante."""
     return cast(Questions, current_app.extensions["adm_questions"])
 
 
 def scoring_map() -> dict[str, int | None]:
+    """Retourne la correspondance entre réponses et scores pré-calculée au démarrage."""
     return cast(dict[str, int | None], current_app.extensions["adm_scoring_map"])
 
 
 def categories() -> dict[str, list[str]]:
+    """Retourne les clés de questions regroupées par catégorie métier."""
     return cast(dict[str, list[str]], current_app.extensions["adm_categories"])
 
 
 def get_app_by_name(name: str, database_session: Any) -> Application | None:
+    """Recherche une application par son nom dans la session fournie."""
     return database_session.query(Application).filter_by(name=name).first()
 
 
 def calculate_axis_scores(data: list[dict[str, object]]) -> dict[str, float]:
+    """Calcule les axes du radar avec la configuration de l'application courante."""
     return axis_scores(data, questions(), categories(), scoring_map())
 
 
 def calculate_category_sums(data: dict[str, object]) -> dict[str, int]:
+    """Calcule les sous-totaux du score par catégorie pour les données indiquées."""
     return category_sums(data, questions(), categories(), scoring_map())
 
 
 def login_required(
     function: Callable[ViewParameters, ResponseReturnValue],
 ) -> Callable[ViewParameters, ResponseReturnValue]:
+    """Redirige vers la connexion lorsqu'une vue requiert une session authentifiée."""
+
     @wraps(function)
     def decorated(
         *args: ViewParameters.args, **kwargs: ViewParameters.kwargs
