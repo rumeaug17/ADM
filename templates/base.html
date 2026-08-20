@@ -59,7 +59,7 @@
 	<div class="header-right">
 	{% if session.logged_in %}
 		{% if request.endpoint != 'index' %}
-      			<a href="{{ url_for('index') }}" class="btn btn-outline-light me-2">Retour à l'index</a>
+			<a href="{{ url_for('applications.index') }}" class="btn btn-outline-light me-2">Retour à l'index</a>
     		{% endif %}
 		<a href="/logout" class="btn btn-primary">Déconnexion</a>
     {% endif %}

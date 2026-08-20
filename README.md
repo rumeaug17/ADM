@@ -52,6 +52,15 @@ journaux serveur ; l'interface n'affiche jamais le contenu d'une exception inter
 
 Les backends sont importés via `ADM.database` et `ADM.database_json`.
 
+La Phase 3 organise désormais la couche web autour de la fabrique
+`ADM.app.create_app` : l’import du module ne lit aucune configuration, ne valide
+aucune variable d’environnement et n’initialise aucune persistance. La fabrique
+charge explicitement la configuration, choisit le backend, puis injecte la fabrique
+de sessions aux blueprints `auth`, `applications`, `evaluations` et `exports`. Les
+calculs de risque, métriques et synthèse sont isolés dans `ADM.services` et restent
+utilisables sans contexte Flask. Les erreurs de configuration (secret absent, backend
+inconnu ou URL MySQL absente) sont levées au moment de l’appel à `create_app`.
+
 Les utilitaires peuvent être lancés depuis n'importe quel répertoire. Par
 exemple, la documentation fonctionnelle est régénérée avec :
 

@@ -67,9 +67,9 @@ def test_evaluation_rejects_unknown_question() -> None:
 
 def test_all_post_routes_require_csrf_token(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ADM_SECRET_KEY", "cle-factice-reservee-aux-tests")
-    from ADM.app import app
+    from ADM.app import create_app
 
-    app.config["TESTING"] = True
+    app = create_app({"TESTING": True})
     response = app.test_client().post("/login", data={})
 
     assert response.status_code == 400

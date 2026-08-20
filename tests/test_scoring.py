@@ -1,11 +1,11 @@
 import pytest
 
-from ADM.app import calculate_risk, update_app_metrics
 from ADM.scoring import (
     compute_categories,
     compute_scoring_map,
     filter_questions_by_type,
 )
+from ADM.services import calculate_risk, update_app_metrics
 
 
 def sample_questions() -> dict[str, dict[str, dict[str, object]]]:
