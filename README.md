@@ -48,6 +48,21 @@ Sous Windows PowerShell :
 .\scripts\run_demo.ps1
 ```
 
+Par défaut, le serveur démarre avec le mode de débogage désactivé. Pour
+choisir explicitement son état au lancement, utilisez `--debug-mode on|off` sous
+Linux ou macOS, et `-DebugMode on|off` sous PowerShell :
+
+```bash
+scripts/run_demo.sh --debug-mode on
+```
+
+```powershell
+.\scripts\run_demo.ps1 -DebugMode on
+```
+
+Le mode `on` est réservé au développement local. Il active notamment le
+rechargement et le débogueur Flask ; ne l'utilisez pas sur un environnement exposé.
+
 Le setup utilise le backend JSON et crée des identifiants aléatoires dans un fichier
 local exclu de Git (`.adm-demo.env` ou `.adm-demo.json`). Ne publiez jamais ce fichier.
 Le script PowerShell recherche automatiquement `py`, `python`, puis `python3`.
