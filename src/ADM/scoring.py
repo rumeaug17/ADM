@@ -1,11 +1,8 @@
 """Calculs métier relatifs au questionnaire de dette applicative."""
 
 from collections.abc import Mapping, Sequence
-from typing import TypeAlias
 
-Scalar: TypeAlias = str | int | float | bool | None
-QuestionDefinition: TypeAlias = Mapping[str, object]
-Questions: TypeAlias = Mapping[str, Mapping[str, QuestionDefinition]]
+from ADM.schemas import QuestionDefinition, Questions
 
 
 def compute_categories(questions: Questions) -> dict[str, list[str]]:

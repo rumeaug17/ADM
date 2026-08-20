@@ -52,6 +52,20 @@ journaux serveur ; l'interface n'affiche jamais le contenu d'une exception inter
 
 Les backends sont importés via `ADM.database` et `ADM.database_json`.
 
+Les invariants du questionnaire, du scoring et des imports sont décrits dans
+[`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md). Les documents externes sont
+validés dans `ADM.schemas` avant leur utilisation.
+
+Le schéma MySQL est versionné avec Alembic. Après avoir fourni l'URL sans l'écrire
+dans un fichier versionné, une migration s'applique ainsi :
+
+```bash
+export ADM_DATABASE_URL='mysql+mysqlconnector://...'
+alembic upgrade head
+```
+
+Une révision se crée avec `alembic revision --autogenerate -m "description"`.
+
 La Phase 3 organise désormais la couche web autour de la fabrique
 `ADM.app.create_app` : l’import du module ne lit aucune configuration, ne valide
 aucune variable d’environnement et n’initialise aucune persistance. La fabrique

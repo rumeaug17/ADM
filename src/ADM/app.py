@@ -10,6 +10,7 @@ from flask import Flask, abort, render_template, request, session
 from werkzeug.exceptions import HTTPException
 
 from ADM.routes import applications, auth, evaluations, exports
+from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -34,20 +35,16 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     )
     if test_config:
         app.config.update(test_config)
-    config = _load_json(Path(str(app.config["CONFIG"])))
-    if not isinstance(config, dict):
-        raise ValueError("La configuration doit être un objet JSON.")
-    questions = _load_json(Path(app.static_folder or "") / str(app.config["QUESTIONS_FILE"]))
-    if not isinstance(questions, dict):
-        raise ValueError("Les questions doivent être un objet JSON.")
+    config = AppConfig.from_object(_load_json(Path(str(app.config["CONFIG"]))))
+    questions = parse_questions(
+        _load_json(Path(app.static_folder or "") / str(app.config["QUESTIONS_FILE"]))
+    )
     secret_key = app.config.get("SECRET_KEY") or os.environ.get("ADM_SECRET_KEY")
     if not secret_key:
         raise RuntimeError("La variable d'environnement ADM_SECRET_KEY est obligatoire.")
     app.secret_key = str(secret_key)
     backend = str(
-        app.config.get("DB_BACKEND")
-        or os.environ.get("ADM_DB_BACKEND")
-        or config.get("db_backend", "json")
+        app.config.get("DB_BACKEND") or os.environ.get("ADM_DB_BACKEND") or config.db_backend
     ).lower()
     if backend == "mysql":
         from ADM.database import get_session_factory, init_db
@@ -58,9 +55,7 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     elif backend == "json":
         from ADM.database_json import get_session_factory, init_db
 
-        connection = app.config.get("DB_CONNECTION") or config.get(
-            "json_connection_url", str(PROJECT_ROOT / "applications.json")
-        )
+        connection = app.config.get("DB_CONNECTION") or config.json_connection_url
     else:
         raise ValueError("Configuration du backend incorrecte.")
     engine = init_db(str(connection))
