@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
+from ADM.schemas import Thresholds
 from ADM.services import (
     axis_scores,
     build_evaluation_submission,
@@ -104,8 +105,8 @@ def test_summarize_catalogue_ignores_unevaluated_metrics() -> None:
 
     assert summary.total_applications == 4
     assert summary.average_score == 7.5
-    assert summary.applications_above_30 == 2
-    assert summary.applications_above_60 == 1
+    assert summary.applications_above_warning == 2
+    assert summary.applications_above_critical == 1
     assert summary.global_risk == 3.0
 
 
@@ -114,3 +115,13 @@ def test_summarize_catalogue_returns_zero_without_evaluation() -> None:
 
     assert summary.total_applications == 2
     assert summary.average_score == 0
+
+
+def test_summarize_catalogue_uses_configured_score_thresholds() -> None:
+    summary = summarize_catalogue(
+        [{"percentage": 25}, {"percentage": 55}, {"percentage": 75}],
+        Thresholds(warning=20, critical=70),
+    )
+
+    assert summary.applications_above_warning == 3
+    assert summary.applications_above_critical == 1

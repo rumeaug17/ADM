@@ -13,7 +13,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.projections.polar import PolarAxes
 
-from ADM.schemas import Questions
+from ADM.schemas import Questions, Thresholds
 
 JsonData: TypeAlias = dict[str, object]
 ScoreMap: TypeAlias = dict[str, int | None]
@@ -35,8 +35,8 @@ class CatalogueSummary:
 
     total_applications: int
     average_score: float
-    applications_above_30: int
-    applications_above_60: int
+    applications_above_warning: int
+    applications_above_critical: int
     global_risk: float | None
 
 
@@ -172,7 +172,9 @@ def build_evaluation_submission(
     return EvaluationSubmission(responses, comments, score, answered_questions)
 
 
-def summarize_catalogue(applications: list[JsonData]) -> CatalogueSummary:
+def summarize_catalogue(
+    applications: list[JsonData], score_thresholds: Thresholds | None = None
+) -> CatalogueSummary:
     """Calcule les indicateurs globaux sans dépendre de Flask."""
     scores = [
         value
@@ -183,11 +185,12 @@ def summarize_catalogue(applications: list[JsonData]) -> CatalogueSummary:
         value for app in applications if isinstance(value := app.get("percentage"), (int, float))
     ]
     risks = [value for app in applications if isinstance(value := app.get("risque"), (int, float))]
+    thresholds = score_thresholds or Thresholds(warning=30, critical=60)
     return CatalogueSummary(
         total_applications=len(applications),
         average_score=round(sum(scores) / len(scores), 2) if scores else 0,
-        applications_above_30=sum(value > 30 for value in percentages),
-        applications_above_60=sum(value > 60 for value in percentages),
+        applications_above_warning=sum(value > thresholds.warning for value in percentages),
+        applications_above_critical=sum(value > thresholds.critical for value in percentages),
         global_risk=round(sum(risks) / len(risks), 2) if risks else None,
     )
 

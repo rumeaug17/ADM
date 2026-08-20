@@ -54,9 +54,9 @@
         <div class="card text-white bg-primary p-3">
             <h4>Risque global</h4>
 		{% if global_risk is not none %}
-		    {% if global_risk > 350 %}
+		    {% if global_risk > display_thresholds.risk.critical %}
 		        <span class="badge bg-danger">{{ global_risk }}</span>
-		    {% elif global_risk > 100 %}
+		    {% elif global_risk > display_thresholds.risk.warning %}
 		        <span class="badge bg-warning">{{ global_risk }}</span>
 		    {% else %}
 		        <span class="badge bg-success">{{ global_risk }}</span>
@@ -69,14 +69,14 @@
 <p></p>
     <div class="col-md-3">
         <div class="card text-white bg-warning p-3">
-            <h4>✅ Applications > 30%</h4>
-            <h2>{{ apps_above_30 }}</h2>
+            <h4>✅ Applications &gt; {{ display_thresholds.score.warning|int }}%</h4>
+            <h2>{{ apps_above_warning }}</h2>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card text-white bg-score-high p-3">
-            <h4>🔥 Applications > 60%</h4>
-            <h2>{{ apps_above_60 }}</h2>
+            <h4>🔥 Applications &gt; {{ display_thresholds.score.critical|int }}%</h4>
+            <h2>{{ apps_above_critical }}</h2>
         </div>
     </div>
 	
@@ -120,8 +120,8 @@
     <!-- Tableau des applications -->
 	<div class="btn-group" role="group">
     <a href="?filter_score=all" class="btn btn-secondary {% if filter_score == 'all' %}active{% endif %}">Tous</a>
-    <a href="?filter_score=above_30" class="btn btn-warning {% if filter_score == 'above_30' %}active{% endif %}">> 30%</a>
-    <a href="?filter_score=above_60" class="btn btn-danger {% if filter_score == 'above_60' %}active{% endif %}">> 60%</a>
+    <a href="?filter_score=warning" class="btn btn-warning {% if filter_score == 'warning' %}active{% endif %}">&gt; {{ display_thresholds.score.warning|int }}%</a>
+    <a href="?filter_score=critical" class="btn btn-danger {% if filter_score == 'critical' %}active{% endif %}">&gt; {{ display_thresholds.score.critical|int }}%</a>
 </div>
     <table class="table table-bordered text-center">
         <thead>
@@ -149,7 +149,7 @@
                 <td>{{ app.max_score or "N/A" }}</td>
                 <td>
                     {% if app.percentage is not none %}
-                        <span class="badge {% if app.percentage > 60 %} bg-danger {% elif app.percentage > 30 %} bg-warning {% else %} bg-success {% endif %}">
+                        <span class="badge {% if app.percentage > display_thresholds.score.critical %} bg-danger {% elif app.percentage > display_thresholds.score.warning %} bg-warning {% else %} bg-success {% endif %}">
                             {{ app.percentage }}%
                         </span>
                     {% else %}
@@ -161,9 +161,9 @@
 						Non évaluée
 					{% else %}
 						{% set risk = app.risque|round(0)|int %}
-						{% if risk > 350 %}
+						{% if risk > display_thresholds.risk.critical %}
 							<span class="badge bg-danger">{{ risk }}</span>
-						{% elif risk > 100 %}
+						{% elif risk > display_thresholds.risk.warning %}
 							<span class="badge bg-warning">{{ risk }}</span>
 						{% else %}
 							<span class="badge bg-success">{{ risk }}</span>

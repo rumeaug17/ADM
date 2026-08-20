@@ -119,7 +119,7 @@
 		</td>
                 <td>
                     {% if app.percentage is not none %}
-                        <span class="badge {% if app.percentage > 60 %} bg-danger {% elif app.percentage > 30 %} bg-warning {% else %} bg-success {% endif %}">
+                        <span class="badge {% if app.percentage > display_thresholds.score.critical %} bg-danger {% elif app.percentage > display_thresholds.score.warning %} bg-warning {% else %} bg-success {% endif %}">
                             {{ app.percentage }}%
                         </span>
                     {% else %}
@@ -131,9 +131,9 @@
 						Non évaluée
 					{% else %}
 						{% set risk = app.risque|round(0)|int %}
-						{% if risk > 350 %}
+						{% if risk > display_thresholds.risk.critical %}
 							<span class="badge bg-danger">{{ risk }}</span>
-						{% elif risk > 100 %}
+						{% elif risk > display_thresholds.risk.warning %}
 							<span class="badge bg-warning">{{ risk }}</span>
 						{% else %}
 							<span class="badge bg-success">{{ risk }}</span>
