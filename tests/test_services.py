@@ -4,7 +4,13 @@ import base64
 
 import matplotlib.pyplot as plt
 
-from ADM.services import axis_scores, category_sums, generate_radar_chart
+from ADM.services import (
+    axis_scores,
+    build_evaluation_submission,
+    category_sums,
+    generate_radar_chart,
+    summarize_catalogue,
+)
 
 
 def questions() -> dict[str, dict[str, dict[str, object]]]:
@@ -67,3 +73,36 @@ def test_generate_radar_chart_returns_a_png_and_closes_its_figure() -> None:
     assert chart.startswith(b"\x89PNG\r\n\x1a\n")
     assert len(chart) > 1_000
     assert set(plt.get_fignums()) == open_figures_before
+
+
+def test_build_evaluation_submission_applies_weights() -> None:
+    submission = build_evaluation_submission(
+        {
+            "urbanisation": "Partiel",
+            "urbanisation_comment": "Justification factice",
+            "csrf_token": "jeton-factice",
+        },
+        questions(),
+        {"Partiel": 2, "Non applicable": None},
+    )
+
+    assert submission.responses == {"urbanisation": "Partiel"}
+    assert submission.comments == {"urbanisation_comment": "Justification factice"}
+    assert submission.score == 4
+    assert submission.answered_questions == 2
+
+
+def test_summarize_catalogue_ignores_unevaluated_metrics() -> None:
+    summary = summarize_catalogue(
+        [
+            {"score": 6, "percentage": 40.0, "risque": 2.0},
+            {"score": 9, "percentage": 70.0, "risque": 4.0},
+            {"score": None, "percentage": None, "risque": None},
+        ]
+    )
+
+    assert summary.total_applications == 3
+    assert summary.average_score == 5.0
+    assert summary.applications_above_30 == 2
+    assert summary.applications_above_60 == 1
+    assert summary.global_risk == 3.0

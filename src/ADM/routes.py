@@ -7,7 +7,7 @@ import os
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import Any, cast
+from typing import Any, ParamSpec, cast
 
 from flask import (
     Blueprint,
@@ -21,6 +21,7 @@ from flask import (
     session,
     url_for,
 )
+from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import SQLAlchemyError
 
 from ADM.catalogue_io import replace_catalogue, serialize_catalogue
@@ -31,10 +32,11 @@ from ADM.services import (
     Questions,
     application_to_dict,
     axis_scores,
+    build_evaluation_submission,
     calculate_risk,
     category_sums,
     generate_radar_chart,
-    question_definition,
+    summarize_catalogue,
     update_all_metrics,
     update_app_metrics,
 )
@@ -50,6 +52,8 @@ auth = Blueprint("auth", __name__)
 applications = Blueprint("applications", __name__)
 evaluations = Blueprint("evaluations", __name__)
 exports = Blueprint("exports", __name__)
+
+ViewParameters = ParamSpec("ViewParameters")
 
 
 def session_factory() -> Callable[[], TransactionSession]:
@@ -80,9 +84,13 @@ def calculate_category_sums(data: dict[str, object]) -> dict[str, int]:
     return category_sums(data, questions(), categories(), scoring_map())
 
 
-def login_required(function: Any) -> Any:
+def login_required(
+    function: Callable[ViewParameters, ResponseReturnValue],
+) -> Callable[ViewParameters, ResponseReturnValue]:
     @wraps(function)
-    def decorated(*args: object, **kwargs: object) -> Any:
+    def decorated(
+        *args: ViewParameters.args, **kwargs: ViewParameters.kwargs
+    ) -> ResponseReturnValue:
         if not session.get("logged_in"):
             return redirect(url_for("auth.login"))
         return function(*args, **kwargs)
@@ -91,7 +99,7 @@ def login_required(function: Any) -> Any:
 
 
 @auth.route("/login", methods=["GET", "POST"])
-def login() -> Any:
+def login() -> ResponseReturnValue:
     """Route de connexion avec authentification minimale."""
     if request.method == "POST":
         try:
@@ -113,7 +121,7 @@ def login() -> Any:
 
 
 @auth.route("/logout")
-def logout() -> Any:
+def logout() -> ResponseReturnValue:
     """Déconnexion et redirection vers la page de connexion."""
     session.pop("logged_in", None)
     flash("Vous êtes déconnecté.", "info")
@@ -122,7 +130,7 @@ def logout() -> Any:
 
 @applications.route("/")
 @login_required
-def index():
+def index() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         app_objs = session_db.query(Application).all()
@@ -138,7 +146,7 @@ def index():
 
 @applications.route("/add", methods=["GET", "POST"])
 @login_required
-def add_application():
+def add_application() -> ResponseReturnValue:
     if request.method == "POST":
         try:
             fields = validate_application_form(request.form, require_name=True)
@@ -172,7 +180,7 @@ def add_application():
 
 @applications.route("/edit/<name>", methods=["GET", "POST"])
 @login_required
-def edit_application(name):
+def edit_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         app_to_edit = get_app_by_name(name, session_db)
@@ -196,7 +204,7 @@ def edit_application(name):
 
 @applications.route("/delete/<name>", methods=["POST"])
 @login_required
-def delete_application(name):
+def delete_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         app_to_delete = get_app_by_name(name, session_db)
@@ -211,7 +219,7 @@ def delete_application(name):
 
 @evaluations.route("/score/<name>", methods=["GET", "POST"])
 @login_required
-def score_application(name):
+def score_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         app_item = get_app_by_name(name, session_db)
@@ -233,70 +241,45 @@ def score_application(name):
                     "score.html", application=app_item, questions=questions()
                 ), 400
             # Mode brouillon : on ne vérifie pas que tous les commentaires sont remplis
+            submission = build_evaluation_submission(request.form, questions(), scoring_map())
             if "save_draft" in request.form:
-                draft_responses = {}
-                draft_comments = {}
-                for key, value in request.form.items():
-                    if key.endswith("_comment"):
-                        draft_comments[key] = value
-                    elif value in scoring_map():
-                        draft_responses[key] = value
                 # Enregistrer le brouillon sans validation stricte des commentaires.
-                app_item.responses = draft_responses
-                app_item.comments = draft_comments
+                app_item.responses = submission.responses
+                app_item.comments = submission.comments
                 # On peut enregistrer aussi le nom de l'évaluateur (facultatif)
                 app_item.evaluator_name = request.form.get("evaluator_name", "")
                 # Si vous souhaitez enregistrer un brouillon, vous ne mettez pas à jour le score final.
                 session_db.commit()
                 flash("Brouillon enregistré.", "success")
                 return redirect(url_for("applications.index"))
-            else:
-                # Mode évaluation finale : on vérifie que tous les commentaires sont renseignés
-                for key, value in request.form.items():
-                    if key.endswith("_comment") and not value.strip():
-                        flash(
-                            "Tous les commentaires sont obligatoires pour l'évaluation.", "danger"
-                        )
-                        return render_template(
-                            "score.html", application=app_item, questions=questions()
-                        )
+            # Mode évaluation finale : tous les commentaires sont obligatoires.
+            if any(
+                key.endswith("_comment") and not value.strip()
+                for key, value in request.form.items()
+            ):
+                flash("Tous les commentaires sont obligatoires pour l'évaluation.", "danger")
+                return render_template("score.html", application=app_item, questions=questions())
 
-                evaluation_responses = {}
-                evaluation_comments = {}
-                score = 0
-                answered_questions = 0
-                for key, value in request.form.items():
-                    if key.endswith("_comment"):
-                        evaluation_comments[key] = value
-                    elif value in scoring_map():
-                        evaluation_responses[key] = value
-                        if scoring_map()[value] is not None:
-                            # Récupérer la définition de la question pour déterminer le poids (par défaut 1)
-                            q_def = question_definition(key, questions())
-                            weight = q_def.get("weight", 1)
-                            score += scoring_map()[value] * weight
-                            answered_questions += weight
-
-                new_eval = Evaluation(
-                    score=score,
-                    answered_questions=answered_questions,
-                    last_evaluation=datetime.now(),
-                    evaluator_name=request.form.get("evaluator_name", ""),
-                    responses=evaluation_responses,
-                    comments=evaluation_comments,
-                )
-                # Ajoute la nouvelle évaluation à l'historique de l'application
-                app_item.evaluations.append(new_eval)
-                # Met à jour l'application avec la nouvelle évaluation
-                app_item.evaluator_name = new_eval.evaluator_name
-                app_item.score = score
-                app_item.answered_questions = answered_questions
-                app_item.last_evaluation = new_eval.last_evaluation
-                app_item.responses = evaluation_responses
-                app_item.comments = evaluation_comments
-                session_db.commit()
-                flash("Évaluation enregistrée.", "success")
-                return redirect(url_for("applications.index"))
+            new_eval = Evaluation(
+                score=submission.score,
+                answered_questions=submission.answered_questions,
+                last_evaluation=datetime.now(),
+                evaluator_name=request.form.get("evaluator_name", ""),
+                responses=submission.responses,
+                comments=submission.comments,
+            )
+            # Ajoute la nouvelle évaluation à l'historique de l'application
+            app_item.evaluations.append(new_eval)
+            # Met à jour l'application avec la nouvelle évaluation
+            app_item.evaluator_name = new_eval.evaluator_name
+            app_item.score = submission.score
+            app_item.answered_questions = submission.answered_questions
+            app_item.last_evaluation = new_eval.last_evaluation
+            app_item.responses = submission.responses
+            app_item.comments = submission.comments
+            session_db.commit()
+            flash("Évaluation enregistrée.", "success")
+            return redirect(url_for("applications.index"))
 
         # return render_template("score.html", application=app_item, questions=questions())
         # Filtrer les questions à afficher en fonction du type d'application
@@ -311,7 +294,7 @@ def score_application(name):
 
 @evaluations.route("/reset/<name>", methods=["POST"])
 @login_required
-def reset_evaluation(name):
+def reset_evaluation(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         app_to_reset = get_app_by_name(name, session_db)
@@ -331,7 +314,7 @@ def reset_evaluation(name):
 
 @evaluations.route("/reevaluate_all", methods=["POST"])
 @login_required
-def reevaluate_all():
+def reevaluate_all() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         applications = session_db.query(Application).all()
@@ -350,7 +333,7 @@ def reevaluate_all():
 # --- Nouvelle route : Radar Chart ---
 @evaluations.route("/radar/<name>")
 @login_required
-def radar_chart(name):
+def radar_chart(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         app_obj = get_app_by_name(name, session_db)
@@ -368,7 +351,7 @@ def radar_chart(name):
 # --- Nouvelle route : Synthèse ---
 @evaluations.route("/synthese")
 @login_required
-def synthese():
+def synthese() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         filter_score = request.args.get("filter_score", "above_30")
@@ -379,13 +362,7 @@ def synthese():
         # Mise à jour des métriques pour chaque application
         for app_item in data:
             update_app_metrics(app_item)
-        evaluated_risks = [
-            app_item.get("risque") for app_item in data if app_item.get("risque") is not None
-        ]
-        global_risk = (
-            round(sum(evaluated_risks) / len(evaluated_risks), 2) if evaluated_risks else None
-        )
-        total_apps = len(data)
+        summary = summarize_catalogue(data)
 
         if filter_score == "above_30":
             scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 30]
@@ -394,17 +371,6 @@ def synthese():
         else:
             scored_apps = data.copy()
 
-        avg_score = (
-            round(sum(app["score"] for app in data if app.get("score") is not None) / len(data), 2)
-            if data
-            else 0
-        )
-        apps_above_30 = len(
-            [app for app in data if app.get("percentage") and app["percentage"] > 30]
-        )
-        apps_above_60 = len(
-            [app for app in data if app.get("percentage") and app["percentage"] > 60]
-        )
         avg_axis_scores = calculate_axis_scores(data)
         chart_data = generate_radar_chart(avg_axis_scores)
         scored_apps.sort(key=lambda app: app.get("score") or 0, reverse=True)
@@ -428,14 +394,14 @@ def synthese():
         return render_template(
             "synthese.html",
             applications=scored_apps,
-            total_apps=total_apps,
-            avg_score=avg_score,
-            apps_above_30=apps_above_30,
-            apps_above_60=apps_above_60,
+            total_apps=summary.total_applications,
+            avg_score=summary.average_score,
+            apps_above_30=summary.applications_above_30,
+            apps_above_60=summary.applications_above_60,
             filter_score=filter_score,
             avg_axis_scores=avg_axis_scores,
             chart_data=chart_data,
-            global_risk=global_risk,
+            global_risk=summary.global_risk,
             best_grouped=best_grouped,
         )
     finally:
@@ -445,7 +411,7 @@ def synthese():
 # --- Nouvelle route : Export CSV ---
 @exports.route("/export_csv")
 @login_required
-def export_csv():
+def export_csv() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         db_apps = session_db.query(Application).all()
@@ -503,7 +469,7 @@ def export_csv():
 
 @evaluations.route("/resume/<name>")
 @login_required
-def resume(name):
+def resume(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         app_obj = get_app_by_name(name, session_db)
@@ -578,7 +544,7 @@ def resume(name):
 
 @exports.route("/export_all")
 @login_required
-def export_all():
+def export_all() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         # Récupérer toutes les applications via la session (quelle que soit leur origine)
@@ -598,7 +564,7 @@ def export_all():
 
 @exports.route("/import_data", methods=["GET", "POST"])
 @login_required
-def import_data():
+def import_data() -> ResponseReturnValue:
     if request.method == "POST":
         # Vérifier que le fichier a bien été transmis
         if "file" not in request.files:

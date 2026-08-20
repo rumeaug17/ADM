@@ -100,15 +100,15 @@ refactorisation et évolution fonctionnelle.
 - [x] Documenter les invariants métier (scoring, poids, règles).
 
 ### Phase 5 : Nettoyage et lisibilité
-- [ ] Réduire les routes longues en fonctions d'orchestration courtes et en
+- [x] Réduire les routes longues en fonctions d'orchestration courtes et en
   sous-fonctions testables.
-- [ ] Remplacer progressivement les retours `Any` et les dictionnaires non paramétrés
+- [x] Remplacer progressivement les retours `Any` et les dictionnaires non paramétrés
   par des alias ou des structures typées explicites, sans masquer les erreurs mypy.
-- [ ] Harmoniser les noms français et anglais : choisir un vocabulaire par couche et
+- [x] Harmoniser les noms français et anglais : choisir un vocabulaire par couche et
   documenter les termes historiques qui ne peuvent pas être renommés.
-- [ ] Documenter l’architecture dans `docs/` avec les responsabilités de chaque module,
+- [x] Documenter l’architecture dans `docs/` avec les responsabilités de chaque module,
   le sens des dépendances et le parcours d'une requête.
-- [ ] Déplacer les anciens scripts racine vers `scripts/` ou les supprimer après avoir
+- [x] Déplacer les anciens scripts racine vers `scripts/` ou les supprimer après avoir
   documenté leur remplacement, afin d'avoir un seul point d'entrée par usage.
 
 ### Phase 6 : Contrôles automatisés et reproductibilité
