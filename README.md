@@ -87,6 +87,11 @@ et paramètres propres à un environnement sont fournis par variables d'environn
 | `ADM_DB_BACKEND` | Non | `json` par défaut, ou `mysql`. |
 | `ADM_DATABASE_URL` | Avec MySQL | URL SQLAlchemy fournie par le gestionnaire de secrets. |
 
+Les seuils de couleur et de filtrage des affichages sont définis dans
+`config.json`, sous `display_thresholds`. Les valeurs `score` sont des pourcentages
+et les valeurs `risk` utilisent l'unité du risque calculé. Pour chaque indicateur,
+`warning` doit être positif ou nul et strictement inférieur à `critical`.
+
 Avec le backend JSON, le chemin du fichier est défini par `json_connection_url` dans
 `config.json` et peut être remplacé par `ADM_DATABASE_URL`. Avec MySQL, appliquez les
 migrations avant le premier démarrage :

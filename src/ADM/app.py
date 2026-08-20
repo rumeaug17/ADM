@@ -67,6 +67,7 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     app.extensions["adm_questions"] = questions
     app.extensions["adm_scoring_map"] = compute_scoring_map(questions)
     app.extensions["adm_categories"] = compute_categories(questions)
+    app.extensions["adm_display_thresholds"] = config.display_thresholds
     _register_web_components(app)
     return app
 
@@ -82,7 +83,7 @@ def _register_web_components(app: Flask) -> None:
             if not expected or not secrets.compare_digest(expected, submitted):
                 abort(400)
 
-    def template_values() -> dict[str, str]:
+    def template_values() -> dict[str, object]:
         token = session.get("csrf_token")
         if not isinstance(token, str):
             token = secrets.token_urlsafe(32)
@@ -92,7 +93,11 @@ def _register_web_components(app: Flask) -> None:
             version = version_path.read_text(encoding="utf-8").strip()
         except OSError:
             version = "v0.0.0"
-        return {"csrf_token": token, "app_version": version}
+        return {
+            "csrf_token": token,
+            "app_version": version,
+            "display_thresholds": app.extensions["adm_display_thresholds"],
+        }
 
     def http_error(error: HTTPException) -> tuple[str, int]:
         messages = {

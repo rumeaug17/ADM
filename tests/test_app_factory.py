@@ -37,6 +37,7 @@ def test_create_app_registers_blueprints_and_injects_session_factory(tmp_path: P
     assert set(application.blueprints) == {"auth", "applications", "evaluations", "exports"}
     assert callable(application.extensions["adm_session_factory"])
     assert application.test_client().get("/login").status_code == 200
+    assert application.extensions["adm_display_thresholds"].score.warning == 30
 
 
 def test_create_app_uses_json_database_from_environment(

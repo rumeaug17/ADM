@@ -82,9 +82,9 @@
           Non évaluée
         {% else %}
           {% set risk = app.risque|round(0)|int %}
-          {% if risk > 500 %}
+          {% if risk > display_thresholds.risk.critical %}
             <span class="badge bg-danger">{{ risk }}</span>
-          {% elif risk > 100 %}
+          {% elif risk > display_thresholds.risk.warning %}
             <span class="badge bg-warning">{{ risk }}</span>
           {% else %}
             <span class="badge bg-success">{{ risk }}</span>

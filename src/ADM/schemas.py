@@ -63,11 +63,28 @@ class ApplicationImport(TypedDict, total=False):
 
 
 @dataclass(frozen=True, slots=True)
+class Thresholds:
+    """Seuils croissants utilisés pour qualifier un indicateur."""
+
+    warning: float
+    critical: float
+
+
+@dataclass(frozen=True, slots=True)
+class DisplayThresholds:
+    """Seuils de présentation des scores et des risques."""
+
+    score: Thresholds = Thresholds(warning=30, critical=60)
+    risk: Thresholds = Thresholds(warning=100, critical=350)
+
+
+@dataclass(frozen=True, slots=True)
 class AppConfig:
     """Configuration non sensible chargée depuis ``config.json``."""
 
     db_backend: str = "json"
     json_connection_url: str = "applications.json"
+    display_thresholds: DisplayThresholds = DisplayThresholds()
 
     @classmethod
     def from_object(cls, value: object) -> "AppConfig":
@@ -75,7 +92,40 @@ class AppConfig:
             raise ValueError("La configuration doit être un objet JSON.")
         backend = _optional_non_empty_string(value, "db_backend", "json").casefold()
         json_url = _optional_non_empty_string(value, "json_connection_url", "applications.json")
-        return cls(db_backend=backend, json_connection_url=json_url)
+        display_thresholds = _parse_display_thresholds(value.get("display_thresholds", {}))
+        return cls(
+            db_backend=backend,
+            json_connection_url=json_url,
+            display_thresholds=display_thresholds,
+        )
+
+
+def _parse_display_thresholds(value: object) -> DisplayThresholds:
+    if not isinstance(value, dict):
+        raise ValueError("Le champ de configuration 'display_thresholds' doit être un objet.")
+    return DisplayThresholds(
+        score=_parse_thresholds(value.get("score", {}), "score", 30, 60),
+        risk=_parse_thresholds(value.get("risk", {}), "risk", 100, 350),
+    )
+
+
+def _parse_thresholds(
+    value: object, indicator: str, default_warning: float, default_critical: float
+) -> Thresholds:
+    if not isinstance(value, dict):
+        raise ValueError(f"Les seuils de {indicator!r} doivent être un objet.")
+    warning = value.get("warning", default_warning)
+    critical = value.get("critical", default_critical)
+    for name, threshold in (("warning", warning), ("critical", critical)):
+        if not isinstance(threshold, (int, float)) or isinstance(threshold, bool) or threshold < 0:
+            raise ValueError(
+                f"Le seuil {name!r} de {indicator!r} doit être un nombre positif ou nul."
+            )
+    if warning >= critical:
+        raise ValueError(
+            f"Le seuil 'warning' de {indicator!r} doit être inférieur au seuil 'critical'."
+        )
+    return Thresholds(warning=float(warning), critical=float(critical))
 
 
 def parse_questions(value: object) -> Questions:

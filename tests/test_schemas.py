@@ -2,7 +2,7 @@
 
 import pytest
 
-from ADM.schemas import AppConfig, parse_questions
+from ADM.schemas import AppConfig, DisplayThresholds, Thresholds, parse_questions
 
 
 def test_configuration_uses_explicit_typed_defaults() -> None:
@@ -12,6 +12,38 @@ def test_configuration_uses_explicit_typed_defaults() -> None:
 def test_configuration_rejects_an_empty_backend() -> None:
     with pytest.raises(ValueError, match="db_backend"):
         AppConfig.from_object({"db_backend": " "})
+
+
+def test_configuration_parses_display_thresholds() -> None:
+    config = AppConfig.from_object(
+        {
+            "display_thresholds": {
+                "score": {"warning": 25, "critical": 55},
+                "risk": {"warning": 80.5, "critical": 250},
+            }
+        }
+    )
+
+    assert config.display_thresholds == DisplayThresholds(
+        score=Thresholds(warning=25, critical=55),
+        risk=Thresholds(warning=80.5, critical=250),
+    )
+
+
+@pytest.mark.parametrize(
+    "thresholds",
+    [
+        {"score": {"warning": -1, "critical": 60}},
+        {"score": {"warning": 60, "critical": 60}},
+        {"risk": {"warning": True, "critical": 350}},
+        {"risk": "incorrect"},
+    ],
+)
+def test_configuration_rejects_invalid_display_thresholds(
+    thresholds: object,
+) -> None:
+    with pytest.raises(ValueError, match="seuil"):
+        AppConfig.from_object({"display_thresholds": thresholds})
 
 
 def test_questions_reject_a_non_positive_weight() -> None:

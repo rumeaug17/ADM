@@ -1,4 +1,14 @@
 {
   "db_backend": "json",
-  "json_connection_url": "applications.json"
+  "json_connection_url": "applications.json",
+  "display_thresholds": {
+    "score": {
+      "warning": 30,
+      "critical": 60
+    },
+    "risk": {
+      "warning": 100,
+      "critical": 350
+    }
+  }
 }

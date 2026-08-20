@@ -27,7 +27,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from ADM.catalogue_io import replace_catalogue, serialize_catalogue
 from ADM.database import Application, Evaluation
 from ADM.persistence import TransactionSession, transactional_session
-from ADM.schemas import Questions
+from ADM.schemas import DisplayThresholds, Questions
 from ADM.scoring import filter_questions_by_type
 from ADM.services import (
     application_to_dict,
@@ -86,6 +86,11 @@ def scoring_map() -> dict[str, int | None]:
 def categories() -> dict[str, list[str]]:
     """Retourne les clés de questions regroupées par catégorie métier."""
     return cast(dict[str, list[str]], current_app.extensions["adm_categories"])
+
+
+def display_thresholds() -> DisplayThresholds:
+    """Retourne les seuils validés utilisés dans les affichages."""
+    return cast(DisplayThresholds, current_app.extensions["adm_display_thresholds"])
 
 
 def get_app_by_name(name: str, database_session: TransactionSession) -> Application | None:
@@ -381,7 +386,7 @@ def radar_chart(name: str) -> ResponseReturnValue:
 def synthese() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
-        filter_score = request.args.get("filter_score", "above_30")
+        filter_score = request.args.get("filter_score", "warning")
         db_apps = session_db.query(Application).all()
         # Conversion des objets ORM en dictionnaires
         data = [application_to_dict(app) for app in db_apps]
@@ -389,12 +394,21 @@ def synthese() -> ResponseReturnValue:
         # Mise à jour des métriques pour chaque application
         for app_item in data:
             update_app_metrics(app_item)
-        summary = summarize_catalogue(data)
+        thresholds = display_thresholds()
+        summary = summarize_catalogue(data, thresholds.score)
 
-        if filter_score == "above_30":
-            scored_apps = [app for app in data if numeric_value(app.get("percentage")) > 30]
-        elif filter_score == "above_60":
-            scored_apps = [app for app in data if numeric_value(app.get("percentage")) > 60]
+        if filter_score == "warning":
+            scored_apps = [
+                app
+                for app in data
+                if numeric_value(app.get("percentage")) > thresholds.score.warning
+            ]
+        elif filter_score == "critical":
+            scored_apps = [
+                app
+                for app in data
+                if numeric_value(app.get("percentage")) > thresholds.score.critical
+            ]
         else:
             scored_apps = data.copy()
 
@@ -424,8 +438,8 @@ def synthese() -> ResponseReturnValue:
             applications=scored_apps,
             total_apps=summary.total_applications,
             avg_score=summary.average_score,
-            apps_above_30=summary.applications_above_30,
-            apps_above_60=summary.applications_above_60,
+            apps_above_warning=summary.applications_above_warning,
+            apps_above_critical=summary.applications_above_critical,
             filter_score=filter_score,
             avg_axis_scores=avg_axis_scores,
             chart_data=chart_data,
