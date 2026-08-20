@@ -93,11 +93,11 @@ refactorisation et évolution fonctionnelle.
   et de faciliter les tests avec les deux backends.
 
 ### Phase 4 : Évolutivité du modèle et des validations
-- [ ] Définir des structures typées pour la configuration, les questions et les
+- [x] Définir des structures typées pour la configuration, les questions et les
   imports ; n'ajouter une bibliothèque de validation que si les types standards ne
   suffisent pas, et justifier alors la dépendance dans `pyproject.toml`.
-- [ ] Mettre en place Alembic pour les migrations.  
-- [ ] Documenter les invariants métier (scoring, poids, règles).  
+- [x] Mettre en place Alembic pour les migrations.
+- [x] Documenter les invariants métier (scoring, poids, règles).
 
 ### Phase 5 : Nettoyage et lisibilité
 - [ ] Réduire les routes longues en fonctions d'orchestration courtes et en
