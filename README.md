@@ -35,6 +35,39 @@ L'application est alors disponible sur <http://127.0.0.1:5000/>. Pour MySQL,
 définissez aussi `ADM_DB_BACKEND=mysql` et `ADM_DATABASE_URL` avec une URL de
 connexion provenant du gestionnaire de secrets de l'environnement.
 
+## Installation automatisée de la démo standalone
+
+Le script de setup prépare une démonstration locale complète utilisant uniquement
+le backend JSON (aucun serveur de base de données n'est nécessaire) :
+
+```bash
+scripts/setup_demo.sh
+scripts/run_demo.sh
+```
+
+Le setup crée `.venv`, installe les dépendances, construit les distributions dans
+`dist/`, exécute Ruff, mypy et pytest, génère les données fictives puis écrit la
+configuration locale dans `.adm-demo.env`. Ce fichier contient des identifiants
+générés aléatoirement, reste exclu de Git et n'est lisible que par son propriétaire.
+Il peut être consulté localement pour connaître les identifiants de connexion. Une
+nouvelle exécution du setup recrée les données et les identifiants de démonstration.
+
+`PYTHON_BIN` permet de choisir l'interpréteur utilisé pour créer l'environnement et
+`ADM_DEMO_VENV` de choisir un autre emplacement pour celui-ci.
+
+Sous Windows, les scripts PowerShell équivalents s'exécutent depuis la racine du
+dépôt :
+
+```powershell
+.\scripts\setup_demo.ps1
+.\scripts\run_demo.ps1
+```
+
+Le setup Windows utilise le lanceur `py` par défaut. Le paramètre `-PythonBin`
+permet d'en choisir un autre, et `-VenvPath` de modifier l'emplacement de
+l'environnement virtuel. La configuration locale et les identifiants aléatoires
+sont enregistrés dans `.adm-demo.json`, qui reste exclu de Git.
+
 Tous les formulaires modifiant des données utilisent un jeton CSRF lié à la
 session. Les formulaires incomplets ou contenant une valeur hors des choix proposés
 sont refusés avec un message indiquant le champ concerné. Les imports sont limités

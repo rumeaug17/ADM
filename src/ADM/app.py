@@ -55,7 +55,11 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     elif backend == "json":
         from ADM.database_json import get_session_factory, init_db
 
-        connection = app.config.get("DB_CONNECTION") or config.json_connection_url
+        connection = (
+            app.config.get("DB_CONNECTION")
+            or os.environ.get("ADM_DATABASE_URL")
+            or config.json_connection_url
+        )
     else:
         raise ValueError("Configuration du backend incorrecte.")
     engine = init_db(str(connection))

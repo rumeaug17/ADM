@@ -1,0 +1,41 @@
+[CmdletBinding()]
+param(
+    [string]$VenvPath = $env:ADM_DEMO_VENV
+)
+
+$ErrorActionPreference = "Stop"
+$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+if ([string]::IsNullOrWhiteSpace($VenvPath)) {
+    $VenvPath = Join-Path $ProjectRoot ".venv"
+}
+$VenvPython = Join-Path $VenvPath "Scripts\python.exe"
+$ConfigFile = Join-Path $ProjectRoot ".adm-demo.json"
+
+if (-not (Test-Path $ConfigFile) -or -not (Test-Path $VenvPython)) {
+    throw "La démo n'est pas configurée. Exécutez d'abord .\scripts\setup_demo.ps1."
+}
+
+$configuration = Get-Content -Raw $ConfigFile | ConvertFrom-Json
+$requiredVariables = @(
+    "ADM_DB_BACKEND",
+    "ADM_DATABASE_URL",
+    "ADM_SECRET_KEY",
+    "ADM_USERNAME",
+    "ADM_PASSWORD"
+)
+foreach ($variableName in $requiredVariables) {
+    $value = $configuration.$variableName
+    if (-not ($value -is [string]) -or [string]::IsNullOrWhiteSpace($value)) {
+        throw "La variable $variableName est absente de la configuration de démonstration."
+    }
+    [Environment]::SetEnvironmentVariable($variableName, $value, "Process")
+}
+
+Push-Location $ProjectRoot
+try {
+    & $VenvPython main.py
+    exit $LASTEXITCODE
+}
+finally {
+    Pop-Location
+}
