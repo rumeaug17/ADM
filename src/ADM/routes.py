@@ -7,7 +7,7 @@ import os
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import Any, ParamSpec, cast
+from typing import ParamSpec, TypeVar, cast
 
 from flask import (
     Blueprint,
@@ -27,9 +27,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from ADM.catalogue_io import replace_catalogue, serialize_catalogue
 from ADM.database import Application, Evaluation
 from ADM.persistence import TransactionSession, transactional_session
+from ADM.schemas import Questions
 from ADM.scoring import filter_questions_by_type
 from ADM.services import (
-    Questions,
     application_to_dict,
     axis_scores,
     build_evaluation_submission,
@@ -54,6 +54,18 @@ evaluations = Blueprint("evaluations", __name__)
 exports = Blueprint("exports", __name__)
 
 ViewParameters = ParamSpec("ViewParameters")
+ViewReturn = TypeVar("ViewReturn")
+
+
+def route(
+    blueprint: Blueprint, rule: str, **options: object
+) -> Callable[[Callable[ViewParameters, ViewReturn]], Callable[ViewParameters, ViewReturn]]:
+    """Type le décorateur Flask, dont les annotations ne sont pas suivies par mypy."""
+    decorator = blueprint.route(rule, **options)
+    return cast(
+        Callable[[Callable[ViewParameters, ViewReturn]], Callable[ViewParameters, ViewReturn]],
+        decorator,
+    )
 
 
 def session_factory() -> Callable[[], TransactionSession]:
@@ -76,9 +88,18 @@ def categories() -> dict[str, list[str]]:
     return cast(dict[str, list[str]], current_app.extensions["adm_categories"])
 
 
-def get_app_by_name(name: str, database_session: Any) -> Application | None:
+def get_app_by_name(name: str, database_session: TransactionSession) -> Application | None:
     """Recherche une application par son nom dans la session fournie."""
-    return database_session.query(Application).filter_by(name=name).first()
+    application = database_session.query(Application).filter_by(name=name).first()
+    return application
+
+
+def require_app_by_name(name: str, database_session: TransactionSession) -> Application:
+    """Retourne l'application demandée ou interrompt la requête avec une erreur 404."""
+    application = get_app_by_name(name, database_session)
+    if application is None:
+        abort(404, description="Application non trouvée")
+    return cast(Application, application)
 
 
 def calculate_axis_scores(data: list[dict[str, object]]) -> dict[str, float]:
@@ -89,6 +110,13 @@ def calculate_axis_scores(data: list[dict[str, object]]) -> dict[str, float]:
 def calculate_category_sums(data: dict[str, object]) -> dict[str, int]:
     """Calcule les sous-totaux du score par catégorie pour les données indiquées."""
     return category_sums(data, questions(), categories(), scoring_map())
+
+
+def numeric_value(value: object, default: float = 0) -> float:
+    """Retourne une valeur numérique validée utilisable pour filtrer ou trier."""
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return float(value)
+    return default
 
 
 def login_required(
@@ -107,7 +135,7 @@ def login_required(
     return decorated
 
 
-@auth.route("/login", methods=["GET", "POST"])
+@route(auth, "/login", methods=["GET", "POST"])
 def login() -> ResponseReturnValue:
     """Route de connexion avec authentification minimale."""
     if request.method == "POST":
@@ -129,7 +157,7 @@ def login() -> ResponseReturnValue:
     return render_template("login.html")
 
 
-@auth.route("/logout")
+@route(auth, "/logout")
 def logout() -> ResponseReturnValue:
     """Déconnexion et redirection vers la page de connexion."""
     session.pop("logged_in", None)
@@ -137,7 +165,7 @@ def logout() -> ResponseReturnValue:
     return redirect(url_for("auth.login"))
 
 
-@applications.route("/")
+@route(applications, "/")
 @login_required
 def index() -> ResponseReturnValue:
     session_db = session_factory()()
@@ -153,7 +181,7 @@ def index() -> ResponseReturnValue:
         session_db.close()
 
 
-@applications.route("/add", methods=["GET", "POST"])
+@route(applications, "/add", methods=["GET", "POST"])
 @login_required
 def add_application() -> ResponseReturnValue:
     if request.method == "POST":
@@ -187,14 +215,12 @@ def add_application() -> ResponseReturnValue:
     return render_template("add.html")
 
 
-@applications.route("/edit/<name>", methods=["GET", "POST"])
+@route(applications, "/edit/<name>", methods=["GET", "POST"])
 @login_required
 def edit_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
-        app_to_edit = get_app_by_name(name, session_db)
-        if not app_to_edit:
-            abort(404, description="Application non trouvée")
+        app_to_edit = require_app_by_name(name, session_db)
         if request.method == "POST":
             try:
                 fields = validate_application_form(request.form, require_name=False)
@@ -211,14 +237,12 @@ def edit_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@applications.route("/delete/<name>", methods=["POST"])
+@route(applications, "/delete/<name>", methods=["POST"])
 @login_required
 def delete_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
-        app_to_delete = get_app_by_name(name, session_db)
-        if not app_to_delete:
-            abort(404, description="Application non trouvée")
+        app_to_delete = require_app_by_name(name, session_db)
         session_db.delete(app_to_delete)
         session_db.commit()
         return redirect(url_for("applications.index"))
@@ -226,14 +250,12 @@ def delete_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@evaluations.route("/score/<name>", methods=["GET", "POST"])
+@route(evaluations, "/score/<name>", methods=["GET", "POST"])
 @login_required
 def score_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
-        app_item = get_app_by_name(name, session_db)
-        if not app_item:
-            abort(404, description="Application non trouvée")
+        app_item = require_app_by_name(name, session_db)
 
         if request.method == "POST":
             question_keys = frozenset(
@@ -301,14 +323,12 @@ def score_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@evaluations.route("/reset/<name>", methods=["POST"])
+@route(evaluations, "/reset/<name>", methods=["POST"])
 @login_required
 def reset_evaluation(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
-        app_to_reset = get_app_by_name(name, session_db)
-        if not app_to_reset:
-            abort(404, description="Application non trouvée")
+        app_to_reset = require_app_by_name(name, session_db)
         # Réinitialiser les évaluations de l'application
         app_to_reset.score = None
         app_to_reset.answered_questions = 0
@@ -321,7 +341,7 @@ def reset_evaluation(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@evaluations.route("/reevaluate_all", methods=["POST"])
+@route(evaluations, "/reevaluate_all", methods=["POST"])
 @login_required
 def reevaluate_all() -> ResponseReturnValue:
     session_db = session_factory()()
@@ -340,14 +360,12 @@ def reevaluate_all() -> ResponseReturnValue:
 
 
 # --- Nouvelle route : Radar Chart ---
-@evaluations.route("/radar/<name>")
+@route(evaluations, "/radar/<name>")
 @login_required
 def radar_chart(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
-        app_obj = get_app_by_name(name, session_db)
-        if not app_obj:
-            abort(404, description="Application non trouvée")
+        app_obj = require_app_by_name(name, session_db)
         # Pour générer le graphique radar, on utilise les réponses stockées.
         # On suppose que la fonction calculate_axis_scores attend un dictionnaire avec la clé "responses".
         avg_axis_scores = calculate_axis_scores([{"responses": app_obj.responses}])
@@ -358,7 +376,7 @@ def radar_chart(name: str) -> ResponseReturnValue:
 
 
 # --- Nouvelle route : Synthèse ---
-@evaluations.route("/synthese")
+@route(evaluations, "/synthese")
 @login_required
 def synthese() -> ResponseReturnValue:
     session_db = session_factory()()
@@ -374,18 +392,18 @@ def synthese() -> ResponseReturnValue:
         summary = summarize_catalogue(data)
 
         if filter_score == "above_30":
-            scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 30]
+            scored_apps = [app for app in data if numeric_value(app.get("percentage")) > 30]
         elif filter_score == "above_60":
-            scored_apps = [app for app in data if app.get("percentage") and app["percentage"] > 60]
+            scored_apps = [app for app in data if numeric_value(app.get("percentage")) > 60]
         else:
             scored_apps = data.copy()
 
         avg_axis_scores = calculate_axis_scores(data)
         chart_data = generate_radar_chart(avg_axis_scores)
-        scored_apps.sort(key=lambda app: app.get("score") or 0, reverse=True)
+        scored_apps.sort(key=lambda app: numeric_value(app.get("score")), reverse=True)
 
         # Calcul des pires scores (ou meilleurs, selon la logique)
-        best_by_category = {}
+        best_by_category: dict[str, tuple[str | None, int]] = {}
         for category in categories():
             best_app = None
             best_score = -1
@@ -393,9 +411,10 @@ def synthese() -> ResponseReturnValue:
                 cat_score = calculate_category_sums(app_item).get(category, 0)
                 if cat_score > best_score:
                     best_score = cat_score
-                    best_app = app_item.get("name")
+                    name = app_item.get("name")
+                    best_app = name if isinstance(name, str) else None
             best_by_category[category] = (best_app, best_score)
-        best_grouped = {}
+        best_grouped: dict[str, list[tuple[str, int]]] = {}
         for category, (app_name, score_val) in best_by_category.items():
             if app_name:
                 best_grouped.setdefault(app_name, []).append((category, score_val))
@@ -418,7 +437,7 @@ def synthese() -> ResponseReturnValue:
 
 
 # --- Nouvelle route : Export CSV ---
-@exports.route("/export_csv")
+@route(exports, "/export_csv")
 @login_required
 def export_csv() -> ResponseReturnValue:
     session_db = session_factory()()
@@ -462,7 +481,9 @@ def export_csv() -> ResponseReturnValue:
                 app_item.get("percentage", ""),
                 app_item.get("last_evaluation", ""),
                 app_item.get("evaluator_name", ""),
-                "" if app_item.get("risque") is None else round(app_item.get("risque")),
+                ""
+                if app_item.get("risque") is None
+                else round(numeric_value(app_item.get("risque"))),
             ]
             writer.writerow(row)
         output = si.getvalue()
@@ -476,14 +497,12 @@ def export_csv() -> ResponseReturnValue:
         session_db.close()
 
 
-@evaluations.route("/resume/<name>")
+@route(evaluations, "/resume/<name>")
 @login_required
 def resume(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
-        app_obj = get_app_by_name(name, session_db)
-        if not app_obj:
-            abort(404, description="Application non trouvée")
+        app_obj = require_app_by_name(name, session_db)
 
         # Convertir l'objet Application en dictionnaire pour faciliter le calcul des métriques
         app_item = application_to_dict(app_obj)
@@ -551,7 +570,7 @@ def resume(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@exports.route("/export_all")
+@route(exports, "/export_all")
 @login_required
 def export_all() -> ResponseReturnValue:
     session_db = session_factory()()
@@ -571,7 +590,7 @@ def export_all() -> ResponseReturnValue:
         session_db.close()
 
 
-@exports.route("/import_data", methods=["GET", "POST"])
+@route(exports, "/import_data", methods=["GET", "POST"])
 @login_required
 def import_data() -> ResponseReturnValue:
     if request.method == "POST":

@@ -11,8 +11,9 @@ from typing import Protocol, TypeAlias
 import matplotlib.pyplot as plt
 import numpy as np
 
+from ADM.schemas import Questions
+
 JsonData: TypeAlias = dict[str, object]
-Questions: TypeAlias = dict[str, dict[str, dict[str, object]]]
 ScoreMap: TypeAlias = dict[str, int | None]
 
 
@@ -108,7 +109,10 @@ def application_to_dict(application: ApplicationLike) -> JsonData:
 def calculate_risk(application: JsonData) -> float | None:
     """Calcule le risque à partir du score, des indicateurs DICP et de la criticité."""
     try:
-        score = float(application["score"])
+        score_value = application["score"]
+        if not isinstance(score_value, (int, float, str)):
+            return None
+        score = float(score_value)
         factors = [
             int("".join(filter(str.isdigit, str(application.get(key, "0")))))
             for key in ("disponibilite", "integrite", "confidentialite", "perennite")
@@ -134,7 +138,13 @@ def update_app_metrics(application: JsonData) -> None:
 
 
 def question_definition(key: str, questions: Questions) -> dict[str, object]:
-    return next((group[key] for group in questions.values() if key in group), {})
+    return next((dict(group[key]) for group in questions.values() if key in group), {})
+
+
+def question_weight(key: str, questions: Questions) -> int:
+    """Retourne le poids validé d'une question, ou le poids par défaut."""
+    weight = question_definition(key, questions).get("weight", 1)
+    return weight if isinstance(weight, int) and not isinstance(weight, bool) else 1
 
 
 def build_evaluation_submission(
@@ -154,7 +164,7 @@ def build_evaluation_submission(
             continue
         responses[key] = value
         if option_score is not None:
-            weight = int(question_definition(key, questions).get("weight", 1))
+            weight = question_weight(key, questions)
             score += option_score * weight
             answered_questions += weight
     return EvaluationSubmission(responses, comments, score, answered_questions)
@@ -192,7 +202,7 @@ def category_sums(
     return {
         category: sum(
             (scoring.get(str(responses.get(key, "Non applicable"))) or 0)
-            * int(question_definition(key, questions).get("weight", 1))
+            * question_weight(key, questions)
             for key in keys
         )
         for category, keys in categories.items()
@@ -212,8 +222,7 @@ def axis_scores(
             continue
         for category, keys in categories.items():
             scores = [
-                (scoring.get(str(responses[key])) or 0)
-                * int(question_definition(key, questions).get("weight", 1))
+                (scoring.get(str(responses[key])) or 0) * question_weight(key, questions)
                 for key in keys
                 if key in responses and scoring.get(str(responses[key])) is not None
             ]
