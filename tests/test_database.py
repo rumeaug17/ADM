@@ -87,6 +87,19 @@ def test_json_session_preserves_evaluation_history(tmp_path) -> None:
     assert restored.evaluations[0].score == 4
 
 
+def test_json_session_assigns_distinct_ids_to_records_without_ids(tmp_path) -> None:
+    database_path = tmp_path / "catalogue.json"
+    database_path.write_text(
+        json.dumps([application_record("Première"), application_record("Deuxième")]),
+        encoding="utf-8",
+    )
+
+    applications = JsonSession(database_path).query(Application).all()
+
+    assert [application.name for application in applications] == ["Première", "Deuxième"]
+    assert [application.id for application in applications] == [1, 2]
+
+
 def test_json_backend_rejects_a_catalogue_that_is_not_a_list(tmp_path) -> None:
     database_path = tmp_path / "catalogue.json"
     database_path.write_text(json.dumps({"application": application_record()}), encoding="utf-8")
