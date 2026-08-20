@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param(
-    [string]$VenvPath = $env:ADM_DEMO_VENV
+    [string]$VenvPath = $env:ADM_DEMO_VENV,
+    [ValidateSet("on", "off")]
+    [string]$DebugMode = "off"
 )
 
 $ErrorActionPreference = "Stop"
@@ -33,7 +35,11 @@ foreach ($variableName in $requiredVariables) {
 
 Push-Location $ProjectRoot
 try {
-    & $VenvPython main.py
+    $MainArguments = @("main.py")
+    if ($DebugMode -eq "on") {
+        $MainArguments += "--debug"
+    }
+    & $VenvPython @MainArguments
     exit $LASTEXITCODE
 }
 finally {

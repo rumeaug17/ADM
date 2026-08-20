@@ -1,12 +1,6 @@
 """Point d’entrée de l’application web ADM."""
 
-from ADM.app import create_app
-
-
-def main() -> None:
-    """Démarre le serveur de développement Flask."""
-    create_app().run(debug=False)
-
+from ADM.cli import parse_debug_option, run_server
 
 if __name__ == "__main__":
-    main()
+    run_server(debug=parse_debug_option())
