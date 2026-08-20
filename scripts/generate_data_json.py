@@ -128,7 +128,7 @@ for _ in range(NUM_APPS):
     name = f"{random.choice(adjectives)} {random.choice(nouns)} {random.randint(1, 100)}"
     rda = random.choice(first_names) + " " + random.choice(last_names)
     possession = random_date_only(365)
-    criticite = str(random.choice([1, 2, 3, 4]))
+    criticite = random.choice([1, 2, 3, 4])
     disponibilite = random_dicp("D")
     integrite = random_dicp("I")
     confidentialite = random_dicp("C")
