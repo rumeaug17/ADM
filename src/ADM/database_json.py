@@ -38,9 +38,10 @@ class JsonSession:
     def __init__(self, filename: str | Path) -> None:
         self._path = Path(filename)
         records = _load_records(self._path)
-        self._applications = {app.id: app for app in map(Application.from_dict, records)}
+        applications = [Application.from_dict(record) for record in records]
+        self._applications = _index_applications(applications)
         self._snapshot = deepcopy(self._applications)
-        self._next_id = max((identifier or 0 for identifier in self._applications), default=0) + 1
+        self._next_id = max(self._applications, default=0) + 1
 
     def query(self, model: type[Model]) -> JsonQuery[Model]:
         if model is Application:
@@ -122,3 +123,18 @@ def _save_records(path: Path, records: list[JsonObject]) -> None:
     except OSError as error:
         temporary_path.unlink(missing_ok=True)
         raise ValueError(f"Impossible d'enregistrer la base JSON {path}.") from error
+
+
+def _index_applications(applications: list[Application]) -> dict[int, Application]:
+    identifiers = [application.id for application in applications if application.id is not None]
+    if len(identifiers) != len(set(identifiers)):
+        raise ValueError("La base JSON contient des identifiants d'application dupliqués.")
+
+    next_identifier = max(identifiers, default=0) + 1
+    indexed_applications: dict[int, Application] = {}
+    for application in applications:
+        if application.id is None:
+            application.id = next_identifier
+            next_identifier += 1
+        indexed_applications[application.id] = application
+    return indexed_applications
