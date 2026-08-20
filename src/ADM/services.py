@@ -162,14 +162,18 @@ def build_evaluation_submission(
 
 def summarize_catalogue(applications: list[JsonData]) -> CatalogueSummary:
     """Calcule les indicateurs globaux sans dépendre de Flask."""
-    scores = [value for app in applications if isinstance(value := app.get("score"), int)]
+    scores = [
+        value
+        for app in applications
+        if isinstance(value := app.get("score"), int) and not isinstance(value, bool)
+    ]
     percentages = [
         value for app in applications if isinstance(value := app.get("percentage"), (int, float))
     ]
     risks = [value for app in applications if isinstance(value := app.get("risque"), (int, float))]
     return CatalogueSummary(
         total_applications=len(applications),
-        average_score=round(sum(scores) / len(applications), 2) if applications else 0,
+        average_score=round(sum(scores) / len(scores), 2) if scores else 0,
         applications_above_30=sum(value > 30 for value in percentages),
         applications_above_60=sum(value > 60 for value in percentages),
         global_risk=round(sum(risks) / len(risks), 2) if risks else None,
