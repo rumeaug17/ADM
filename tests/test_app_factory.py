@@ -37,3 +37,22 @@ def test_create_app_registers_blueprints_and_injects_session_factory(tmp_path: P
     assert set(application.blueprints) == {"auth", "applications", "evaluations", "exports"}
     assert callable(application.extensions["adm_session_factory"])
     assert application.test_client().get("/login").status_code == 200
+
+
+def test_create_app_uses_json_database_from_environment(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from ADM.app import create_app
+
+    database_path = tmp_path / "standalone-demo.json"
+    monkeypatch.setenv("ADM_DATABASE_URL", str(database_path))
+
+    create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+        }
+    )
+
+    assert database_path.exists()
