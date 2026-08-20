@@ -1,5 +1,6 @@
 """Tests des backends de persistance du catalogue."""
 
+import json
 from datetime import date, datetime
 
 import pytest
@@ -84,3 +85,30 @@ def test_json_session_preserves_evaluation_history(tmp_path) -> None:
 
     assert restored is not None
     assert restored.evaluations[0].score == 4
+
+
+def test_json_backend_rejects_a_catalogue_that_is_not_a_list(tmp_path) -> None:
+    database_path = tmp_path / "catalogue.json"
+    database_path.write_text(json.dumps({"application": application_record()}), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="liste d'objets"):
+        init_db(str(database_path))
+
+
+def test_json_session_saves_deletions_and_unicode(tmp_path) -> None:
+    database_path = tmp_path / "catalogue.json"
+    engine = init_db(str(database_path))
+    first_application = Application.from_dict(application_record("Application supprimée"))
+    kept_application = Application.from_dict(application_record("Étude conservée"))
+    session = JsonSession(engine)
+    session.add(first_application)
+    session.add(kept_application)
+    session.commit()
+
+    session.delete(first_application)
+    session.commit()
+
+    persisted_content = database_path.read_text(encoding="utf-8")
+    restored = JsonSession(engine).query(Application).all()
+    assert "Étude conservée" in persisted_content
+    assert [application.name for application in restored] == ["Étude conservée"]
