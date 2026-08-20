@@ -168,3 +168,7 @@ Les principes de style Python sont complétés par
 ## Licence
 
 Ce projet est distribué selon les termes du fichier [`LICENSE`](LICENSE).
+
+## Illustration
+
+![Illustration ADM](image_adm_cow.jpg)
