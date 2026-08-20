@@ -1,125 +1,151 @@
-# ADM
-Gestion d'un catalogue d'application avec classification et score de dette
+# ADM — Catalogue de dette applicative
 
-Il s'agit d'uner petite application toute simple (très primitive) servant à expliquer et démontrer l'intérêt d'une telle application pour la gestion de la dette applicative dans une DSI.
+ADM est une application web Flask destinée à inventorier les applications d'un
+système d'information et à estimer leur dette technique à partir d'un questionnaire
+pondéré. Elle fournit un score par application, conserve l'historique des évaluations
+et présente une synthèse destinée à faciliter la priorisation des actions.
 
-L'objectif d'une telle application est de calculer une estimation de la dette d'un SI application par application, afin d'avoir un état des lieux factuel, facilitant la prise de décision et permettant d'identifier là où un effort doit être prévu.
+> ADM est un démonstrateur. Avant un usage réel, adaptez le questionnaire, les règles
+> métier, l'authentification et les procédures d'exploitation à votre organisation.
 
-Les questions pour l'estimation du score de dette pour chaque application est configurable dans un fichier json. 
+## Fonctionnalités
 
-Les questions par défaut sont décrites ici : [Documentation.md](/documentation.md)
+- gestion d'un catalogue d'applications et de leurs caractéristiques de criticité ;
+- questionnaire configurable selon le type d'application et son hébergement ;
+- calcul du score de dette, des axes de risque et d'indicateurs de synthèse ;
+- historique des évaluations et génération de graphiques radar ;
+- import et export atomiques du catalogue au format JSON ;
+- persistance locale dans un fichier JSON ou dans MySQL via SQLAlchemy ;
+- validation des entrées, protection CSRF et limitation des imports à 5 Mio.
 
-# Installation et exécution
+Les règles du questionnaire et du calcul sont détaillées dans
+[`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md). La liste des questions par
+défaut, générée depuis les fichiers de configuration, est disponible dans
+[`documentation.md`](documentation.md).
 
-Les dépendances, y compris celles de développement, sont déclarées dans
-`pyproject.toml` :
+## Prérequis
 
-```bash
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install -e '.[dev]'
-git describe --tags --abbrev=0 > static/version.txt
-```
+- Python 3.11 ou une version ultérieure ;
+- Git, pour écrire la version affichée par l'application ;
+- un serveur MySQL uniquement si le backend MySQL est utilisé.
 
-Les secrets ne doivent pas être ajoutés à `config.json`. Pour une exécution
-locale avec le backend JSON, fournissez-les uniquement via l'environnement :
+## Démarrage rapide
 
-```bash
-export ADM_SECRET_KEY='valeur-locale-a-remplacer'
-export ADM_USERNAME='utilisateur-local'
-export ADM_PASSWORD='mot-de-passe-local-a-remplacer'
-python main.py
-```
+### Démonstration autonome
 
-L'application est alors disponible sur <http://127.0.0.1:5000/>. Pour MySQL,
-définissez aussi `ADM_DB_BACKEND=mysql` et `ADM_DATABASE_URL` avec une URL de
-connexion provenant du gestionnaire de secrets de l'environnement.
-
-## Installation automatisée de la démo standalone
-
-Le script de setup prépare une démonstration locale complète utilisant uniquement
-le backend JSON (aucun serveur de base de données n'est nécessaire) :
+Sous Linux ou macOS, les commandes suivantes créent l'environnement virtuel,
+installent le projet, exécutent les contrôles et génèrent un catalogue fictif :
 
 ```bash
 scripts/setup_demo.sh
 scripts/run_demo.sh
 ```
 
-Le setup crée `.venv`, installe les dépendances, construit les distributions dans
-`dist/`, exécute Ruff, mypy et pytest, génère les données fictives puis écrit la
-configuration locale dans `.adm-demo.env`. Ce fichier contient des identifiants
-générés aléatoirement, reste exclu de Git et n'est lisible que par son propriétaire.
-Il peut être consulté localement pour connaître les identifiants de connexion. Une
-nouvelle exécution du setup recrée les données et les identifiants de démonstration.
-
-`PYTHON_BIN` permet de choisir l'interpréteur utilisé pour créer l'environnement et
-`ADM_DEMO_VENV` de choisir un autre emplacement pour celui-ci.
-
-Sous Windows, les scripts PowerShell équivalents s'exécutent depuis la racine du
-dépôt :
+Sous Windows PowerShell :
 
 ```powershell
 .\scripts\setup_demo.ps1
 .\scripts\run_demo.ps1
 ```
 
-Le setup Windows utilise le lanceur `py` par défaut. Le paramètre `-PythonBin`
-permet d'en choisir un autre, et `-VenvPath` de modifier l'emplacement de
-l'environnement virtuel. La configuration locale et les identifiants aléatoires
-sont enregistrés dans `.adm-demo.json`, qui reste exclu de Git.
+Le setup utilise le backend JSON et crée des identifiants aléatoires dans un fichier
+local exclu de Git (`.adm-demo.env` ou `.adm-demo.json`). Ne publiez jamais ce fichier.
+`PYTHON_BIN` (ou `-PythonBin` sous Windows) permet de choisir l'interpréteur et
+`ADM_DEMO_VENV` (ou `-VenvPath`) l'emplacement de l'environnement virtuel.
 
-Tous les formulaires modifiant des données utilisent un jeton CSRF lié à la
-session. Les formulaires incomplets ou contenant une valeur hors des choix proposés
-sont refusés avec un message indiquant le champ concerné. Les imports sont limités
-à 5 Mio, doivent contenir une liste JSON et chaque application est validée avant
-le début de son enregistrement. Les détails techniques des erreurs restent dans les
-journaux serveur ; l'interface n'affiche jamais le contenu d'une exception interne.
+### Installation manuelle
 
-## Organisation du code Python
+```bash
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -e '.[dev]'
+git describe --tags --always > static/version.txt
+```
 
-- `src/ADM/` contient le code installable, notamment l'application Flask, les calculs
-  de score et les backends de persistance SQLAlchemy et JSON ;
-- `main.py` reste le point d'entrée minimal de l'application web ;
-- `scripts/` regroupe les utilitaires exécutés ponctuellement ;
-- `tests/` contient les tests automatisés.
+Définissez ensuite les secrets dans l'environnement et lancez le serveur :
 
-Les backends sont importés via `ADM.database` et `ADM.database_json`.
+```bash
+export ADM_SECRET_KEY='valeur-locale-factice-a-remplacer'
+export ADM_USERNAME='utilisateur-local-factice'
+export ADM_PASSWORD='mot-de-passe-local-factice-a-remplacer'
+python main.py
+```
 
-Les invariants du questionnaire, du scoring et des imports sont décrits dans
-[`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md). Les documents externes sont
-validés dans `ADM.schemas` avant leur utilisation.
+L'interface est alors accessible à l'adresse <http://127.0.0.1:5000/>.
 
-Le découpage des modules, le sens de leurs dépendances, le parcours d'une requête
-et le vocabulaire de chaque couche sont détaillés dans
+## Configuration
+
+`config.json` contient uniquement les valeurs non sensibles par défaut. Les secrets
+et paramètres propres à un environnement sont fournis par variables d'environnement :
+
+| Variable | Obligatoire | Description |
+| --- | --- | --- |
+| `ADM_SECRET_KEY` | Oui | Clé longue et aléatoire utilisée pour signer la session Flask. |
+| `ADM_USERNAME` | Oui | Identifiant de connexion à l'interface. |
+| `ADM_PASSWORD` | Oui | Mot de passe de connexion à l'interface. |
+| `ADM_DB_BACKEND` | Non | `json` par défaut, ou `mysql`. |
+| `ADM_DATABASE_URL` | Avec MySQL | URL SQLAlchemy fournie par le gestionnaire de secrets. |
+
+Avec le backend JSON, le chemin du fichier est défini par `json_connection_url` dans
+`config.json` et peut être remplacé par `ADM_DATABASE_URL`. Avec MySQL, appliquez les
+migrations avant le premier démarrage :
+
+```bash
+export ADM_DB_BACKEND=mysql
+export ADM_DATABASE_URL='mysql+mysqlconnector://utilisateur:secret@hote/base'
+alembic upgrade head
+python main.py
+```
+
+Cette URL est un gabarit : ne copiez aucun secret réel dans un fichier versionné, une
+commande enregistrée ou un journal. Une nouvelle migration se crée avec
+`alembic revision --autogenerate -m "description"`.
+
+## Utilisation
+
+1. Connectez-vous avec les identifiants fournis par l'environnement.
+2. Ajoutez une application et renseignez ses caractéristiques.
+3. Ouvrez son évaluation, répondez aux questions applicables, puis enregistrez-la.
+4. Consultez la synthèse ou exportez le catalogue pour le sauvegarder.
+
+Un import doit être un export ADM au format JSON. Il remplace le catalogue seulement
+après validation complète du document ; conservez donc une sauvegarde avant l'opération.
+
+## Organisation du dépôt
+
+```text
+src/ADM/       application, métier, validation et persistance
+templates/     vues Jinja
+static/        questionnaire, aides et ressources statiques
+tests/         tests automatisés
+migrations/    versions du schéma MySQL
+scripts/       setup, génération de données, sauvegarde et documentation
+docs/          architecture, règles métier et conventions
+main.py        point d'entrée minimal du serveur de développement
+```
+
+La fabrique `ADM.app.create_app` charge la configuration et injecte la persistance
+aux blueprints. Son import n'initialise ni fichier ni connexion. Le détail des couches,
+de leurs dépendances et du parcours d'une requête se trouve dans
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-Le schéma MySQL est versionné avec Alembic. Après avoir fourni l'URL sans l'écrire
-dans un fichier versionné, une migration s'applique ainsi :
+## Commandes utiles
 
 ```bash
-export ADM_DATABASE_URL='mysql+mysqlconnector://...'
-alembic upgrade head
-```
-
-Une révision se crée avec `alembic revision --autogenerate -m "description"`.
-
-La Phase 3 organise désormais la couche web autour de la fabrique
-`ADM.app.create_app` : l’import du module ne lit aucune configuration, ne valide
-aucune variable d’environnement et n’initialise aucune persistance. La fabrique
-charge explicitement la configuration, choisit le backend, puis injecte la fabrique
-de sessions aux blueprints `auth`, `applications`, `evaluations` et `exports`. Les
-calculs de risque, métriques et synthèse sont isolés dans `ADM.services` et restent
-utilisables sans contexte Flask. Les erreurs de configuration (secret absent, backend
-inconnu ou URL MySQL absente) sont levées au moment de l’appel à `create_app`.
-
-Les utilitaires peuvent être lancés depuis n'importe quel répertoire. Par
-exemple, la documentation fonctionnelle est régénérée avec :
-
-```bash
+# Régénérer la documentation fonctionnelle
 python scripts/generate_md_doc.py
+
+# Générer des données fictives pour le backend JSON
+python scripts/generate_data_json.py
+
+# Sauvegarder ou restaurer le catalogue (voir l'aide de la commande)
+python scripts/backup_restore.py --help
 ```
 
-## Contrôles de qualité
+## Développement et contribution
+
+Installez les dépendances de développement avec `python -m pip install -e '.[dev]'`,
+puis exécutez avant chaque Pull Request :
 
 ```bash
 ruff check .
@@ -127,5 +153,12 @@ ruff format --check .
 mypy src main.py
 pytest
 ```
-# site de démo
-https://rg17.pythonanywhere.com/
+
+Le processus complet (branche, conventions, tests, migrations, documentation et
+checklist de Pull Request) est décrit dans [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Les principes de style Python sont complétés par
+[`docs/CODING_GUIDELINES.md`](docs/CODING_GUIDELINES.md).
+
+## Licence
+
+Ce projet est distribué selon les termes du fichier [`LICENSE`](LICENSE).
