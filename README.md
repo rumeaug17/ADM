@@ -50,7 +50,8 @@ Sous Windows PowerShell :
 
 Le setup utilise le backend JSON et crée des identifiants aléatoires dans un fichier
 local exclu de Git (`.adm-demo.env` ou `.adm-demo.json`). Ne publiez jamais ce fichier.
-`PYTHON_BIN` (ou `-PythonBin` sous Windows) permet de choisir l'interpréteur et
+Le script PowerShell recherche automatiquement `py`, `python`, puis `python3`.
+`PYTHON_BIN` (ou `-PythonBin` sous Windows) permet de choisir explicitement l'interpréteur et
 `ADM_DEMO_VENV` (ou `-VenvPath`) l'emplacement de l'environnement virtuel.
 
 ### Installation manuelle

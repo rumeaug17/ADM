@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$PythonBin = "py",
+    [string]$PythonBin = $env:PYTHON_BIN,
     [string]$VenvPath = $env:ADM_DEMO_VENV
 )
 
@@ -26,6 +26,25 @@ function Invoke-CheckedCommand {
     }
 }
 
+function Resolve-PythonCommand {
+    param([string]$RequestedCommand)
+
+    if (-not [string]::IsNullOrWhiteSpace($RequestedCommand)) {
+        if ($null -eq (Get-Command $RequestedCommand -ErrorAction SilentlyContinue)) {
+            throw "L'interpréteur Python '$RequestedCommand' est introuvable. Vérifiez -PythonBin ou PYTHON_BIN."
+        }
+        return $RequestedCommand
+    }
+
+    foreach ($candidate in @("py", "python", "python3")) {
+        if ($null -ne (Get-Command $candidate -ErrorAction SilentlyContinue)) {
+            return $candidate
+        }
+    }
+
+    throw "Aucun interpréteur Python n'a été trouvé. Installez Python 3.11 ou indiquez son chemin avec -PythonBin."
+}
+
 function New-RandomToken {
     param([int]$ByteCount)
 
@@ -42,6 +61,7 @@ function New-RandomToken {
 
 Push-Location $ProjectRoot
 try {
+    $PythonBin = Resolve-PythonCommand -RequestedCommand $PythonBin
     Write-Host "Création de l'environnement Python de démonstration..."
     Invoke-CheckedCommand -Command $PythonBin -CommandArguments @("-m", "venv", $VenvPath)
     Invoke-CheckedCommand -Command $VenvPython -CommandArguments @(
