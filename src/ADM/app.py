@@ -75,7 +75,6 @@ def _register_web_components(app: Flask) -> None:
     for blueprint in (auth, applications, evaluations, exports):
         app.register_blueprint(blueprint)
 
-    @app.before_request
     def protect_posts() -> None:
         if request.method == "POST":
             expected = session.get("csrf_token", "")
@@ -83,7 +82,6 @@ def _register_web_components(app: Flask) -> None:
             if not expected or not secrets.compare_digest(expected, submitted):
                 abort(400)
 
-    @app.context_processor
     def template_values() -> dict[str, str]:
         token = session.get("csrf_token")
         if not isinstance(token, str):
@@ -96,7 +94,6 @@ def _register_web_components(app: Flask) -> None:
             version = "v0.0.0"
         return {"csrf_token": token, "app_version": version}
 
-    @app.errorhandler(HTTPException)
     def http_error(error: HTTPException) -> tuple[str, int]:
         messages = {
             400: "La requête envoyée est invalide.",
@@ -109,7 +106,11 @@ def _register_web_components(app: Flask) -> None:
             "error.html", error_message=messages.get(error.code, "Une erreur est survenue.")
         ), error.code or 500
 
-    @app.errorhandler(Exception)
     def unexpected_error(error: Exception) -> tuple[str, int]:
         app.logger.error("Erreur serveur non gérée (%s).", type(error).__name__)
         return render_template("error.html", error_message="Une erreur interne est survenue."), 500
+
+    app.before_request(protect_posts)
+    app.context_processor(template_values)
+    app.register_error_handler(HTTPException, http_error)
+    app.register_error_handler(Exception, unexpected_error)

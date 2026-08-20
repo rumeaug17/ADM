@@ -4,6 +4,18 @@ from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from typing import Protocol, TypeVar
 
+from ADM.database import Application
+
+
+class ApplicationQuery(Protocol):
+    """Résultat minimal d'une requête portant sur les applications."""
+
+    def all(self) -> list[Application]: ...
+
+    def filter_by(self, **criteria: object) -> "ApplicationQuery": ...
+
+    def first(self) -> Application | None: ...
+
 
 class TransactionSession(Protocol):
     """Opérations nécessaires à la gestion d'une unité de travail."""
@@ -13,6 +25,12 @@ class TransactionSession(Protocol):
     def rollback(self) -> None: ...
 
     def close(self) -> None: ...
+
+    def query(self, model: type[Application]) -> ApplicationQuery: ...
+
+    def add(self, item: Application) -> None: ...
+
+    def delete(self, item: Application) -> None: ...
 
 
 SessionType = TypeVar("SessionType", bound=TransactionSession)
