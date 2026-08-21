@@ -6,6 +6,7 @@ from datetime import date
 from typing import Final
 
 from ADM.database import Application
+from ADM.schemas import DisplayThresholds, parse_display_thresholds
 
 APPLICATION_CHOICES: Final[tuple[tuple[str, frozenset[str]], ...]] = (
     ("type_app", frozenset({"Interne", "Editeur", "Open source"})),
@@ -103,3 +104,31 @@ def _required_text(form: Mapping[str, str], field: str, label: str) -> str:
     if len(value) > 255:
         raise InputValidationError(f"{label} ne doit pas dépasser 255 caractères.")
     return value
+
+def _required_number(form: Mapping[str, str], field: str, label: str) -> float:
+    raw_value = form.get(field, "").strip()
+    if not raw_value:
+        raise InputValidationError(f"{label} est obligatoire.")
+    try:
+        return float(raw_value)
+    except ValueError as error:
+        raise InputValidationError(f"{label} doit être un nombre.") from error
+
+
+def validate_display_thresholds_form(form: Mapping[str, str]) -> DisplayThresholds:
+    """Valide le formulaire de configuration des seuils d'affichage (US4.2)."""
+    raw: dict[str, dict[str, float]] = {
+        "score": {
+            "warning": _required_number(form, "score_warning", "Le seuil d'alerte du score"),
+            "critical": _required_number(form, "score_critical", "Le seuil critique du score"),
+        },
+        "risk": {
+            "warning": _required_number(form, "risk_warning", "Le seuil d'alerte du risque"),
+            "critical": _required_number(form, "risk_critical", "Le seuil critique du risque"),
+        },
+    }
+    try:
+        return parse_display_thresholds(raw)
+    except ValueError as error:
+        raise InputValidationError(str(error)) from error
+    
