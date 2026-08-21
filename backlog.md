@@ -36,8 +36,8 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 ### User Stories
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage
-- **US4.2** : *Configuration*  
-  Ajouter une page de configuration pour pouvoir modifier la configuration de l'application à la volée
+- ~~**US4.2** : *Configuration* ~~ 
+  ~~Ajouter une page de configuration pour pouvoir modifier la configuration de l'application à la volée~~
 - **US4.3** : *Gestion des questions*  
   Ajouter une page de configuration des questions pour permettre des ajouts, des modifications, des suppressions.
   L'aide en ligne de chaque question doit également être modifiable par ce moyen.
