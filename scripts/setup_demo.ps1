@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$PythonBin = $env:PYTHON_BIN,
-    [string]$VenvPath = $env:ADM_DEMO_VENV
+    [string]$VenvPath = $env:ADM_DEMO_VENV,
+    [string]$PipConfigFile = $env:ADM_PIP_CONFIG_FILE
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,6 +25,27 @@ function Invoke-CheckedCommand {
     if ($LASTEXITCODE -ne 0) {
         throw "La commande '$Command' a échoué avec le code $LASTEXITCODE."
     }
+}
+
+function Resolve-PipConfigFile {
+    param(
+        [string]$RequestedPath,
+        [string]$ProjectRoot
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($RequestedPath)) {
+        if (-not (Test-Path $RequestedPath)) {
+            throw "Le fichier pip.ini indiqué ('$RequestedPath') est introuvable."
+        }
+        return (Resolve-Path $RequestedPath).Path
+    }
+
+    $defaultPath = Join-Path $ProjectRoot "pip.ini"
+    if (Test-Path $defaultPath) {
+        return (Resolve-Path $defaultPath).Path
+    }
+
+    return $null
 }
 
 function Resolve-PythonCommand {
@@ -62,6 +84,15 @@ function New-RandomToken {
 Push-Location $ProjectRoot
 try {
     $PythonBin = Resolve-PythonCommand -RequestedCommand $PythonBin
+    
+    $resolvedPipConfigFile = Resolve-PipConfigFile -RequestedPath $PipConfigFile -ProjectRoot $ProjectRoot
+    if ($null -ne $resolvedPipConfigFile) {
+        $env:PIP_CONFIG_FILE = $resolvedPipConfigFile
+        Write-Host "Dépôt pip personnalisé détecté : utilisation de '$resolvedPipConfigFile'."
+    } else {
+        Write-Host "Aucun pip.ini trouvé : utilisation du dépôt PyPI par défaut."
+    }
+
     Write-Host "Création de l'environnement Python de démonstration..."
     Invoke-CheckedCommand -Command $PythonBin -CommandArguments @("-m", "venv", $VenvPath)
     Invoke-CheckedCommand -Command $VenvPython -CommandArguments @(
