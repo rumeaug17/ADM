@@ -92,7 +92,7 @@ class AppConfig:
             raise ValueError("La configuration doit être un objet JSON.")
         backend = _optional_non_empty_string(value, "db_backend", "json").casefold()
         json_url = _optional_non_empty_string(value, "json_connection_url", "applications.json")
-        display_thresholds = _parse_display_thresholds(value.get("display_thresholds", {}))
+        display_thresholds = parse_display_thresholds(value.get("display_thresholds", {}))
         return cls(
             db_backend=backend,
             json_connection_url=json_url,
@@ -100,13 +100,21 @@ class AppConfig:
         )
 
 
-def _parse_display_thresholds(value: object) -> DisplayThresholds:
+def parse_display_thresholds(value: object) -> DisplayThresholds:
     if not isinstance(value, dict):
         raise ValueError("Le champ de configuration 'display_thresholds' doit être un objet.")
     return DisplayThresholds(
         score=_parse_thresholds(value.get("score", {}), "score", 30, 60),
         risk=_parse_thresholds(value.get("risk", {}), "risk", 100, 350),
     )
+
+
+def display_thresholds_to_dict(thresholds: DisplayThresholds) -> dict[str, dict[str, float]]:
+    """Sérialise les seuils au format attendu par config.json."""
+    return {
+        "score": {"warning": thresholds.score.warning, "critical": thresholds.score.critical},
+        "risk": {"warning": thresholds.risk.warning, "critical": thresholds.risk.critical},
+    }
 
 
 def _parse_thresholds(

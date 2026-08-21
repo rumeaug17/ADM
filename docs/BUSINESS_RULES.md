@@ -44,3 +44,11 @@ La racine est une liste JSON. Tous les enregistrements et leur historique sont
 validés avant la transaction d'écriture : dates ISO, entiers réels (les booléens
 sont refusés), objets de réponses/commentaires à clés textuelles et champs requis.
 Ainsi, un seul enregistrement invalide annule l'import complet.
+
+## Configuration des seuils d'affichage
+
+Les seuils `warning` et `critical` (score et risque) sont des nombres positifs
+ou nuls, avec `warning` strictement inférieur à `critical`. La page `/settings`
+ne modifie que la clé `display_thresholds` de `config.json` : les paramètres de
+déploiement (`db_backend`, `json_connection_url`) restent en lecture seule et se
+changent uniquement par variable d'environnement, suivie d'un redémarrage.

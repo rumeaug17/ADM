@@ -7,6 +7,7 @@ import os
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
+from pathlib import Path
 from typing import ParamSpec, TypeVar, cast
 
 from flask import (
@@ -25,9 +26,10 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import SQLAlchemyError
 
 from ADM.catalogue_io import replace_catalogue, serialize_catalogue
+from ADM.config_io import save_display_thresholds
 from ADM.database import Application, Evaluation
 from ADM.persistence import TransactionSession, transactional_session
-from ADM.schemas import DisplayThresholds, Questions
+from ADM.schemas import AppConfig, DisplayThresholds, Questions
 from ADM.scoring import filter_questions_by_type
 from ADM.services import (
     application_to_dict,
@@ -43,6 +45,7 @@ from ADM.services import (
 from ADM.validation import (
     InputValidationError,
     validate_application_form,
+    validate_display_thresholds_form,
     validate_evaluation_form,
     validate_import,
     validate_login_form,
@@ -52,6 +55,7 @@ auth = Blueprint("auth", __name__)
 applications = Blueprint("applications", __name__)
 evaluations = Blueprint("evaluations", __name__)
 exports = Blueprint("exports", __name__)
+settings = Blueprint("settings", __name__)
 
 ViewParameters = ParamSpec("ViewParameters")
 ViewReturn = TypeVar("ViewReturn")
@@ -91,6 +95,11 @@ def categories() -> dict[str, list[str]]:
 def display_thresholds() -> DisplayThresholds:
     """Retourne les seuils validés utilisés dans les affichages."""
     return cast(DisplayThresholds, current_app.extensions["adm_display_thresholds"])
+
+
+def app_config() -> AppConfig:
+    """Retourne la configuration chargée au démarrage (accès en lecture seule)."""
+    return cast(AppConfig, current_app.extensions["adm_app_config"])
 
 
 def get_app_by_name(name: str, database_session: TransactionSession) -> Application | None:
@@ -634,3 +643,35 @@ def import_data() -> ResponseReturnValue:
         return redirect(url_for("applications.index"))
     # En GET, on affiche le formulaire de sélection de fichier avec modale.
     return render_template("import_data.html")
+
+
+@route(settings, "/settings", methods=["GET", "POST"])
+@login_required
+def show_settings() -> ResponseReturnValue:
+    """Affiche et met à jour les seuils d'affichage du score et du risque (US4.2)."""
+    config = app_config()
+    context = {
+        "thresholds": display_thresholds(),
+        "db_backend": config.db_backend,
+        "json_connection_url": config.json_connection_url if config.db_backend == "json" else None,
+    }
+    if request.method == "POST":
+        try:
+            thresholds = validate_display_thresholds_form(request.form)
+        except InputValidationError as error:
+            flash(str(error), "danger")
+            return render_template("settings.html", **context), 400
+
+        config_path = Path(str(current_app.config["CONFIG"]))
+        try:
+            save_display_thresholds(config_path, thresholds)
+        except ValueError:
+            current_app.logger.warning("Echec d'enregistrement de la configuration.")
+            flash("La configuration n'a pas pu être enregistrée.", "danger")
+            return render_template("settings.html", **context), 409
+
+        current_app.extensions["adm_display_thresholds"] = thresholds
+        flash("Configuration mise à jour.", "success")
+        return redirect(url_for("settings.show_settings"))
+
+    return render_template("settings.html", **context)
