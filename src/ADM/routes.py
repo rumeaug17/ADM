@@ -7,8 +7,8 @@ import os
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import ParamSpec, TypeVar, cast
 from pathlib import Path
+from typing import ParamSpec, TypeVar, cast
 
 from flask import (
     Blueprint,
@@ -26,9 +26,9 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import SQLAlchemyError
 
 from ADM.catalogue_io import replace_catalogue, serialize_catalogue
+from ADM.config_io import save_display_thresholds
 from ADM.database import Application, Evaluation
 from ADM.persistence import TransactionSession, transactional_session
-from ADM.config_io import save_display_thresholds
 from ADM.schemas import AppConfig, DisplayThresholds, Questions
 from ADM.scoring import filter_questions_by_type
 from ADM.services import (
@@ -96,9 +96,11 @@ def display_thresholds() -> DisplayThresholds:
     """Retourne les seuils validés utilisés dans les affichages."""
     return cast(DisplayThresholds, current_app.extensions["adm_display_thresholds"])
 
+
 def app_config() -> AppConfig:
     """Retourne la configuration chargée au démarrage (accès en lecture seule)."""
     return cast(AppConfig, current_app.extensions["adm_app_config"])
+
 
 def get_app_by_name(name: str, database_session: TransactionSession) -> Application | None:
     """Recherche une application par son nom dans la session fournie."""
@@ -641,6 +643,7 @@ def import_data() -> ResponseReturnValue:
         return redirect(url_for("applications.index"))
     # En GET, on affiche le formulaire de sélection de fichier avec modale.
     return render_template("import_data.html")
+
 
 @route(settings, "/settings", methods=["GET", "POST"])
 @login_required

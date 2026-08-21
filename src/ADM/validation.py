@@ -105,6 +105,7 @@ def _required_text(form: Mapping[str, str], field: str, label: str) -> str:
         raise InputValidationError(f"{label} ne doit pas dépasser 255 caractères.")
     return value
 
+
 def _required_number(form: Mapping[str, str], field: str, label: str) -> float:
     raw_value = form.get(field, "").strip()
     if not raw_value:
@@ -131,4 +132,3 @@ def validate_display_thresholds_form(form: Mapping[str, str]) -> DisplayThreshol
         return parse_display_thresholds(raw)
     except ValueError as error:
         raise InputValidationError(str(error)) from error
-    
