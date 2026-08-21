@@ -7,3 +7,6 @@ __pycache__/
 dist/
 .adm-demo.env
 .adm-demo.json
+# Fichiers générés et métadonnées
+src/*.egg-info/
+static/version.txt
