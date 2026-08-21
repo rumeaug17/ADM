@@ -29,6 +29,7 @@ backends exposent le sous-ensemble de session consommé par les routes.
 | `ADM.catalogue_io` | Import et export atomiques du catalogue. |
 | `ADM.persistence` | Cycle commit, rollback et fermeture d'une transaction. |
 | `ADM.database` / `ADM.database_json` | Adaptateurs SQLAlchemy et JSON. |
+| `ADM.config_io` | Lecture/écriture atomique de la configuration non sensible (`config.json`). |
 | `scripts` | Commandes ponctuelles, sans responsabilité métier web. |
 
 ## Parcours d'une requête

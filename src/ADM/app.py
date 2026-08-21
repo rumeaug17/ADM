@@ -9,7 +9,7 @@ from pathlib import Path
 from flask import Flask, abort, render_template, request, session
 from werkzeug.exceptions import HTTPException
 
-from ADM.routes import applications, auth, evaluations, exports
+from ADM.routes import applications, auth, evaluations, exports, settings
 from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
 
@@ -68,12 +68,13 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     app.extensions["adm_scoring_map"] = compute_scoring_map(questions)
     app.extensions["adm_categories"] = compute_categories(questions)
     app.extensions["adm_display_thresholds"] = config.display_thresholds
+    app.extensions["adm_app_config"] = config  # ajout US4.2
     _register_web_components(app)
     return app
 
 
 def _register_web_components(app: Flask) -> None:
-    for blueprint in (auth, applications, evaluations, exports):
+    for blueprint in (auth, applications, evaluations, exports, settings):
         app.register_blueprint(blueprint)
 
     def protect_posts() -> None:

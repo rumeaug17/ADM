@@ -61,7 +61,8 @@
 		{% if request.endpoint != 'index' %}
 			<a href="{{ url_for('applications.index') }}" class="btn btn-outline-light me-2">Retour à l'index</a>
     		{% endif %}
-		<a href="/logout" class="btn btn-primary">Déconnexion</a>
+		<a href="{{ url_for('settings.show_settings') }}" class="btn btn-outline-light me-2">⚙️ Configuration</a>
+	  <a href="/logout" class="btn btn-primary">Déconnexion</a>
     {% endif %}
 	</div>
   </header>

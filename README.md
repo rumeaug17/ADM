@@ -107,6 +107,8 @@ Les seuils de couleur et de filtrage des affichages sont définis dans
 et les valeurs `risk` utilisent l'unité du risque calculé. Pour chaque indicateur,
 `warning` doit être positif ou nul et strictement inférieur à `critical`.
 
+Ces seuils sont également modifiables depuis l'interface, à l'adresse `/settings`.
+
 Avec le backend JSON, le chemin du fichier est défini par `json_connection_url` dans
 `config.json` et peut être remplacé par `ADM_DATABASE_URL`. Avec MySQL, appliquez les
 migrations avant le premier démarrage :
