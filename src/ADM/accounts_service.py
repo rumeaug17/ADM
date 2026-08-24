@@ -45,9 +45,7 @@ def verify_password(account: Account, password: str) -> bool:
 def active_admin_count(session: AccountSession) -> int:
     """Compte les comptes admin actifs : invariant central de l'habilitation."""
     return sum(
-        1
-        for account in session.query(Account).all()
-        if account.role == "admin" and account.active
+        1 for account in session.query(Account).all() if account.role == "admin" and account.active
     )
 
 
@@ -77,7 +75,9 @@ def set_account_role(session: AccountSession, account: Account, role: str) -> No
 
 def set_account_active(session: AccountSession, account: Account, active: bool) -> None:
     """Active ou désactive un compte, en préservant l'invariant du dernier admin actif."""
-    is_last_active_admin = account.role == "admin" and account.active and active_admin_count(session) <= 1
+    is_last_active_admin = (
+        account.role == "admin" and account.active and active_admin_count(session) <= 1
+    )
     if is_last_active_admin and not active:
         raise AccountError("Impossible de désactiver le dernier compte administrateur actif.")
     account.active = active
@@ -93,4 +93,3 @@ def delete_account(session: AccountSession, account: Account) -> None:
 def set_account_password(account: Account, password: str) -> None:
     """Change le mot de passe d'un compte."""
     account.password_hash = hash_password(password)
-    

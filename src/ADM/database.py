@@ -148,6 +148,7 @@ class Evaluation(Base):
             created_at=_optional_datetime(data.get("created_at"), "created_at") or datetime.now(),
         )
 
+
 class Account(Base):
     """Compte utilisateur pour l'authentification locale (US6.1)."""
 
@@ -196,6 +197,7 @@ class Account(Base):
             created_at=_optional_datetime(data.get("created_at"), "created_at") or datetime.now(),
         )
 
+
 def get_engine(connection_url: str) -> Engine:
     """Crée un moteur SQLAlchemy vérifiant les connexions avant usage."""
     if not connection_url.strip():
@@ -221,6 +223,7 @@ def _required_string(value: object, field: str) -> str:
         raise ValueError(f"Le champ {field!r} doit être une chaîne non vide.")
     return value
 
+
 def _required_role(value: object, field: str) -> str:
     role = _required_string(value, field)
     if role not in {"admin", "user"}:
@@ -234,7 +237,8 @@ def _required_bool(value: object, field: str, *, default: bool = True) -> bool:
     if not isinstance(value, bool):
         raise ValueError(f"Le champ {field!r} doit être un booléen.")
     return value
-    
+
+
 def _optional_string(value: object, field: str) -> str | None:
     if value is None:
         return None
