@@ -4,7 +4,7 @@ from collections.abc import Callable, Mapping
 from datetime import date, datetime
 from typing import TypeAlias
 
-from sqlalchemy import JSON, Date, DateTime, ForeignKey, Integer, String, create_engine
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -148,6 +148,53 @@ class Evaluation(Base):
             created_at=_optional_datetime(data.get("created_at"), "created_at") or datetime.now(),
         )
 
+class Account(Base):
+    """Compte utilisateur pour l'authentification locale (US6.1)."""
+
+    __tablename__ = "accounts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(255), unique=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    role: Mapped[str] = mapped_column(String(20))
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    def __repr__(self) -> str:
+        return f"<Account(username={self.username}, role={self.role}, active={self.active})>"
+
+    def to_dict(self) -> JsonObject:
+        """Convertit le compte en structure sérialisable en JSON.
+
+        Le hash du mot de passe est inclus : c'est la forme de stockage du
+        backend JSON lui-même (fichier accounts.json, séparé du catalogue).
+        Il ne doit jamais transiter par ADM.catalogue_io.
+        """
+        return {
+            "id": self.id,
+            "username": self.username,
+            "password_hash": self.password_hash,
+            "role": self.role,
+            "active": self.active,
+            "created_at": (self.created_at or datetime.now()).isoformat(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "Account":
+        """Construit un compte après validation des données persistées.
+
+        Le rôle est restreint à un ensemble fermé dès cette étape, contrairement
+        aux champs équivalents d'Application : une valeur inattendue ici a un
+        impact direct sur les habilitations, pas seulement sur l'affichage.
+        """
+        return cls(
+            id=_optional_int(data.get("id"), "id"),
+            username=_required_string(data.get("username"), "username"),
+            password_hash=_required_string(data.get("password_hash"), "password_hash"),
+            role=_required_role(data.get("role"), "role"),
+            active=_required_bool(data.get("active"), "active"),
+            created_at=_optional_datetime(data.get("created_at"), "created_at") or datetime.now(),
+        )
 
 def get_engine(connection_url: str) -> Engine:
     """Crée un moteur SQLAlchemy vérifiant les connexions avant usage."""
@@ -174,7 +221,20 @@ def _required_string(value: object, field: str) -> str:
         raise ValueError(f"Le champ {field!r} doit être une chaîne non vide.")
     return value
 
+def _required_role(value: object, field: str) -> str:
+    role = _required_string(value, field)
+    if role not in {"admin", "user"}:
+        raise ValueError(f"Le champ {field!r} doit valoir 'admin' ou 'user'.")
+    return role
 
+
+def _required_bool(value: object, field: str, *, default: bool = True) -> bool:
+    if value is None:
+        return default
+    if not isinstance(value, bool):
+        raise ValueError(f"Le champ {field!r} doit être un booléen.")
+    return value
+    
 def _optional_string(value: object, field: str) -> str | None:
     if value is None:
         return None
