@@ -34,12 +34,12 @@ class AccountError(ValueError):
 
 def hash_password(password: str) -> str:
     """Calcule le hash stocké d'un mot de passe (jamais le mot de passe en clair)."""
-    return generate_password_hash(password)
+    return str(generate_password_hash(password))
 
 
 def verify_password(account: Account, password: str) -> bool:
     """Vérifie un mot de passe contre le hash stocké, sans le journaliser."""
-    return check_password_hash(account.password_hash, password)
+    return bool(check_password_hash(account.password_hash, password))
 
 
 def active_admin_count(session: AccountSession) -> int:
