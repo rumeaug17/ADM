@@ -9,7 +9,6 @@ from ADM.accounts_service import ROLES
 from ADM.database import Application
 from ADM.schemas import DisplayThresholds, parse_display_thresholds
 
-
 APPLICATION_CHOICES: Final[tuple[tuple[str, frozenset[str]], ...]] = (
     ("type_app", frozenset({"Interne", "Editeur", "Open source"})),
     ("hosting", frozenset({"On prem", "Hybride", "Cloud", "SaaS"})),
@@ -76,6 +75,7 @@ def validate_login_form(form: Mapping[str, str]) -> tuple[str, str]:
     if len(password) > 255:
         raise InputValidationError("Le mot de passe ne doit pas dépasser 255 caractères.")
     return username, password
+
 
 def validate_account_creation_form(form: Mapping[str, str]) -> dict[str, object]:
     """Valide le formulaire de création d'un compte (US6.1)."""

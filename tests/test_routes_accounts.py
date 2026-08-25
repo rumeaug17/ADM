@@ -33,9 +33,7 @@ def _seed_account(
     accounts_path = tmp_path / "accounts.json"
     engine = init_account_db(str(accounts_path))
     accounts_session = AccountJsonSession(engine)
-    create_account(
-        accounts_session, username=username, password=password, role=role, active=active
-    )
+    create_account(accounts_session, username=username, password=password, role=role, active=active)
     accounts_session.commit()
     accounts_session.close()
     return accounts_path

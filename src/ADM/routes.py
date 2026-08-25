@@ -86,11 +86,11 @@ def session_factory() -> Callable[[], TransactionSession]:
     """Retourne la fabrique de sessions injectée lors de la création de l'application."""
     return cast(Callable[[], TransactionSession], current_app.extensions["adm_session_factory"])
 
+
 def account_session_factory() -> Callable[[], AccountSession]:
     """Retourne la fabrique de sessions de comptes injectée au démarrage (US6.1)."""
-    return cast(
-        Callable[[], AccountSession], current_app.extensions["adm_account_session_factory"]
-    )
+    return cast(Callable[[], AccountSession], current_app.extensions["adm_account_session_factory"])
+
 
 def questions() -> Questions:
     """Retourne le questionnaire validé associé à l'application courante."""
@@ -135,12 +135,14 @@ def require_app_by_name(name: str, database_session: TransactionSession) -> Appl
         abort(404, description="Application non trouvée")
     return cast(Application, application)
 
+
 def require_account_by_username(username: str, account_session: AccountSession) -> Account:
     """Retourne le compte demandé ou interrompt la requête avec une erreur 404 (US6.1)."""
     account = account_session.query(Account).filter_by(username=username).first()
     if account is None:
         abort(404, description="Compte non trouvé")
     return cast(Account, account)
+
 
 def calculate_axis_scores(data: list[dict[str, object]]) -> dict[str, float]:
     """Calcule les axes du radar avec la configuration de l'application courante."""
@@ -726,6 +728,7 @@ def show_settings() -> ResponseReturnValue:
         return redirect(url_for("settings.show_settings"))
 
     return render_template("settings.html", **context)
+
 
 @route(accounts, "/accounts", methods=["GET"])
 @role_required("admin")
