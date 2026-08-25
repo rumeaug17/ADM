@@ -30,6 +30,9 @@ backends exposent le sous-ensemble de session consommé par les routes.
 | `ADM.persistence` | Cycle commit, rollback et fermeture d'une transaction. |
 | `ADM.database` / `ADM.database_json` | Adaptateurs SQLAlchemy et JSON. |
 | `ADM.config_io` | Lecture/écriture atomique de la configuration non sensible (`config.json`). |
+| `ADM.accounts_service` | Opérations métier sur les comptes (création, rôle, invariant du dernier admin). |
+| `ADM.accounts_json` | Persistance JSON dédiée aux comptes, isolée du catalogue. |
+| `ADM.auth_providers` | Sélection et exécution du fournisseur d'authentification (`local`, extensible). |
 | `scripts` | Commandes ponctuelles, sans responsabilité métier web. |
 
 ## Parcours d'une requête

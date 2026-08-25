@@ -101,6 +101,7 @@ et paramètres propres à un environnement sont fournis par variables d'environn
 | `ADM_PASSWORD` | Oui | Mot de passe de connexion à l'interface. |
 | `ADM_DB_BACKEND` | Non | `json` par défaut, ou `mysql`. |
 | `ADM_DATABASE_URL` | Avec MySQL | URL SQLAlchemy fournie par le gestionnaire de secrets. |
+| `ADM_ACCOUNTS_URL` | Non | Chemin du fichier de comptes (backend JSON), remplace `accounts_connection_url`. |
 
 Les seuils de couleur et de filtrage des affichages sont définis dans
 `config.json`, sous `display_thresholds`. Les valeurs `score` sont des pourcentages

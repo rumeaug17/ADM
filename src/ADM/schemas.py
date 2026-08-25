@@ -79,11 +79,14 @@ class DisplayThresholds:
 
 
 @dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True)
 class AppConfig:
     """Configuration non sensible chargée depuis ``config.json``."""
 
     db_backend: str = "json"
     json_connection_url: str = "applications.json"
+    auth_backend: str = "local"
+    accounts_connection_url: str = "accounts.json"
     display_thresholds: DisplayThresholds = DisplayThresholds()
 
     @classmethod
@@ -92,10 +95,16 @@ class AppConfig:
             raise ValueError("La configuration doit être un objet JSON.")
         backend = _optional_non_empty_string(value, "db_backend", "json").casefold()
         json_url = _optional_non_empty_string(value, "json_connection_url", "applications.json")
+        auth_backend = _optional_non_empty_string(value, "auth_backend", "local").casefold()
+        accounts_url = _optional_non_empty_string(
+            value, "accounts_connection_url", "accounts.json"
+        )
         display_thresholds = parse_display_thresholds(value.get("display_thresholds", {}))
         return cls(
             db_backend=backend,
             json_connection_url=json_url,
+            auth_backend=auth_backend,
+            accounts_connection_url=accounts_url,
             display_thresholds=display_thresholds,
         )
 

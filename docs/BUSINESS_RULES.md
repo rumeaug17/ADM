@@ -52,3 +52,19 @@ ou nuls, avec `warning` strictement inférieur à `critical`. La page `/settings
 ne modifie que la clé `display_thresholds` de `config.json` : les paramètres de
 déploiement (`db_backend`, `json_connection_url`) restent en lecture seule et se
 changent uniquement par variable d'environnement, suivie d'un redémarrage.
+
+## Comptes et authentification
+
+Le fournisseur d'authentification est sélectionné par `auth_backend`
+(`config.json`) : `local` aujourd'hui, `ldap`/`oidc` reconnus mais non
+implémentés — leur sélection échoue explicitement au démarrage plutôt que de
+retomber silencieusement sur l'authentification locale.
+
+Pour le fournisseur `local`, un compte a un rôle (`admin` ou `user`) et un
+état actif/inactif. **Il doit toujours exister au moins un compte admin
+actif** : la rétrogradation, la désactivation ou la suppression du dernier
+compte admin actif est refusée.
+
+Les comptes ne transitent jamais par l'import/export du catalogue
+(`ADM.catalogue_io`) : leur stockage est isolé, dans un fichier ou une table
+dédiés.

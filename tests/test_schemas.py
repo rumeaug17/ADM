@@ -29,6 +29,14 @@ def test_configuration_parses_display_thresholds() -> None:
         risk=Thresholds(warning=80.5, critical=250),
     )
 
+def test_configuration_parses_auth_backend_default() -> None:
+    assert AppConfig.from_object({}).auth_backend == "local"
+
+
+def test_configuration_normalizes_auth_backend_case() -> None:
+    config = AppConfig.from_object({"auth_backend": " LDAP "})
+    assert config.auth_backend == "ldap"
+    
 
 @pytest.mark.parametrize(
     "thresholds",
