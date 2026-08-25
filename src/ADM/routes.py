@@ -756,7 +756,14 @@ def create_account_route() -> ResponseReturnValue:
     accounts_session = account_session_factory()()
     try:
         try:
-            create_account(accounts_session, **fields)
+            # Passage explicite des arguments typés pour satisfaire mypy
+            create_account(
+                accounts_session,
+                username=str(fields["username"]),
+                password=str(fields["password"]),
+                role=str(fields["role"]),
+                active=bool(fields.get("active", True)),
+            )
             accounts_session.commit()
         except AccountError as error:
             accounts_session.rollback()
