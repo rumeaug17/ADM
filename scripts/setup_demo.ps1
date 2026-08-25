@@ -131,6 +131,27 @@ try {
     }
     $configuration | ConvertTo-Json | Set-Content -Encoding UTF8 $ConfigFile
 
+    Write-Host "Création du compte administrateur de démonstration..."
+    $env:ADM_DB_BACKEND = $configuration.ADM_DB_BACKEND
+    $env:ADM_DATABASE_URL = $configuration.ADM_DATABASE_URL
+    $env:ADM_SECRET_KEY = $configuration.ADM_SECRET_KEY
+    $env:ADM_ACCOUNTS_URL = $configuration.ADM_ACCOUNTS_URL
+
+    $bootstrapScript = @"
+from ADM.app import create_app
+from ADM.accounts_service import create_account
+
+application = create_app()
+factory = application.extensions["adm_account_session_factory"]
+session = factory()
+try:
+    create_account(session, username="$demoUsername", password="$demoPassword", role="admin")
+    session.commit()
+finally:
+    session.close()
+"@
+    Invoke-CheckedCommand -Command $VenvPython -CommandArguments @("-c", $bootstrapScript)
+
     $version = & git describe --tags --abbrev=0 2>$null
     if ($LASTEXITCODE -ne 0) {
         $version = "v0.1.0"

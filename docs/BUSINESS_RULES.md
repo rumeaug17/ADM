@@ -68,3 +68,9 @@ compte admin actif est refusée.
 Les comptes ne transitent jamais par l'import/export du catalogue
 (`ADM.catalogue_io`) : leur stockage est isolé, dans un fichier ou une table
 dédiés.
+
+Le rôle `admin` est requis pour accéder à la configuration (`/settings`), et
+le sera pour la gestion des questions (US4.3) une fois livrée. Aucun compte
+n'existe par défaut à l'installation : le premier compte administrateur doit
+être créé explicitement via `scripts/create_account.py` avant la première
+connexion.
