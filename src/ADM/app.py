@@ -3,13 +3,15 @@
 import json
 import os
 import secrets
-from collections.abc import Mapping
-from typing import cast
+from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import cast
 
 from flask import Flask, abort, render_template, request, session
 from werkzeug.exceptions import HTTPException
 
+from ADM.accounts_service import AccountSession
+from ADM.auth_providers import get_auth_provider
 from ADM.routes import applications, auth, evaluations, exports, settings
 from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
