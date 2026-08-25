@@ -122,12 +122,46 @@ try {
     )
 
     Write-Host "Configuration du mode démo standalone..."
+    $env:ADM_DB_BACKEND = "json"
+    $env:ADM_DATABASE_URL = Join-Path $ProjectRoot "applications.json"
+    $env:ADM_SECRET_KEY = New-RandomToken 48
+    $env:ADM_ACCOUNTS_URL = Join-Path $ProjectRoot "accounts.json"
+
+    Write-Host "Création du compte administrateur de démonstration..."
+    $bootstrapScript = @'
+import json
+import secrets
+
+from ADM.accounts_service import create_account
+from ADM.app import create_app
+
+demo_username = f"demo-{secrets.token_hex(4)}"
+demo_password = secrets.token_urlsafe(18)
+
+application = create_app()
+factory = application.extensions["adm_account_session_factory"]
+session = factory()
+try:
+    create_account(session, username=demo_username, password=demo_password, role="admin")
+    session.commit()
+finally:
+    session.close()
+
+print(json.dumps({"username": demo_username, "password": demo_password}))
+'@
+    $bootstrapOutput = & $VenvPython -c $bootstrapScript
+    if ($LASTEXITCODE -ne 0) {
+        throw "La création du compte administrateur de démonstration a échoué."
+    }
+    $demoCredentials = ($bootstrapOutput -join "`n") | ConvertFrom-Json
+
     $configuration = [ordered]@{
-        ADM_DB_BACKEND  = "json"
-        ADM_DATABASE_URL = Join-Path $ProjectRoot "applications.json"
-        ADM_SECRET_KEY  = New-RandomToken 48
-        ADM_USERNAME    = "demo-$(New-RandomToken 6)"
-        ADM_PASSWORD    = New-RandomToken 18
+        ADM_DB_BACKEND   = $env:ADM_DB_BACKEND
+        ADM_DATABASE_URL = $env:ADM_DATABASE_URL
+        ADM_SECRET_KEY   = $env:ADM_SECRET_KEY
+        ADM_ACCOUNTS_URL = $env:ADM_ACCOUNTS_URL
+        DemoUsername     = $demoCredentials.username
+        DemoPassword     = $demoCredentials.password
     }
     $configuration | ConvertTo-Json | Set-Content -Encoding UTF8 $ConfigFile
 

@@ -30,12 +30,16 @@ backends exposent le sous-ensemble de session consommé par les routes.
 | `ADM.persistence` | Cycle commit, rollback et fermeture d'une transaction. |
 | `ADM.database` / `ADM.database_json` | Adaptateurs SQLAlchemy et JSON. |
 | `ADM.config_io` | Lecture/écriture atomique de la configuration non sensible (`config.json`). |
+| `ADM.accounts_service` | Opérations métier sur les comptes (création, rôle, invariant du dernier admin). |
+| `ADM.accounts_json` | Persistance JSON dédiée aux comptes, isolée du catalogue. |
+| `ADM.auth_providers` | Sélection et exécution du fournisseur d'authentification (`local`, extensible). |
 | `scripts` | Commandes ponctuelles, sans responsabilité métier web. |
 
 ## Parcours d'une requête
 
 1. Flask sélectionne un blueprint dans `ADM.routes` et vérifie la session et le
-   jeton CSRF.
+   jeton CSRF. Les routes protégées par `role_required` vérifient en plus que
+   le rôle porté par la session correspond à celui exigé.
 2. La route valide les entrées, ouvre une session injectée et charge les modèles.
 3. Elle délègue les calculs aux services indépendants de Flask.
 4. Une écriture est validée en une transaction ; une erreur attendue est annulée et
@@ -59,7 +63,8 @@ du contrat d'import seraient nécessaires.
 - documentation : `python scripts/generate_md_doc.py` ;
 - sauvegarde/restauration : `python scripts/backup_restore.py` ;
 - données factices JSON : `python scripts/generate_data_json.py` ;
-- données factices MySQL : `python scripts/generate_data_mysql.py [nombre]`.
+- données factices MySQL : `python scripts/generate_data_mysql.py [nombre]` ;
+- gestion des comptes (bootstrap ou administration) : `python scripts/create_account.py`.
 
 Les anciens scripts `generate-data-json.py` et `generate-data-mysql.py` à la racine
 ont été remplacés par ces deux dernières commandes.

@@ -40,7 +40,9 @@ def test_create_app_registers_blueprints_and_injects_session_factory(tmp_path: P
         "evaluations",
         "exports",
         "settings",
+        "accounts",
     }
+
     assert callable(application.extensions["adm_session_factory"])
     assert application.test_client().get("/login").status_code == 200
     assert application.extensions["adm_display_thresholds"].score.warning == 30
@@ -63,3 +65,21 @@ def test_create_app_uses_json_database_from_environment(
     )
 
     assert database_path.exists()
+
+
+def test_create_app_wires_local_auth_provider_by_default(tmp_path: Path) -> None:
+    from ADM.app import create_app
+    from ADM.auth_providers import LocalAuthProvider
+
+    application = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(tmp_path / "catalogue.json"),
+            "ACCOUNTS_CONNECTION": str(tmp_path / "accounts.json"),
+        }
+    )
+
+    assert isinstance(application.extensions["adm_auth_provider"], LocalAuthProvider)
+    assert callable(application.extensions["adm_account_session_factory"])

@@ -78,14 +78,18 @@ python -m pip install -e '.[dev]'
 git describe --tags --always > static/version.txt
 ```
 
-Définissez ensuite les secrets dans l'environnement et lancez le serveur :
+Définissez ensuite le secret dans l'environnement, créez le premier compte
+administrateur, puis lancez le serveur :
 
 ```bash
 export ADM_SECRET_KEY='valeur-locale-factice-a-remplacer'
-export ADM_USERNAME='utilisateur-local-factice'
-export ADM_PASSWORD='mot-de-passe-local-factice-a-remplacer'
+python scripts/create_account.py --username admin --role admin
 python main.py
 ```
+
+`create_account.py` demande le mot de passe de façon interactive (jamais en
+argument de ligne de commande, jamais journalisé). Sans compte créé au
+préalable, aucune connexion à l'interface n'est possible.
 
 L'interface est alors accessible à l'adresse <http://127.0.0.1:5000/>.
 
@@ -97,10 +101,9 @@ et paramètres propres à un environnement sont fournis par variables d'environn
 | Variable | Obligatoire | Description |
 | --- | --- | --- |
 | `ADM_SECRET_KEY` | Oui | Clé longue et aléatoire utilisée pour signer la session Flask. |
-| `ADM_USERNAME` | Oui | Identifiant de connexion à l'interface. |
-| `ADM_PASSWORD` | Oui | Mot de passe de connexion à l'interface. |
 | `ADM_DB_BACKEND` | Non | `json` par défaut, ou `mysql`. |
 | `ADM_DATABASE_URL` | Avec MySQL | URL SQLAlchemy fournie par le gestionnaire de secrets. |
+| `ADM_ACCOUNTS_URL` | Non | Chemin du fichier de comptes (backend JSON), remplace `accounts_connection_url`. |
 
 Les seuils de couleur et de filtrage des affichages sont définis dans
 `config.json`, sous `display_thresholds`. Les valeurs `score` sont des pourcentages
@@ -126,7 +129,8 @@ commande enregistrée ou un journal. Une nouvelle migration se crée avec
 
 ## Utilisation
 
-1. Connectez-vous avec les identifiants fournis par l'environnement.
+1. Connectez-vous avec un compte créé via `scripts/create_account.py` (voir
+   Démarrage rapide et Configuration).
 2. Ajoutez une application et renseignez ses caractéristiques.
 3. Ouvrez son évaluation, répondez aux questions applicables, puis enregistrez-la.
 4. Consultez la synthèse ou exportez le catalogue pour le sauvegarder.
@@ -163,6 +167,9 @@ python scripts/generate_data_json.py
 
 # Sauvegarder ou restaurer le catalogue (voir l'aide de la commande)
 python scripts/backup_restore.py --help
+
+# Créer un compte local, admin ou utilisateur (mot de passe demandé de façon interactive)
+python scripts/create_account.py --username <nom> --role admin
 ```
 
 ## Développement et contribution

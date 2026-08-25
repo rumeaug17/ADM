@@ -57,7 +57,20 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 
 ### User Stories
 - **US6.1** : *Habilitations*  
-  Ajouter une habilitation multi-comptes avec un backend paramétrable
+  Ajouter une habilitation multi-comptes avec un backend paramétrable.
+  Voir l'invariant du dernier admin actif et le rôle requis pour `/settings`
+  dans [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md).
+  - [x] Modèle de compte (rôle, actif/inactif) et persistance JSON/MySQL,
+    invariant du dernier admin actif
+  - [x] Fournisseur d'authentification abstrait (`local` implémenté ;
+    `ldap`/`oidc` reconnus, non implémentés)
+  - [x] Connexion/déconnexion déléguées au fournisseur configuré, rôle porté
+    par la session, `/settings` restreint aux admins
+  - [x] Commande `scripts/create_account.py` pour le bootstrap et
+    l'administration des comptes
+  - [x] Interface d'administration des comptes (lister, créer, changer le
+    rôle, désactiver depuis le navigateur)
+  - [ ] Étendre la protection par rôle à la gestion des questions (US4.3)
   
 ---
 
