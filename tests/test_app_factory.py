@@ -64,6 +64,7 @@ def test_create_app_uses_json_database_from_environment(
 
     assert database_path.exists()
 
+
 def test_create_app_wires_local_auth_provider_by_default(tmp_path: Path) -> None:
     from ADM.app import create_app
     from ADM.auth_providers import LocalAuthProvider
@@ -80,4 +81,3 @@ def test_create_app_wires_local_auth_provider_by_default(tmp_path: Path) -> None
 
     assert isinstance(application.extensions["adm_auth_provider"], LocalAuthProvider)
     assert callable(application.extensions["adm_account_session_factory"])
-    

@@ -96,9 +96,7 @@ class AppConfig:
         backend = _optional_non_empty_string(value, "db_backend", "json").casefold()
         json_url = _optional_non_empty_string(value, "json_connection_url", "applications.json")
         auth_backend = _optional_non_empty_string(value, "auth_backend", "local").casefold()
-        accounts_url = _optional_non_empty_string(
-            value, "accounts_connection_url", "accounts.json"
-        )
+        accounts_url = _optional_non_empty_string(value, "accounts_connection_url", "accounts.json")
         display_thresholds = parse_display_thresholds(value.get("display_thresholds", {}))
         return cls(
             db_backend=backend,
