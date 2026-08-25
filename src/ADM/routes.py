@@ -24,10 +24,18 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import SQLAlchemyError
 
+from ADM.accounts_service import (
+    ROLES,
+    AccountError,
+    AccountSession,
+    create_account,
+    set_account_active,
+    set_account_role,
+)
 from ADM.auth_providers import AuthProvider
 from ADM.catalogue_io import replace_catalogue, serialize_catalogue
 from ADM.config_io import save_display_thresholds
-from ADM.database import Application, Evaluation
+from ADM.database import Account, Application, Evaluation
 from ADM.persistence import TransactionSession, transactional_session
 from ADM.schemas import AppConfig, DisplayThresholds, Questions
 from ADM.scoring import filter_questions_by_type
@@ -44,6 +52,7 @@ from ADM.services import (
 )
 from ADM.validation import (
     InputValidationError,
+    validate_account_creation_form,
     validate_application_form,
     validate_display_thresholds_form,
     validate_evaluation_form,
@@ -51,6 +60,7 @@ from ADM.validation import (
     validate_login_form,
 )
 
+accounts = Blueprint("accounts", __name__)
 auth = Blueprint("auth", __name__)
 applications = Blueprint("applications", __name__)
 evaluations = Blueprint("evaluations", __name__)
@@ -76,6 +86,11 @@ def session_factory() -> Callable[[], TransactionSession]:
     """Retourne la fabrique de sessions injectée lors de la création de l'application."""
     return cast(Callable[[], TransactionSession], current_app.extensions["adm_session_factory"])
 
+def account_session_factory() -> Callable[[], AccountSession]:
+    """Retourne la fabrique de sessions de comptes injectée au démarrage (US6.1)."""
+    return cast(
+        Callable[[], AccountSession], current_app.extensions["adm_account_session_factory"]
+    )
 
 def questions() -> Questions:
     """Retourne le questionnaire validé associé à l'application courante."""
@@ -120,6 +135,12 @@ def require_app_by_name(name: str, database_session: TransactionSession) -> Appl
         abort(404, description="Application non trouvée")
     return cast(Application, application)
 
+def require_account_by_username(username: str, account_session: AccountSession) -> Account:
+    """Retourne le compte demandé ou interrompt la requête avec une erreur 404 (US6.1)."""
+    account = account_session.query(Account).filter_by(username=username).first()
+    if account is None:
+        abort(404, description="Compte non trouvé")
+    return cast(Account, account)
 
 def calculate_axis_scores(data: list[dict[str, object]]) -> dict[str, float]:
     """Calcule les axes du radar avec la configuration de l'application courante."""
@@ -705,3 +726,83 @@ def show_settings() -> ResponseReturnValue:
         return redirect(url_for("settings.show_settings"))
 
     return render_template("settings.html", **context)
+
+@route(accounts, "/accounts", methods=["GET"])
+@role_required("admin")
+def list_accounts() -> ResponseReturnValue:
+    """Liste les comptes locaux et propose leur création (US6.1)."""
+    accounts_session = account_session_factory()()
+    try:
+        all_accounts = accounts_session.query(Account).all()
+        all_accounts.sort(key=lambda account: account.username.casefold())
+        return render_template("accounts.html", accounts=all_accounts, roles=sorted(ROLES))
+    finally:
+        accounts_session.close()
+
+
+@route(accounts, "/accounts", methods=["POST"])
+@role_required("admin")
+def create_account_route() -> ResponseReturnValue:
+    """Crée un compte local depuis l'interface d'administration (US6.1)."""
+    try:
+        fields = validate_account_creation_form(request.form)
+    except InputValidationError as error:
+        flash(str(error), "danger")
+        return redirect(url_for("accounts.list_accounts"))
+
+    accounts_session = account_session_factory()()
+    try:
+        try:
+            create_account(accounts_session, **fields)
+            accounts_session.commit()
+        except AccountError as error:
+            accounts_session.rollback()
+            flash(str(error), "danger")
+            return redirect(url_for("accounts.list_accounts"))
+        flash(f"Compte {fields['username']!r} créé.", "success")
+        return redirect(url_for("accounts.list_accounts"))
+    finally:
+        accounts_session.close()
+
+
+@route(accounts, "/accounts/<username>/role", methods=["POST"])
+@role_required("admin")
+def change_account_role(username: str) -> ResponseReturnValue:
+    """Change le rôle d'un compte depuis l'interface d'administration (US6.1)."""
+    role = request.form.get("role", "")
+    accounts_session = account_session_factory()()
+    try:
+        account = require_account_by_username(username, accounts_session)
+        try:
+            set_account_role(accounts_session, account, role)
+            accounts_session.commit()
+        except AccountError as error:
+            accounts_session.rollback()
+            flash(str(error), "danger")
+            return redirect(url_for("accounts.list_accounts"))
+        flash(f"Rôle de {username!r} mis à jour.", "success")
+        return redirect(url_for("accounts.list_accounts"))
+    finally:
+        accounts_session.close()
+
+
+@route(accounts, "/accounts/<username>/active", methods=["POST"])
+@role_required("admin")
+def toggle_account_active(username: str) -> ResponseReturnValue:
+    """Active ou désactive un compte depuis l'interface d'administration (US6.1)."""
+    accounts_session = account_session_factory()()
+    try:
+        account = require_account_by_username(username, accounts_session)
+        new_state = not account.active
+        try:
+            set_account_active(accounts_session, account, new_state)
+            accounts_session.commit()
+        except AccountError as error:
+            accounts_session.rollback()
+            flash(str(error), "danger")
+            return redirect(url_for("accounts.list_accounts"))
+        state_label = "activé" if new_state else "désactivé"
+        flash(f"Compte {username!r} {state_label}.", "success")
+        return redirect(url_for("accounts.list_accounts"))
+    finally:
+        accounts_session.close()

@@ -5,8 +5,10 @@ from collections.abc import Mapping
 from datetime import date
 from typing import Final
 
+from ADM.accounts_service import ROLES
 from ADM.database import Application
 from ADM.schemas import DisplayThresholds, parse_display_thresholds
+
 
 APPLICATION_CHOICES: Final[tuple[tuple[str, frozenset[str]], ...]] = (
     ("type_app", frozenset({"Interne", "Editeur", "Open source"})),
@@ -74,6 +76,22 @@ def validate_login_form(form: Mapping[str, str]) -> tuple[str, str]:
     if len(password) > 255:
         raise InputValidationError("Le mot de passe ne doit pas dépasser 255 caractères.")
     return username, password
+
+def validate_account_creation_form(form: Mapping[str, str]) -> dict[str, object]:
+    """Valide le formulaire de création d'un compte (US6.1)."""
+    username = _required_text(form, "username", "Le nom d'utilisateur")
+    password = form.get("password", "")
+    confirmation = form.get("password_confirm", "")
+    if not password:
+        raise InputValidationError("Le mot de passe est obligatoire.")
+    if len(password) > 255:
+        raise InputValidationError("Le mot de passe ne doit pas dépasser 255 caractères.")
+    if password != confirmation:
+        raise InputValidationError("Les mots de passe ne correspondent pas.")
+    role = form.get("role", "")
+    if role not in ROLES:
+        raise InputValidationError(f"Le rôle doit être l'un de {sorted(ROLES)}.")
+    return {"username": username, "password": password, "role": role}
 
 
 def validate_evaluation_form(

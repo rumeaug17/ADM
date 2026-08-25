@@ -68,7 +68,7 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
     par la session, `/settings` restreint aux admins
   - [x] Commande `scripts/create_account.py` pour le bootstrap et
     l'administration des comptes
-  - [ ] Interface d'administration des comptes (lister, créer, changer le
+  - [x] Interface d'administration des comptes (lister, créer, changer le
     rôle, désactiver depuis le navigateur)
   - [ ] Étendre la protection par rôle à la gestion des questions (US4.3)
   
