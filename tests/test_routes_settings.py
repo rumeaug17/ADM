@@ -175,6 +175,7 @@ def test_update_settings_requires_csrf_token(tmp_path: Path) -> None:
     client = application.test_client()
     with client.session_transaction() as sess:
         sess["logged_in"] = True
+        sess["role"] = "admin"
 
     response = client.post(
         "/settings",
@@ -205,6 +206,7 @@ def test_update_settings_valid_persists_and_reloads(tmp_path: Path) -> None:
     client = application.test_client()
     with client.session_transaction() as sess:
         sess["logged_in"] = True
+        sess["role"] = "admin"
         sess["csrf_token"] = "jeton-de-test"
 
     response = client.post(
@@ -242,6 +244,7 @@ def test_update_settings_rejects_invalid_thresholds_without_persisting(tmp_path:
     client = application.test_client()
     with client.session_transaction() as sess:
         sess["logged_in"] = True
+        sess["role"] = "admin"
         sess["csrf_token"] = "jeton-de-test"
 
     response = client.post(

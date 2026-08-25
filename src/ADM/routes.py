@@ -3,7 +3,6 @@
 import base64
 import csv
 import io
-import os
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
@@ -25,6 +24,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import SQLAlchemyError
 
+from ADM.auth_providers import AuthProvider
 from ADM.catalogue_io import replace_catalogue, serialize_catalogue
 from ADM.config_io import save_display_thresholds
 from ADM.database import Application, Evaluation
@@ -102,6 +102,11 @@ def app_config() -> AppConfig:
     return cast(AppConfig, current_app.extensions["adm_app_config"])
 
 
+def auth_provider() -> AuthProvider:
+    """Retourne le fournisseur d'authentification injecté au démarrage."""
+    return cast(AuthProvider, current_app.extensions["adm_auth_provider"])
+
+
 def get_app_by_name(name: str, database_session: TransactionSession) -> Application | None:
     """Recherche une application par son nom dans la session fournie."""
     application = database_session.query(Application).filter_by(name=name).first()
@@ -149,25 +154,48 @@ def login_required(
     return decorated
 
 
+def role_required(
+    role: str,
+) -> Callable[
+    [Callable[ViewParameters, ResponseReturnValue]], Callable[ViewParameters, ResponseReturnValue]
+]:
+    """Retourne un décorateur exigeant une session authentifiée avec le rôle indiqué (US6.1)."""
+
+    def decorator(
+        function: Callable[ViewParameters, ResponseReturnValue],
+    ) -> Callable[ViewParameters, ResponseReturnValue]:
+        @wraps(function)
+        def decorated(
+            *args: ViewParameters.args, **kwargs: ViewParameters.kwargs
+        ) -> ResponseReturnValue:
+            if not session.get("logged_in"):
+                return redirect(url_for("auth.login"))
+            if session.get("role") != role:
+                abort(403, description="Vous n'êtes pas autorisé à effectuer cette action.")
+            return function(*args, **kwargs)
+
+        return decorated
+
+    return decorator
+
+
 @route(auth, "/login", methods=["GET", "POST"])
 def login() -> ResponseReturnValue:
-    """Route de connexion avec authentification minimale."""
+    """Route de connexion, déléguée au fournisseur d'authentification configuré (US6.1)."""
     if request.method == "POST":
         try:
             username, password = validate_login_form(request.form)
         except InputValidationError as error:
             flash(str(error), "danger")
             return render_template("login.html"), 400
-        expected_username = os.environ.get("ADM_USERNAME")
-        expected_password = os.environ.get("ADM_PASSWORD")
-        if not expected_username or not expected_password:
-            abort(503, description="Authentification non configurée")
-        if username == expected_username and password == expected_password:
+        identity = auth_provider().authenticate(username, password)
+        if identity is not None:
             session["logged_in"] = True
+            session["username"] = identity.username
+            session["role"] = identity.role
             flash("Connexion réussie.", "success")
             return redirect(url_for("applications.index"))
-        else:
-            flash("Identifiants incorrects.", "danger")
+        flash("Identifiants incorrects.", "danger")
     return render_template("login.html")
 
 
@@ -175,6 +203,8 @@ def login() -> ResponseReturnValue:
 def logout() -> ResponseReturnValue:
     """Déconnexion et redirection vers la page de connexion."""
     session.pop("logged_in", None)
+    session.pop("username", None)
+    session.pop("role", None)
     flash("Vous êtes déconnecté.", "info")
     return redirect(url_for("auth.login"))
 
@@ -646,7 +676,7 @@ def import_data() -> ResponseReturnValue:
 
 
 @route(settings, "/settings", methods=["GET", "POST"])
-@login_required
+@role_required("admin")
 def show_settings() -> ResponseReturnValue:
     """Affiche et met à jour les seuils d'affichage du score et du risque (US4.2)."""
     config = app_config()
