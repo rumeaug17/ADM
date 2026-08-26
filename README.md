@@ -14,7 +14,8 @@ et présente une synthèse destinée à faciliter la priorisation des actions.
 - questionnaire configurable selon le type d'application et son hébergement ;
 - calcul du score de dette, des axes de risque et d'indicateurs de synthèse ;
 - historique des évaluations et génération de graphiques radar ;
-- import et export atomiques du catalogue au format JSON ;
+- import et export atomiques du catalogue au format JSON (réimportation totale
+  réservée au rôle administrateur) ;
 - persistance locale dans un fichier JSON ou dans MySQL via SQLAlchemy ;
 - validation des entrées, protection CSRF et limitation des imports à 5 Mio.
 
@@ -135,8 +136,9 @@ commande enregistrée ou un journal. Une nouvelle migration se crée avec
 3. Ouvrez son évaluation, répondez aux questions applicables, puis enregistrez-la.
 4. Consultez la synthèse ou exportez le catalogue pour le sauvegarder.
 
-Un import doit être un export ADM au format JSON. Il remplace le catalogue seulement
-après validation complète du document ; conservez donc une sauvegarde avant l'opération.
+Un import doit être un export ADM au format JSON. Cette opération, réservée aux
+comptes administrateur, remplace le catalogue seulement après validation complète
+du document ; conservez donc une sauvegarde avant l'opération.
 
 ## Organisation du dépôt
 

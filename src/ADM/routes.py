@@ -667,7 +667,7 @@ def export_all() -> ResponseReturnValue:
 
 
 @route(exports, "/import_data", methods=["GET", "POST"])
-@login_required
+@role_required("admin")
 def import_data() -> ResponseReturnValue:
     if request.method == "POST":
         # Vérifier que le fichier a bien été transmis
