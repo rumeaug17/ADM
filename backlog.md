@@ -71,6 +71,9 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
   - [x] Interface d'administration des comptes (lister, créer, changer le
     rôle, désactiver depuis le navigateur)
   - [ ] Étendre la protection par rôle à la gestion des questions (US4.3)
+  - [x] Restreindre au rôle admin la suppression totale et la réimportation d'un
+    export total (route `/import_data`, qui remplace intégralement le catalogue) ;
+    bouton correspondant masqué dans l'interface pour les comptes non-admin
   
 ---
 

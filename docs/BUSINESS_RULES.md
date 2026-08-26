@@ -40,6 +40,10 @@ nulle produit un risque indéterminé (`None`) plutôt qu'une estimation trompeu
 
 ## Import
 
+La réimportation totale (route `/import_data`) est réservée aux comptes de rôle
+`admin` : elle supprime intégralement le catalogue existant avant d'y substituer le
+contenu du fichier importé, dans une transaction unique.
+
 La racine est une liste JSON. Tous les enregistrements et leur historique sont
 validés avant la transaction d'écriture : dates ISO, entiers réels (les booléens
 sont refusés), objets de réponses/commentaires à clés textuelles et champs requis.
@@ -69,8 +73,9 @@ Les comptes ne transitent jamais par l'import/export du catalogue
 (`ADM.catalogue_io`) : leur stockage est isolé, dans un fichier ou une table
 dédiés.
 
-Le rôle `admin` est requis pour accéder à la configuration (`/settings`), et
-le sera pour la gestion des questions (US4.3) une fois livrée. Aucun compte
-n'existe par défaut à l'installation : le premier compte administrateur doit
-être créé explicitement via `scripts/create_account.py` avant la première
-connexion.
+Le rôle `admin` est requis pour accéder à la configuration (`/settings`), pour
+la réimportation totale du catalogue (`/import_data`, voir la section Import
+ci-dessus), et le sera pour la gestion des questions (US4.3) une fois livrée.
+Aucun compte n'existe par défaut à l'installation : le premier compte
+administrateur doit être créé explicitement via `scripts/create_account.py`
+avant la première connexion.
