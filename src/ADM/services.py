@@ -3,7 +3,7 @@
 import base64
 import io
 import math
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Final, Protocol, TypeAlias, cast
@@ -306,7 +306,7 @@ def update_all_metrics(applications: list[JsonData]) -> None:
         update_app_metrics(application)
 
 
-def to_dicts_with_metrics(applications: list[ApplicationLike]) -> list[JsonData]:
+def to_dicts_with_metrics(applications: Sequence[ApplicationLike]) -> list[JsonData]:
     """Convertit des applications persistées en dictionnaires enrichis des métriques."""
     data = [application_to_dict(application) for application in applications]
     update_all_metrics(data)
