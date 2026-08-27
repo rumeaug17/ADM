@@ -1,0 +1,129 @@
+# Pipeline CI/CD d'ADM.
+#
+# Principes appliqués, cohérents avec docs/CODING_GUIDELINES.md :
+# - les contrôles (ruff, mypy, pytest) tournent sur la version minimale de
+#   Python supportée par le projet (3.11, cf. `requires-python` dans
+#   pyproject.toml) ;
+# - l'artefact n'est construit qu'une seule fois, par le job `build` : les jobs
+#   de déploiement consomment ce même wheel via `needs:artifacts` et n'exécutent
+#   jamais `python -m build` eux-mêmes, afin qu'aucune recompilation n'ait lieu
+#   entre Qualification, Recette et Production ;
+# - l'empreinte SHA-256 de l'artefact est publiée par `build` et réaffichée par
+#   chaque déploiement, pour pouvoir vérifier qu'il s'agit bien du même paquet ;
+# - les déploiements hors DEV ne se déclenchent que sur un tag Git de `main`
+#   (voir la stratégie de branches et de versions dans docs/CODING_GUIDELINES.md).
+#
+# Ce projet est un démonstrateur (voir README.md) : les jobs `deploy-*`
+# n'implémentent donc que la vérification de l'artefact et un point d'extension
+# explicite. La procédure réelle (registre de paquets interne, orchestrateur,
+# SSH, etc.) doit être complétée par l'équipe d'exploitation lors de la mise en
+# place d'un environnement cible réel.
+
+stages:
+  - quality
+  - test
+  - build
+  - deploy-qualification
+  - deploy-recette
+  - deploy-production
+
+variables:
+  # Le dépôt pip interne du projet (voir pip.ini) ; à surcharger via une
+  # variable CI/CD si le runner ne peut pas l'atteindre.
+  PIP_CONFIG_FILE: "${CI_PROJECT_DIR}/pip.ini"
+  PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
+
+.python-3.11-base:
+  image: python:3.11-slim
+  cache:
+    key: "pip-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - .cache/pip
+  before_script:
+    - python -m pip install --upgrade pip
+    - python -m pip install -e '.[dev]'
+
+lint:
+  extends: .python-3.11-base
+  stage: quality
+  script:
+    - ruff check .
+    - ruff format --check .
+
+typecheck:
+  extends: .python-3.11-base
+  stage: quality
+  script:
+    - mypy src main.py
+
+test:
+  extends: .python-3.11-base
+  stage: test
+  script:
+    - pytest --junitxml=report.xml
+  artifacts:
+    when: always
+    expire_in: "30 days"
+    reports:
+      junit: report.xml
+
+# Construit l'artefact une seule fois, uniquement sur un tag de `main`, et
+# publie son empreinte. Les jobs de déploiement réutilisent ce même artefact.
+build:
+  extends: .python-3.11-base
+  stage: build
+  script:
+    - rm -rf dist
+    - python -m build
+    - sha256sum dist/* | tee dist/SHA256SUMS
+  artifacts:
+    paths:
+      - dist/
+    expire_in: "90 days"
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
+
+.deploy-base:
+  needs:
+    - job: build
+      artifacts: true
+  script:
+    - echo "Artefact promu vers ${ADM_TARGET_ENV} (empreinte ci-dessous, à comparer avec celle publiée par le job build) :"
+    - cat dist/SHA256SUMS
+    - echo "TODO -- déploiement réel de dist/*.whl vers ${ADM_TARGET_ENV}, sans reconstruction."
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
+
+deploy-qualification:
+  extends: .deploy-base
+  stage: deploy-qualification
+  variables:
+    ADM_TARGET_ENV: "qualification"
+  environment:
+    name: qualification
+
+deploy-recette:
+  extends: .deploy-base
+  stage: deploy-recette
+  needs:
+    - job: build
+      artifacts: true
+    - job: deploy-qualification
+  variables:
+    ADM_TARGET_ENV: "recette"
+  environment:
+    name: recette
+  when: manual
+
+deploy-production:
+  extends: .deploy-base
+  stage: deploy-production
+  needs:
+    - job: build
+      artifacts: true
+    - job: deploy-recette
+  variables:
+    ADM_TARGET_ENV: "production"
+  environment:
+    name: production
+  when: manual

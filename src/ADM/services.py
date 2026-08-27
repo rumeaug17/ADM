@@ -3,10 +3,10 @@
 import base64
 import io
 import math
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Protocol, TypeAlias, cast
+from typing import Final, Protocol, TypeAlias, cast
 
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -17,6 +17,15 @@ from ADM.schemas import Questions, Thresholds
 
 JsonData: TypeAlias = dict[str, object]
 ScoreMap: TypeAlias = dict[str, int | None]
+
+# Score maximal d'une option de question, utilisé pour normaliser le pourcentage
+# affiché (voir la convention documentée dans docs/BUSINESS_RULES.md : échelle
+# standard de 0 à 3 pour toutes les options du questionnaire).
+MAX_OPTION_SCORE: Final = 3
+
+# Niveaux DICP valides (1 à 4), utilisés pour valider disponibilité, intégrité,
+# confidentialité et pérennité avant le calcul du risque.
+_DICP_LEVELS: Final = frozenset({"1", "2", "3", "4"})
 
 
 @dataclass(frozen=True)
@@ -108,23 +117,56 @@ def application_to_dict(application: ApplicationLike) -> JsonData:
     }
 
 
+def evaluation_to_dict(evaluation: EvaluationLike) -> JsonData:
+    """Convertit une évaluation historique en dictionnaire de présentation."""
+    return {
+        "score": evaluation.score,
+        "answered_questions": evaluation.answered_questions,
+        "last_evaluation": evaluation.last_evaluation.isoformat()
+        if evaluation.last_evaluation
+        else None,
+        "evaluator_name": evaluation.evaluator_name,
+        "responses": evaluation.responses,
+        "comments": evaluation.comments,
+    }
+
+
+def _dicp_factor(value: object, prefix: str) -> int | None:
+    """Retourne le niveau numérique (1 à 4) d'un indicateur DICP valide, sinon None."""
+    if not isinstance(value, str) or not value.startswith(prefix):
+        return None
+    level = value[len(prefix) :]
+    return int(level) if level in _DICP_LEVELS else None
+
+
 def calculate_risk(application: JsonData) -> float | None:
-    """Calcule le risque à partir du score, des indicateurs DICP et de la criticité."""
+    """Calcule le risque à partir du score, des indicateurs DICP et de la criticité.
+
+    Un indicateur DICP malformé (préfixe ou niveau invalide) ou une criticité
+    absente, non entière ou nulle produit un risque indéterminé (``None``) plutôt
+    qu'une estimation calculée à partir de données incohérentes.
+    """
+    score_value = application.get("score")
+    if not isinstance(score_value, (int, float)) or isinstance(score_value, bool):
+        return None
+    factors = [
+        _dicp_factor(application.get(key), prefix)
+        for key, prefix in (
+            ("disponibilite", "D"),
+            ("integrite", "I"),
+            ("confidentialite", "C"),
+            ("perennite", "P"),
+        )
+    ]
+    if any(factor is None for factor in factors):
+        return None
     try:
-        score_value = application["score"]
-        if not isinstance(score_value, (int, float, str)):
-            return None
-        score = float(score_value)
-        factors = [
-            int("".join(filter(str.isdigit, str(application.get(key, "0")))))
-            for key in ("disponibilite", "integrite", "confidentialite", "perennite")
-        ]
         criticity = int(str(application.get("criticite", "0")))
-    except (KeyError, TypeError, ValueError):
+    except ValueError:
         return None
-    if criticity == 0:
+    if criticity <= 0:
         return None
-    return score * ((float(np.prod(factors)) / 4 / criticity) / 2)
+    return float(score_value) * ((float(np.prod(factors)) / 4 / criticity) / 2)
 
 
 def update_app_metrics(application: JsonData) -> None:
@@ -132,7 +174,7 @@ def update_app_metrics(application: JsonData) -> None:
     score = application.get("score")
     answered = application.get("answered_questions", 0)
     if isinstance(score, (int, float)) and isinstance(answered, int) and answered > 0:
-        maximum = answered * 3
+        maximum = answered * MAX_OPTION_SCORE
         application.update(max_score=maximum, percentage=round(score / maximum * 100, 2))
         application["risque"] = calculate_risk(application)
     else:
@@ -262,3 +304,10 @@ def update_all_metrics(applications: list[JsonData]) -> None:
     """Met à jour les métriques de toutes les applications."""
     for application in applications:
         update_app_metrics(application)
+
+
+def to_dicts_with_metrics(applications: Sequence[ApplicationLike]) -> list[JsonData]:
+    """Convertit des applications persistées en dictionnaires enrichis des métriques."""
+    data = [application_to_dict(application) for application in applications]
+    update_all_metrics(data)
+    return data
