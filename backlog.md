@@ -129,20 +129,40 @@ refactorisation et évolution fonctionnelle.
 
 ### Phase 6 : Contrôles automatisés et reproductibilité
 
-- [ ] Exécuter `ruff check .`, `ruff format --check .`, `mypy src main.py` et `pytest`
-  dans la CI sur la version minimale de Python supportée.
-- [ ] Ajouter un test d'import garantissant que l'import de l'application ne crée ni
-  fichier, ni connexion, ni traitement lourd.
-- [ ] Tester les backends JSON et SQL avec le même contrat de persistance pour éviter
-  les divergences de comportement.
+- [x] Exécuter `ruff check .`, `ruff format --check .`, `mypy src main.py` et `pytest`
+  dans la CI sur la version minimale de Python supportée. Réalisé dans
+  `.gitlab-ci.yml` (jobs `lint`, `typecheck`, `test` sur `python:3.11-slim`).
+- [x] Ajouter un test d'import garantissant que l'import de l'application ne crée ni
+  fichier, ni connexion, ni traitement lourd. Renforcé dans
+  `tests/test_app_factory.py` : vérifie en plus qu'aucun fichier n'apparaît dans
+  un répertoire vide et que `ADM.database_json` / `ADM.accounts_json` (importés
+  uniquement dans `create_app`) restent absents de `sys.modules`.
+- [x] Tester les backends JSON et SQL avec le même contrat de persistance pour éviter
+  les divergences de comportement. Réalisé dans `tests/test_persistence_contract.py`,
+  paramétré sur les deux backends via les mêmes `init_db`/`get_session_factory` que
+  `create_app`. Le backend SQL de production (MySQL) est testé via SQLite pour
+  respecter la règle « aucun test ne dépend d'un service partagé » : le dialecte
+  MySQL lui-même reste à couvrir séparément (par exemple un job CI dédié avec un
+  service `mysql`) si ce point devient sensible.
 - [ ] Choisir une seule source de vérité pour les dépendances : privilégier
   `pyproject.toml` et supprimer `requirements.txt` lorsque les outils historiques ont
-  été migrés.
+  été migrés. `pyproject.toml` est désormais l'unique source utilisée (scripts et
+  CI) et `requirements.txt` a été vidé avec une note d'obsolescence ; sa suppression
+  effective (`git rm requirements.txt`) reste à faire, l'outillage disponible ne
+  permettant pas de supprimer un fichier du dépôt.
 - [ ] Construire l'artefact une seule fois dans la CI, publier son empreinte et promouvoir
   exactement cet artefact de Qualification vers Recette puis Production depuis un tag
-  fixe de `main`.
-- [ ] Ajouter une checklist de Pull Request couvrant tests, typage, secrets,
-  documentation, migrations et impact sur le déploiement.
+  fixe de `main`. Le squelette est en place dans `.gitlab-ci.yml` (job `build` unique,
+  empreinte SHA-256 publiée, jobs `deploy-qualification`/`deploy-recette`/
+  `deploy-production` consommant le même artefact via `needs:artifacts`, déclenchés
+  sur tag protégé de `main`, Recette et Production en validation manuelle). Les
+  commandes de déploiement réel vers chaque environnement restent à implémenter par
+  l'équipe d'exploitation : ce projet est un démonstrateur sans environnement cible
+  réel (voir README.md).
+- [x] Ajouter une checklist de Pull Request couvrant tests, typage, secrets,
+  documentation, migrations et impact sur le déploiement. Réalisée dans
+  `.gitlab/merge_request_templates/Default.md`, alignée sur la checklist de
+  `CONTRIBUTING.md`.
 
 ## Critères de fin communs aux tâches techniques
 

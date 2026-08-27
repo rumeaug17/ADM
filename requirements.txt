@@ -1,7 +1,8 @@
-# Fichier conservé pour les outils historiques. La source de vérité des
-# dépendances et de leurs bornes de versions est pyproject.toml.
-Flask>=3.0,<4
-matplotlib>=3.8,<4
-mysql-connector-python>=8.3,<10
-numpy>=1.26,<2
-SQLAlchemy>=2.0,<3
+# Ce fichier est obsolète : pyproject.toml est l'unique source de vérité des
+# dépendances (Phase 6 du backlog). Il ne doit plus être installé avec
+# `pip install -r requirements.txt` ; utilisez `pip install -e '.[dev]'`.
+#
+# Le contenu a été vidé pour éviter toute divergence de version avec
+# pyproject.toml. Supprimez ce fichier (`git rm requirements.txt`) dès que les
+# outils historiques qui en dépendaient encore ont été migrés.
+
