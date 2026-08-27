@@ -108,6 +108,20 @@ def application_to_dict(application: ApplicationLike) -> JsonData:
     }
 
 
+def evaluation_to_dict(evaluation: EvaluationLike) -> JsonData:
+    """Convertit une évaluation historique en dictionnaire de présentation."""
+    return {
+        "score": evaluation.score,
+        "answered_questions": evaluation.answered_questions,
+        "last_evaluation": evaluation.last_evaluation.isoformat()
+        if evaluation.last_evaluation
+        else None,
+        "evaluator_name": evaluation.evaluator_name,
+        "responses": evaluation.responses,
+        "comments": evaluation.comments,
+    }
+
+
 def calculate_risk(application: JsonData) -> float | None:
     """Calcule le risque à partir du score, des indicateurs DICP et de la criticité."""
     try:
@@ -262,3 +276,10 @@ def update_all_metrics(applications: list[JsonData]) -> None:
     """Met à jour les métriques de toutes les applications."""
     for application in applications:
         update_app_metrics(application)
+
+
+def to_dicts_with_metrics(applications: list[ApplicationLike]) -> list[JsonData]:
+    """Convertit des applications persistées en dictionnaires enrichis des métriques."""
+    data = [application_to_dict(application) for application in applications]
+    update_all_metrics(data)
+    return data

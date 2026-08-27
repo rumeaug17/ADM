@@ -43,11 +43,11 @@ from ADM.services import (
     application_to_dict,
     axis_scores,
     build_evaluation_submission,
-    calculate_risk,
     category_sums,
+    evaluation_to_dict,
     generate_radar_chart,
     summarize_catalogue,
-    update_all_metrics,
+    to_dicts_with_metrics,
     update_app_metrics,
 )
 from ADM.validation import (
@@ -238,12 +238,8 @@ def index() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         app_objs = session_db.query(Application).all()
-        # Convertir les objets ORM en dictionnaires
-        applications = [application_to_dict(app) for app in app_objs]
-        # Mettre à jour les métriques pour chaque application convertie
-        for app_item in applications:
-            update_app_metrics(app_item)
-        return render_template("index.html", applications=applications)
+        apps = to_dicts_with_metrics(app_objs)
+        return render_template("index.html", applications=apps)
     finally:
         session_db.close()
 
@@ -379,7 +375,6 @@ def score_application(name: str) -> ResponseReturnValue:
             flash("Évaluation enregistrée.", "success")
             return redirect(url_for("applications.index"))
 
-        # return render_template("score.html", application=app_item, questions=questions())
         # Filtrer les questions à afficher en fonction du type d'application
         filtered_questions = filter_questions_by_type(
             questions(), app_item.type_app, app_item.hosting
@@ -413,8 +408,8 @@ def reset_evaluation(name: str) -> ResponseReturnValue:
 def reevaluate_all() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
-        applications = session_db.query(Application).all()
-        for app_item in applications:
+        apps = session_db.query(Application).all()
+        for app_item in apps:
             app_item.score = None
             app_item.answered_questions = 0
             app_item.last_evaluation = None
@@ -450,12 +445,7 @@ def synthese() -> ResponseReturnValue:
     try:
         filter_score = request.args.get("filter_score", "warning")
         db_apps = session_db.query(Application).all()
-        # Conversion des objets ORM en dictionnaires
-        data = [application_to_dict(app) for app in db_apps]
-
-        # Mise à jour des métriques pour chaque application
-        for app_item in data:
-            update_app_metrics(app_item)
+        data = to_dicts_with_metrics(db_apps)
         thresholds = display_thresholds()
         summary = summarize_catalogue(data, thresholds.score)
 
@@ -479,17 +469,15 @@ def synthese() -> ResponseReturnValue:
         scored_apps.sort(key=lambda app: numeric_value(app.get("score")), reverse=True)
 
         # Calcul des pires scores (ou meilleurs, selon la logique)
-        best_by_category: dict[str, tuple[str | None, int]] = {}
-        for category in categories():
-            best_app = None
-            best_score = -1
-            for app_item in data:
-                cat_score = calculate_category_sums(app_item).get(category, 0)
-                if cat_score > best_score:
-                    best_score = cat_score
-                    name = app_item.get("name")
-                    best_app = name if isinstance(name, str) else None
-            best_by_category[category] = (best_app, best_score)
+        best_by_category: dict[str, tuple[str | None, int]] = {
+            category: (None, -1) for category in categories()
+        }
+        for app_item in data:
+            name = app_item.get("name")
+            app_name = name if isinstance(name, str) else None
+            for category, cat_score in calculate_category_sums(app_item).items():
+                if cat_score > best_by_category[category][1]:
+                    best_by_category[category] = (app_name, cat_score)
         best_grouped: dict[str, list[tuple[str, int]]] = {}
         for category, (app_name, score_val) in best_by_category.items():
             if app_name:
@@ -519,10 +507,7 @@ def export_csv() -> ResponseReturnValue:
     session_db = session_factory()()
     try:
         db_apps = session_db.query(Application).all()
-        applications = [application_to_dict(app) for app in db_apps]
-        update_all_metrics(applications)
-        for app_item in applications:
-            app_item["risque"] = calculate_risk(app_item)
+        apps = to_dicts_with_metrics(db_apps)
         si = io.StringIO()
         writer = csv.writer(si, delimiter=";")
         header = [
@@ -542,7 +527,7 @@ def export_csv() -> ResponseReturnValue:
             "Risque",
         ]
         writer.writerow(header)
-        for app_item in applications:
+        for app_item in apps:
             row = [
                 app_item.get("name", ""),
                 f"{app_item.get('type_app', '')} / {app_item.get('hosting', '')}",
@@ -592,16 +577,7 @@ def resume(name: str) -> ResponseReturnValue:
         # Si au moins une évaluation existe, on utilise la plus récente
         if evaluations_sorted:
             last_eval_obj = evaluations_sorted[-1]
-            last_eval = {
-                "score": last_eval_obj.score,
-                "answered_questions": last_eval_obj.answered_questions,
-                "last_evaluation": last_eval_obj.last_evaluation.isoformat()
-                if last_eval_obj.last_evaluation
-                else None,
-                "evaluator_name": last_eval_obj.evaluator_name,
-                "responses": last_eval_obj.responses,
-                "comments": last_eval_obj.comments,
-            }
+            last_eval = evaluation_to_dict(last_eval_obj)
             # Mettez à jour les données affichées avec la dernière évaluation
             app_item.update(last_eval)
         update_app_metrics(app_item)
@@ -612,16 +588,7 @@ def resume(name: str) -> ResponseReturnValue:
         # Si au moins deux évaluations existent, on récupère l'évaluation précédente
         if len(evaluations_sorted) > 1:
             previous_eval_obj = evaluations_sorted[-2]
-            previous_eval = {
-                "score": previous_eval_obj.score,
-                "answered_questions": previous_eval_obj.answered_questions,
-                "last_evaluation": previous_eval_obj.last_evaluation.isoformat()
-                if previous_eval_obj.last_evaluation
-                else None,
-                "evaluator_name": previous_eval_obj.evaluator_name,
-                "responses": previous_eval_obj.responses,
-                "comments": previous_eval_obj.comments,
-            }
+            previous_eval = evaluation_to_dict(previous_eval_obj)
             previous_category_sums = calculate_category_sums(
                 {"responses": previous_eval.get("responses", {})}
             )

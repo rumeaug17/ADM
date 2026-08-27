@@ -3,5 +3,5 @@
 Flask>=3.0,<4
 matplotlib>=3.8,<4
 mysql-connector-python>=8.3,<10
-numpy>=1.26,<3
+numpy>=1.26,<2
 SQLAlchemy>=2.0,<3
