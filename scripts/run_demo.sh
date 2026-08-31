@@ -26,8 +26,9 @@ fi
 cd "${PROJECT_ROOT}"
 # Le fichier local est créé avec des droits restreints par setup_demo.sh et n'est pas versionné.
 source "${ENV_FILE}"
-if [[ -n "${DEMO_USERNAME:-}" && -n "${DEMO_PASSWORD:-}" ]]; then
-    echo "Identifiants de démonstration : ${DEMO_USERNAME} / ${DEMO_PASSWORD}"
+if [[ -n "${DEMO_USERNAME:-}" ]]; then
+    echo "Compte de démonstration : ${DEMO_USERNAME}"
+    echo "Mot de passe : voir le fichier protégé ${ENV_FILE} (droits restreints, non versionné)."
 fi
 MAIN_ARGUMENTS=(main.py)
 if [[ "${DEBUG_MODE}" == "on" ]]; then

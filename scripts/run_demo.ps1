@@ -32,8 +32,9 @@ foreach ($variableName in $requiredVariables) {
     [Environment]::SetEnvironmentVariable($variableName, $value, "Process")
 }
 
-if ($configuration.DemoUsername -and $configuration.DemoPassword) {
-    Write-Host "Identifiants de démonstration : $($configuration.DemoUsername) / $($configuration.DemoPassword)"
+if ($configuration.DemoUsername) {
+    Write-Host "Compte de démonstration : $($configuration.DemoUsername)"
+    Write-Host "Mot de passe : voir le fichier protégé $ConfigFile (accès restreint, non versionné)."
 } else {
     Write-Host "Aucun compte de démonstration trouvé : créez-en un avec scripts\create_account.py."
 }

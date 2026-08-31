@@ -153,6 +153,21 @@ def test_can_demote_admin_when_another_active_admin_remains(tmp_path: Path) -> N
     assert first_admin.role == "user"
 
 
+def test_can_demote_inactive_admin_when_one_active_admin_remains(tmp_path: Path) -> None:
+    """Un admin inactif ne compte pas comme "dernier admin actif" : sa rétrogradation
+    ne peut jamais laisser le catalogue sans administrateur actif, donc elle doit être
+    autorisée dès qu'un admin actif existe par ailleurs."""
+    session = AccountJsonSession(init_account_db(str(tmp_path / "accounts.json")))
+    create_account(session, username="alice", password="secret-de-test", role="admin")
+    inactive_admin = create_account(
+        session, username="carole", password="secret-de-test", role="admin", active=False
+    )
+
+    set_account_role(session, inactive_admin, "user")
+
+    assert inactive_admin.role == "user"
+
+
 def test_set_account_password_updates_hash(tmp_path: Path) -> None:
     session = AccountJsonSession(init_account_db(str(tmp_path / "accounts.json")))
     account = create_account(session, username="alice", password="ancien-secret", role="admin")

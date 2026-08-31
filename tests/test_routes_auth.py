@@ -7,6 +7,7 @@ from flask import Flask
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
 from ADM.accounts_service import create_account
+from ADM.database import Account
 
 
 def _config_path(tmp_path: Path) -> Path:
@@ -188,3 +189,68 @@ def test_settings_allowed_for_admin_role(tmp_path: Path) -> None:
     response = client.get("/settings")
 
     assert response.status_code == 200
+
+
+def test_deactivated_account_loses_access_immediately(tmp_path: Path) -> None:
+    """Une session signée pour un compte désactivé après coup ne doit plus donner
+    accès aux pages protégées, même si le cookie affirme toujours 'logged_in'."""
+    accounts_path = tmp_path / "accounts.json"
+    engine = init_account_db(str(accounts_path))
+    account_session = AccountJsonSession(engine)
+    create_account(account_session, username="alice", password="secret-de-test", role="admin")
+    create_account(account_session, username="bob", password="secret-de-test", role="user")
+    account_session.commit()
+    account_session.close()
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["username"] = "bob"
+        sess["role"] = "user"
+
+    # Un autre administrateur désactive le compte pendant que la session est active.
+    account_session = AccountJsonSession(init_account_db(str(accounts_path)))
+    bob = account_session.query(Account).filter_by(username="bob").first()
+    assert bob is not None
+    bob.active = False
+    account_session.commit()
+    account_session.close()
+
+    response = client.get("/")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/login")
+    with client.session_transaction() as sess:
+        assert "logged_in" not in sess
+
+
+def test_demoted_admin_loses_admin_access_immediately(tmp_path: Path) -> None:
+    """Une rétrogradation vers 'user' effectuée par un autre administrateur doit
+    s'appliquer dès la requête suivante, sans que l'ancien rôle mis en cache dans la
+    session persiste jusqu'à sa restauration explicite."""
+    accounts_path = tmp_path / "accounts.json"
+    engine = init_account_db(str(accounts_path))
+    account_session = AccountJsonSession(engine)
+    create_account(account_session, username="alice", password="secret-de-test", role="admin")
+    create_account(account_session, username="bob", password="secret-de-test", role="admin")
+    account_session.commit()
+    account_session.close()
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["username"] = "bob"
+        sess["role"] = "admin"
+
+    account_session = AccountJsonSession(init_account_db(str(accounts_path)))
+    bob = account_session.query(Account).filter_by(username="bob").first()
+    assert bob is not None
+    bob.role = "user"
+    account_session.commit()
+    account_session.close()
+
+    response = client.get("/settings")
+
+    assert response.status_code == 403
+    with client.session_transaction() as sess:
+        assert sess["role"] == "user"
