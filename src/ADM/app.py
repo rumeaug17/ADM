@@ -49,12 +49,14 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     backend = str(
         app.config.get("DB_BACKEND") or os.environ.get("ADM_DB_BACKEND") or config.db_backend
     ).lower()
-    if backend == "mysql":
+    if backend in {"mysql", "sqlite"}:
         from ADM.database import get_session_factory, init_db
 
         connection = app.config.get("DB_CONNECTION") or os.environ.get("ADM_DATABASE_URL")
         if not connection:
-            raise RuntimeError("ADM_DATABASE_URL est obligatoire avec le backend MySQL.")
+            raise RuntimeError(
+                f"ADM_DATABASE_URL est obligatoire avec le backend {backend.capitalize()}."
+            )
     elif backend == "json":
         from ADM.database_json import get_session_factory, init_db
 
@@ -75,7 +77,7 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
 
     # --- US6.1 : fabrique de session pour les comptes + fournisseur d'authentification ---
     account_session_factory: Callable[[], AccountSession]
-    if backend == "mysql":
+    if backend in {"mysql", "sqlite"}:
         # Account partage la même Base SQLAlchemy qu'Application/Evaluation : la table
         # a déjà été créée par init_db ci-dessus, et la même fabrique de session sait
         # l'interroger. Pas de connexion séparée nécessaire.
