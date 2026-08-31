@@ -68,7 +68,12 @@ def set_account_role(session: AccountSession, account: Account, role: str) -> No
     """Change le rôle d'un compte, en préservant l'invariant du dernier admin actif."""
     if role not in ROLES:
         raise AccountError(f"Le rôle doit être l'un de {sorted(ROLES)}.")
-    if account.role == "admin" and role != "admin" and active_admin_count(session) <= 1:
+    if (
+        account.role == "admin"
+        and account.active
+        and role != "admin"
+        and active_admin_count(session) <= 1
+    ):
         raise AccountError("Impossible de rétrograder le dernier compte administrateur actif.")
     account.role = role
 

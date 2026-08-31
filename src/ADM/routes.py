@@ -144,6 +144,26 @@ def require_account_by_username(username: str, account_session: AccountSession) 
     return cast(Account, account)
 
 
+def resolve_current_active_account() -> Account | None:
+    """Recharge le compte courant depuis le magasin de comptes, pour ne jamais faire
+    confiance au rôle ni à l'état d'activation mis en cache dans la session signée.
+
+    Retourne ``None`` si aucun utilisateur n'est identifié en session, si le compte a
+    été supprimé, ou s'il a été désactivé depuis l'établissement de la session.
+    """
+    username = session.get("username")
+    if not isinstance(username, str) or not username:
+        return None
+    accounts_session = account_session_factory()()
+    try:
+        account = accounts_session.query(Account).filter_by(username=username).first()
+    finally:
+        accounts_session.close()
+    if account is None or not account.active:
+        return None
+    return account
+
+
 def calculate_axis_scores(data: list[dict[str, object]]) -> dict[str, float]:
     """Calcule les axes du radar avec la configuration de l'application courante."""
     return axis_scores(data, questions(), categories(), scoring_map())
@@ -164,7 +184,12 @@ def numeric_value(value: object, default: float = 0) -> float:
 def login_required(
     function: Callable[ViewParameters, ResponseReturnValue],
 ) -> Callable[ViewParameters, ResponseReturnValue]:
-    """Redirige vers la connexion lorsqu'une vue requiert une session authentifiée."""
+    """Redirige vers la connexion lorsqu'une vue requiert une session authentifiée.
+
+    Le compte est revérifié auprès du magasin de comptes à chaque requête : une
+    désactivation postérieure à l'établissement de la session invalide immédiatement
+    celle-ci, au lieu de faire confiance indéfiniment à l'état signé dans le cookie.
+    """
 
     @wraps(function)
     def decorated(
@@ -172,6 +197,12 @@ def login_required(
     ) -> ResponseReturnValue:
         if not session.get("logged_in"):
             return redirect(url_for("auth.login"))
+        account = resolve_current_active_account()
+        if account is None:
+            session.clear()
+            flash("Votre session n'est plus valide. Merci de vous reconnecter.", "danger")
+            return redirect(url_for("auth.login"))
+        session["role"] = account.role
         return function(*args, **kwargs)
 
     return decorated
@@ -182,7 +213,12 @@ def role_required(
 ) -> Callable[
     [Callable[ViewParameters, ResponseReturnValue]], Callable[ViewParameters, ResponseReturnValue]
 ]:
-    """Retourne un décorateur exigeant une session authentifiée avec le rôle indiqué (US6.1)."""
+    """Retourne un décorateur exigeant une session authentifiée avec le rôle indiqué (US6.1).
+
+    Comme ``login_required``, le compte est revérifié auprès du magasin de comptes à
+    chaque requête, et c'est son rôle actuel (et non celui mis en cache dans la session)
+    qui est comparé au rôle exigé.
+    """
 
     def decorator(
         function: Callable[ViewParameters, ResponseReturnValue],
@@ -193,7 +229,13 @@ def role_required(
         ) -> ResponseReturnValue:
             if not session.get("logged_in"):
                 return redirect(url_for("auth.login"))
-            if session.get("role") != role:
+            account = resolve_current_active_account()
+            if account is None:
+                session.clear()
+                flash("Votre session n'est plus valide. Merci de vous reconnecter.", "danger")
+                return redirect(url_for("auth.login"))
+            session["role"] = account.role
+            if account.role != role:
                 abort(403, description="Vous n'êtes pas autorisé à effectuer cette action.")
             return function(*args, **kwargs)
 
