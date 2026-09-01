@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adm-catalogue"
-version = "0.1.0"
+version = "1.4.3"
 description = "Catalogue d'applications et évaluation de leur dette technique"
 readme = "README.md"
 requires-python = ">=3.11"
