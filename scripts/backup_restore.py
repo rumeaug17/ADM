@@ -1,112 +1,132 @@
 #!/usr/bin/env python3
+"""Sauvegarde et restauration de la base MySQL configurée pour ADM.
+
+Les paramètres de connexion (hôte, port, utilisateur, base, mot de passe) sont
+dérivés de ``ADM_DATABASE_URL`` -- la même variable d'environnement que celle
+utilisée par l'application et par Alembic (voir INSTALL.md, section 5) -- afin
+qu'une sauvegarde ou une restauration cible toujours la base réellement
+configurée, jamais une base locale par défaut.
+"""
+
 import argparse
-import json
 import os
 import subprocess
 from datetime import datetime
-from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+from urllib.parse import unquote, urlsplit
 
 
-def load_config(config_path):
-    """Charge la configuration depuis le fichier config.json."""
-    with open(config_path, encoding="utf-8") as f:
-        config = json.load(f)
-    return config
+class ConnectionConfigError(RuntimeError):
+    """Signale une configuration de connexion MySQL absente ou invalide."""
 
 
-def backup_database(config):
+def load_connection_from_environment() -> dict:
+    """Extrait les paramètres de connexion MySQL de ``ADM_DATABASE_URL``.
+
+    ``ADM_DATABASE_URL`` doit être définie avec la même valeur que celle du
+    processus applicatif, au format
+    ``mysql+mysqlconnector://<utilisateur>:<mot-de-passe>@<hote>[:<port>]/<base>``.
+    Le mot de passe n'est jamais affiché ni journalisé.
     """
-    Effectue une sauvegarde de la base de données en exécutant mysqldump.
-    Les informations de connexion doivent être présentes dans le fichier de configuration.
-    """
-    # On s'attend à trouver dans la config les clés suivantes :
-    #  - db_host
-    #  - db_port
-    #  - db_user
-    #  - db_name
-    db_host = config.get("db_host", "localhost")
-    db_port = config.get("db_port", 3306)
-    db_user = config.get("db_user", "root")
-    db_name = config.get("db_name", "adm_db")
-    command_environment = _mysql_environment()
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_file = f"backup_{timestamp}.sql"
-
-    cmd = [
-        "mysqldump",
-        "-h",
-        str(db_host),
-        "-P",
-        str(db_port),
-        "-u",
-        db_user,
-        db_name,
-    ]
-
-    try:
-        with open(backup_file, "w", encoding="utf-8") as f:
-            subprocess.run(
-                cmd,
-                stdout=f,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=True,
-                env=command_environment,
-            )
-        print(f"Sauvegarde réalisée avec succès : {backup_file}")
-    except subprocess.CalledProcessError as e:
-        print("Erreur lors de la sauvegarde :", e.stderr)
-
-
-def restore_database(config, backup_file):
-    """
-    Restaure la base de données à partir d'un fichier de sauvegarde, en exécutant mysql.
-    """
-    db_host = config.get("db_host", "localhost")
-    db_port = config.get("db_port", 3306)
-    db_user = config.get("db_user", "root")
-    db_name = config.get("db_name", "adm_db")
-    command_environment = _mysql_environment()
-
-    cmd = [
-        "mysql",
-        "-h",
-        str(db_host),
-        "-P",
-        str(db_port),
-        "-u",
-        db_user,
-        db_name,
-    ]
-
-    try:
-        with open(backup_file, encoding="utf-8") as f:
-            subprocess.run(
-                cmd,
-                stdin=f,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=True,
-                env=command_environment,
-            )
-        print(f"Restauration réalisée avec succès depuis : {backup_file}")
-    except subprocess.CalledProcessError as e:
-        print("Erreur lors de la restauration :", e.stderr)
-
-
-def _mysql_environment():
-    password = os.environ.get("ADM_DATABASE_PASSWORD")
+    database_url = os.environ.get("ADM_DATABASE_URL")
+    if not database_url:
+        raise ConnectionConfigError(
+            "ADM_DATABASE_URL est obligatoire : utilisez la même valeur que celle "
+            "configurée pour l'application (voir INSTALL.md, section 5)."
+        )
+    parsed = urlsplit(database_url)
+    if "mysql" not in parsed.scheme:
+        raise ConnectionConfigError(
+            "ADM_DATABASE_URL ne décrit pas une connexion MySQL "
+            f"(schéma {parsed.scheme!r})."
+        )
+    if not parsed.hostname or not parsed.username or not parsed.path.lstrip("/"):
+        raise ConnectionConfigError(
+            "ADM_DATABASE_URL est incomplète : hôte, utilisateur et nom de base sont "
+            "obligatoires."
+        )
+    password = unquote(parsed.password) if parsed.password else os.environ.get(
+        "ADM_DATABASE_PASSWORD"
+    )
     if not password:
-        raise RuntimeError("ADM_DATABASE_PASSWORD est obligatoire.")
+        raise ConnectionConfigError(
+            "Aucun mot de passe trouvé : incluez-le dans ADM_DATABASE_URL ou "
+            "définissez ADM_DATABASE_PASSWORD."
+        )
+    return {
+        "db_host": parsed.hostname,
+        "db_port": parsed.port or 3306,
+        "db_user": unquote(parsed.username),
+        "db_name": parsed.path.lstrip("/"),
+        "db_password": password,
+    }
+
+
+def _mysql_environment(password: str) -> dict:
     return {**os.environ, "MYSQL_PWD": password}
 
 
-def main():
+def backup_database(connection: dict) -> None:
+    """Sauvegarde la base via ``mysqldump``, sans exposer le mot de passe."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_file = f"backup_{timestamp}.sql"
+    cmd = [
+        "mysqldump",
+        "-h",
+        str(connection["db_host"]),
+        "-P",
+        str(connection["db_port"]),
+        "-u",
+        connection["db_user"],
+        connection["db_name"],
+    ]
+    try:
+        with open(backup_file, "w", encoding="utf-8") as handle:
+            subprocess.run(
+                cmd,
+                stdout=handle,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True,
+                env=_mysql_environment(connection["db_password"]),
+            )
+        print(f"Sauvegarde réalisée avec succès : {backup_file}")
+    except subprocess.CalledProcessError as error:
+        print("Erreur lors de la sauvegarde :", error.stderr)
+
+
+def restore_database(connection: dict, backup_file: str) -> None:
+    """Restaure la base via ``mysql``, sans exposer le mot de passe."""
+    cmd = [
+        "mysql",
+        "-h",
+        str(connection["db_host"]),
+        "-P",
+        str(connection["db_port"]),
+        "-u",
+        connection["db_user"],
+        connection["db_name"],
+    ]
+    try:
+        with open(backup_file, encoding="utf-8") as handle:
+            subprocess.run(
+                cmd,
+                stdin=handle,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True,
+                env=_mysql_environment(connection["db_password"]),
+            )
+        print(f"Restauration réalisée avec succès depuis : {backup_file}")
+    except subprocess.CalledProcessError as error:
+        print("Erreur lors de la restauration :", error.stderr)
+
+
+def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Script de sauvegarde et restauration de la base MySQL."
+        description=(
+            "Sauvegarde ou restaure la base MySQL désignée par ADM_DATABASE_URL "
+            "(mêmes clients requis : mysqldump / mysql)."
+        )
     )
     parser.add_argument(
         "action",
@@ -114,26 +134,25 @@ def main():
         help="Action à réaliser : 'backup' pour sauvegarder, 'restore' pour restaurer",
     )
     parser.add_argument(
-        "--config",
-        default=str(PROJECT_ROOT / "src" / "ADM" / "resources" / "config.json"),
-        help="Chemin vers le fichier de configuration (par défaut : ressource intégrée au paquet)",
-    )
-    parser.add_argument(
         "--file", help="Fichier de sauvegarde à restaurer (obligatoire pour l'action 'restore')"
     )
     args = parser.parse_args()
 
-    config = load_config(args.config)
+    try:
+        connection = load_connection_from_environment()
+    except ConnectionConfigError as error:
+        print(f"Configuration invalide : {error}")
+        return
 
     if args.action == "backup":
-        backup_database(config)
+        backup_database(connection)
     elif args.action == "restore":
         if not args.file:
             print(
                 "Pour l'action 'restore', vous devez spécifier le fichier de sauvegarde avec --file"
             )
             return
-        restore_database(config, args.file)
+        restore_database(connection, args.file)
 
 
 if __name__ == "__main__":

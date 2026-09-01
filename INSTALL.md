@@ -152,7 +152,11 @@ ni ajouter un dossier de données Python arbitraire au `PYTHONPATH`.
 ### 4.3 Installation sans virtualenv
 
 Sur PythonAnywhere, ou sur un serveur où ADM s'exécute sous un compte dédié,
-installez le projet dans le répertoire utilisateur de ce compte :
+installez le projet dans le répertoire utilisateur de ce compte. Si ce n'est pas
+déjà fait, clonez d'abord le dépôt et positionnez-vous sur le tag à déployer
+comme au début de la section 4.1 (`git clone`, `git checkout <tag-de-version>`),
+mais **sans créer le virtualenv ni y installer le wheel** : ces commandes sont
+remplacées par les suivantes.
 
 ```bash
 cd /home/<utilisateur>/ADM
@@ -181,6 +185,18 @@ ADM reconnaît les variables suivantes :
 | `ADM_DB_BACKEND` | obligatoire (`mysql`) | Sélectionne la persistance MySQL. |
 | `ADM_DATABASE_URL` | obligatoire | URL SQLAlchemy de la base. |
 | `ADM_ACCOUNTS_URL` | non utilisée | Réservée au chemin du fichier de comptes avec le backend JSON. |
+| `ADM_CONFIG_PATH` | recommandée | Chemin persistant de `config.json` (seuils d'affichage, modifiables depuis `/settings`). Voir l'avertissement ci-dessous. |
+
+`config.json` n'est pas une ressource figée : les seuils d'affichage y sont
+réécrits à chaud lorsqu'un administrateur les modifie depuis `/settings`. Sans
+`ADM_CONFIG_PATH`, ce fichier reste à son emplacement par défaut **à l'intérieur
+du paquet installé** (le wheel, dans le virtualenv ou l'installation `--user`) :
+toute mise à jour du wheel (section 12) le remplace intégralement et efface donc
+silencieusement les seuils personnalisés. Définissez `ADM_CONFIG_PATH` vers un
+chemin persistant, hors de l'arborescence du code (par exemple à côté de
+`ADM_DATABASE_URL` en JSON/SQLite, ou dans un répertoire de données dédié pour
+MySQL) : le fichier y est créé automatiquement à partir du gabarit empaqueté au
+premier démarrage si nécessaire.
 
 Générez la clé de session sans l'afficher ni la copier dans l'historique du shell,
 par exemple directement dans le gestionnaire de secrets de l'hébergeur. Elle doit
@@ -200,7 +216,7 @@ gestionnaire de secrets ou un outil local sûr, puis effacez toute copie tempora
 
 ### PythonAnywhere
 
-Déclarez les trois variables dans la configuration d'environnement du processus
+Déclarez ces variables dans la configuration d'environnement du processus
 Web si votre offre le permet. Sinon, définissez-les au tout début du fichier WSGI
 privé fourni par l'onglet Web, avant l'import d'ADM :
 
@@ -210,6 +226,7 @@ import os
 os.environ["ADM_DB_BACKEND"] = "mysql"
 os.environ["ADM_DATABASE_URL"] = "<url-sqlalchemy-fournie-comme-secret>"
 os.environ["ADM_SECRET_KEY"] = "<cle-aleatoire-fournie-comme-secret>"
+os.environ["ADM_CONFIG_PATH"] = "/home/<utilisateur>/adm-data/config.json"
 ```
 
 Ce fichier est une configuration sensible : ne le placez pas dans Git, limitez-en
@@ -225,6 +242,7 @@ secrets, sans le versionner :
 ADM_DB_BACKEND=mysql
 ADM_DATABASE_URL=mysql+mysqlconnector://<utilisateur>:<mot-de-passe-encode>@<hote>/<base>
 ADM_SECRET_KEY=<cle-de-session-longue-et-aleatoire>
+ADM_CONFIG_PATH=/var/lib/adm/config.json
 ```
 
 ```bash
@@ -250,8 +268,12 @@ test -n "$ADM_SECRET_KEY"
 ```
 
 Sur PythonAnywhere, une console Bash et l'application Web n'ont pas forcément le
-même environnement. Définissez donc aussi temporairement ces variables dans la
-console qui exécutera les migrations, sans les enregistrer dans l'historique.
+même environnement. Définissez donc aussi temporairement ces variables (ainsi que
+`ADM_CONFIG_PATH` si vous l'utilisez, faute de quoi les commandes exécutées dans
+cette console -- création de compte à l'étape 8, diagnostic -- retomberaient sur
+le `config.json` empaqueté par défaut, distinct de celui utilisé par le processus
+Web) dans la console qui exécutera les migrations, sans les enregistrer dans
+l'historique.
 
 ## 7. Créer ou mettre à jour le schéma
 
@@ -400,11 +422,18 @@ from ADM.app import create_app
 application = create_app()
 ```
 
-Le nom `application` est celui attendu par le serveur WSGI. Le paquet provient du
-wheel installé à l'étape 4 ; le fichier WSGI ne modifie donc pas `sys.path` pour
-pointer vers une autre copie du code. N'utilisez pas `python main.py` en
-production : ce point d'entrée lance le serveur de développement Flask, pas un
-serveur WSGI de production.
+Aucune manipulation de `sys.path` n'est nécessaire ni souhaitable ici : ADM est
+importable directement dès lors que le wheel a été installé à l'étape 4 (dans le
+virtualenv déclaré à l'étape 3, ou via `site-packages` utilisateur pour
+l'installation `--user` de la section 4.3). Le paquet vit sous `src/ADM` dans le
+dépôt : insérer `/home/<utilisateur>/ADM` dans `sys.path` n'apporterait donc rien
+(ce n'est pas là que se trouve `ADM`) et va à l'encontre du principe de la
+section 4.2. Si l'import échoue, la cause est toujours à chercher du côté de
+l'installation du paquet, jamais d'un ajustement de `sys.path`.
+
+Le nom `application` est celui attendu par le serveur WSGI. N'utilisez pas
+`python main.py` en production : ce point d'entrée lance le serveur de
+développement Flask, pas un serveur WSGI de production.
 
 Si l'import `ADM` échoue, contrôlez en priorité la version Python, l'environnement
 configuré dans l'onglet Web et le résultat de la commande correspondant à votre
@@ -440,14 +469,20 @@ testez une restauration sur une base isolée. Le dépôt fournit aussi :
 
 ```bash
 # Avec virtualenv actif
-python scripts/backup_restore.py --help
+python scripts/backup_restore.py backup
+python scripts/backup_restore.py restore --file <fichier-de-sauvegarde>.sql
 
 # Sans virtualenv
-python3.11 scripts/backup_restore.py --help
+python3.11 scripts/backup_restore.py backup
 ```
 
-Cette commande nécessite les clients `mysqldump`/`mysql` et des variables
-d'environnement dédiées. Ne placez jamais un mot de passe dans la ligne de
+Cette commande nécessite les clients `mysqldump`/`mysql`, installés séparément
+sur la machine qui l'exécute (ils ne sont pas fournis par les dépendances Python
+d'ADM). Elle réutilise directement `ADM_DATABASE_URL` : la base sauvegardée ou
+restaurée est donc toujours celle réellement configurée pour l'application, sans
+variable ni fichier de configuration supplémentaire à renseigner. Si le mot de
+passe n'est pas inclus dans `ADM_DATABASE_URL`, définissez `ADM_DATABASE_PASSWORD`
+en complément. Ne placez jamais un mot de passe dans la ligne de
 commande ou le fichier exporté. Protégez les sauvegardes, chiffrez-les et appliquez
 une politique de rétention. Un export fonctionnel depuis l'interface ne remplace
 pas une sauvegarde complète et testée de MySQL.
@@ -491,6 +526,12 @@ Rechargez ensuite le processus WSGI et refaites la validation fonctionnelle. Un
 retour à un ancien tag peut être incompatible avec une migration déjà appliquée :
 restaurez alors la sauvegarde correspondante selon une procédure testée, plutôt
 que de lancer une migration descendante sans validation.
+
+Si `ADM_CONFIG_PATH` n'est pas défini, la réinstallation du wheel ci-dessus
+remplace `config.json` par le gabarit empaqueté : les seuils d'affichage
+personnalisés depuis `/settings` sont alors réinitialisés à leurs valeurs par
+défaut. Définissez `ADM_CONFIG_PATH` (section 5) avant la première mise en
+production pour éviter cette perte silencieuse.
 
 ## 13. Exploitation et sécurité minimales
 
@@ -548,3 +589,140 @@ ADM_SECRET_KEY=<cle-de-session-longue-et-aleatoire>
 Le processus Web doit avoir accès en lecture et écriture à ces deux fichiers et à
 leur dossier. Ce mode est simple mais moins adapté à un service multi-processus ;
 MySQL reste le backend recommandé pour PythonAnywhere ou un serveur équivalent.
+
+## 16. Nettoyer ou remettre à plat une installation existante
+
+Deux besoins distincts se présentent : repartir d'un environnement Python propre
+en conservant les données (mise à jour ratée, environnement corrompu, changement
+de mode d'installation), ou réinitialiser complètement une instance de test ou de
+démonstration, données comprises. Ne confondez pas les deux : la seconde est
+irréversible sans sauvegarde vérifiée (section 11).
+
+### 16.1 Remettre à plat le code et l'environnement Python (données conservées)
+
+Utile après un déploiement corrompu (par exemple le wheel défectueux décrit à
+l'étape 7), un changement de virtualenv, ou un passage `--user` ↔ virtualenv. Les
+données (MySQL, SQLite, JSON) et le fichier pointé par `ADM_CONFIG_PATH` ne sont
+pas touchés par cette procédure.
+
+**Avec virtualenv**
+
+```bash
+deactivate 2>/dev/null || true
+rm -rf /home/<utilisateur>/.virtualenvs/adm
+```
+
+Puis reprenez l'installation à l'étape 4.1 (recréation du virtualenv,
+réinstallation du wheel déjà vérifié).
+
+**Sans virtualenv**
+
+```bash
+python3.11 -m pip uninstall -y adm-catalogue
+```
+
+Cette commande retire le module `ADM` et les métadonnées du paquet
+(`adm_catalogue-*.dist-info`) de `~/.local/lib/python3.11/site-packages`. Elle ne
+désinstalle pas ses dépendances (Flask, SQLAlchemy, Alembic, etc.) : les laisser
+en place est sans risque, elles seront réutilisées par la réinstallation. Si des
+fichiers résiduels subsistent (installations `--force-reinstall` répétées, par
+exemple), supprimez-les explicitement :
+
+```bash
+rm -rf ~/.local/lib/python3.11/site-packages/ADM ~/.local/lib/python3.11/site-packages/adm_catalogue*
+```
+
+Puis reprenez l'installation à l'étape 4.3.
+
+**Dans les deux cas**, purgez aussi le checkout Git s'il est suspect (build local
+raté, fichiers non trackés) :
+
+```bash
+cd /home/<utilisateur>/ADM
+git status  # vérifiez qu'aucune modification locale utile ne sera perdue
+git clean -fdx
+git checkout <tag-de-version>
+```
+
+`git clean -fdx` supprime tout fichier non versionné du dépôt : `dist/`,
+`build/`, `*.egg-info`, les caches (`__pycache__`, `.pytest_cache`,
+`.mypy_cache`, `.ruff_cache`), ainsi que les résidus laissés par
+`scripts/setup_demo.sh`/`.ps1` si vous les avez exécutés dans ce même dossier
+(`.venv/`, `.adm-demo.env`, `.adm-demo.json`, `applications.json`,
+`accounts.json`, `src/ADM/resources/static/version.txt`). Ne l'utilisez jamais
+dans un dossier qui contient aussi les fichiers `applications.json`/`accounts.json`
+**persistants** d'une installation JSON en production (section 15) : ces fichiers
+doivent toujours vivre hors du checkout, comme documenté, pour éviter ce risque.
+
+Pour réinitialiser uniquement les seuils d'affichage sans toucher au reste,
+supprimez le fichier pointé par `ADM_CONFIG_PATH` (ou le `config.json` embarqué
+si vous ne l'utilisez pas) : il est recréé automatiquement à partir du gabarit
+empaqueté au démarrage suivant (section 5).
+
+```bash
+rm -f "$ADM_CONFIG_PATH"
+```
+
+Dans tous les cas, rechargez le processus WSGI depuis l'onglet **Web** de
+PythonAnywhere (ou redémarrez le service sur un serveur classique) : le code et
+la configuration réinstallés ne sont pris en compte qu'après ce redémarrage.
+
+### 16.2 Réinitialiser complètement une installation (données comprises)
+
+**Irréversible.** Sauvegardez d'abord si les données ont la moindre valeur
+(section 11). Cette procédure convient à un environnement de démonstration, de
+Qualification ou de Recette que l'on souhaite remettre à zéro -- jamais à une
+Production sans sauvegarde vérifiée.
+
+Effectuez d'abord la remise à plat du code (16.1), puis supprimez les données
+selon le backend utilisé :
+
+**MySQL**
+
+```sql
+DROP DATABASE adm;
+CREATE DATABASE adm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Recréez ensuite le compte MySQL dédié s'il a été supprimé avec la base
+(section 3.2), puis reprenez à l'étape 7 (`alembic upgrade head`) pour recréer le
+schéma. Ne supprimez pas seulement les tables `applications`/`evaluations`/
+`accounts` une par une : la table `alembic_version` resterait désynchronisée et
+empêcherait une réinitialisation propre de l'historique des migrations.
+
+**SQLite**
+
+```bash
+rm -f /chemin/persistant/adm.db
+```
+
+Reprenez ensuite à l'étape 14 (`alembic upgrade head`, puis création du premier
+compte).
+
+**JSON**
+
+```bash
+rm -f /chemin/persistant/applications.json /chemin/persistant/accounts.json
+```
+
+Ces deux fichiers sont recréés vides au prochain démarrage de l'application
+(section 15).
+
+**Dans tous les cas**, recréez ensuite le premier compte administrateur
+(section 8) : sans lui, personne ne peut plus se connecter.
+
+### 16.3 Décommissionner complètement une instance PythonAnywhere
+
+Pour retirer entièrement ADM d'un compte PythonAnywhere :
+
+1. dans l'onglet **Web**, désactivez puis supprimez l'application Web (cela
+   retire aussi le mapping statique `/static/`) ;
+2. supprimez la base MySQL dans l'onglet **Databases**, après une dernière
+   sauvegarde si nécessaire ;
+3. supprimez le virtualenv (`rm -rf /home/<utilisateur>/.virtualenvs/adm`) ou
+   désinstallez le paquet `--user` (16.1) ;
+4. supprimez le checkout (`rm -rf /home/<utilisateur>/ADM`) ainsi que tout
+   fichier `ADM_CONFIG_PATH` ou fichier JSON persistant situé en dehors de ce
+   dossier ;
+5. révoquez `ADM_SECRET_KEY` et les identifiants MySQL dans le gestionnaire de
+   secrets utilisé.
