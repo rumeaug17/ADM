@@ -589,3 +589,140 @@ ADM_SECRET_KEY=<cle-de-session-longue-et-aleatoire>
 Le processus Web doit avoir accès en lecture et écriture à ces deux fichiers et à
 leur dossier. Ce mode est simple mais moins adapté à un service multi-processus ;
 MySQL reste le backend recommandé pour PythonAnywhere ou un serveur équivalent.
+
+## 16. Nettoyer ou remettre à plat une installation existante
+
+Deux besoins distincts se présentent : repartir d'un environnement Python propre
+en conservant les données (mise à jour ratée, environnement corrompu, changement
+de mode d'installation), ou réinitialiser complètement une instance de test ou de
+démonstration, données comprises. Ne confondez pas les deux : la seconde est
+irréversible sans sauvegarde vérifiée (section 11).
+
+### 16.1 Remettre à plat le code et l'environnement Python (données conservées)
+
+Utile après un déploiement corrompu (par exemple le wheel défectueux décrit à
+l'étape 7), un changement de virtualenv, ou un passage `--user` ↔ virtualenv. Les
+données (MySQL, SQLite, JSON) et le fichier pointé par `ADM_CONFIG_PATH` ne sont
+pas touchés par cette procédure.
+
+**Avec virtualenv**
+
+```bash
+deactivate 2>/dev/null || true
+rm -rf /home/<utilisateur>/.virtualenvs/adm
+```
+
+Puis reprenez l'installation à l'étape 4.1 (recréation du virtualenv,
+réinstallation du wheel déjà vérifié).
+
+**Sans virtualenv**
+
+```bash
+python3.11 -m pip uninstall -y adm-catalogue
+```
+
+Cette commande retire le module `ADM` et les métadonnées du paquet
+(`adm_catalogue-*.dist-info`) de `~/.local/lib/python3.11/site-packages`. Elle ne
+désinstalle pas ses dépendances (Flask, SQLAlchemy, Alembic, etc.) : les laisser
+en place est sans risque, elles seront réutilisées par la réinstallation. Si des
+fichiers résiduels subsistent (installations `--force-reinstall` répétées, par
+exemple), supprimez-les explicitement :
+
+```bash
+rm -rf ~/.local/lib/python3.11/site-packages/ADM ~/.local/lib/python3.11/site-packages/adm_catalogue*
+```
+
+Puis reprenez l'installation à l'étape 4.3.
+
+**Dans les deux cas**, purgez aussi le checkout Git s'il est suspect (build local
+raté, fichiers non trackés) :
+
+```bash
+cd /home/<utilisateur>/ADM
+git status  # vérifiez qu'aucune modification locale utile ne sera perdue
+git clean -fdx
+git checkout <tag-de-version>
+```
+
+`git clean -fdx` supprime tout fichier non versionné du dépôt : `dist/`,
+`build/`, `*.egg-info`, les caches (`__pycache__`, `.pytest_cache`,
+`.mypy_cache`, `.ruff_cache`), ainsi que les résidus laissés par
+`scripts/setup_demo.sh`/`.ps1` si vous les avez exécutés dans ce même dossier
+(`.venv/`, `.adm-demo.env`, `.adm-demo.json`, `applications.json`,
+`accounts.json`, `src/ADM/resources/static/version.txt`). Ne l'utilisez jamais
+dans un dossier qui contient aussi les fichiers `applications.json`/`accounts.json`
+**persistants** d'une installation JSON en production (section 15) : ces fichiers
+doivent toujours vivre hors du checkout, comme documenté, pour éviter ce risque.
+
+Pour réinitialiser uniquement les seuils d'affichage sans toucher au reste,
+supprimez le fichier pointé par `ADM_CONFIG_PATH` (ou le `config.json` embarqué
+si vous ne l'utilisez pas) : il est recréé automatiquement à partir du gabarit
+empaqueté au démarrage suivant (section 5).
+
+```bash
+rm -f "$ADM_CONFIG_PATH"
+```
+
+Dans tous les cas, rechargez le processus WSGI depuis l'onglet **Web** de
+PythonAnywhere (ou redémarrez le service sur un serveur classique) : le code et
+la configuration réinstallés ne sont pris en compte qu'après ce redémarrage.
+
+### 16.2 Réinitialiser complètement une installation (données comprises)
+
+**Irréversible.** Sauvegardez d'abord si les données ont la moindre valeur
+(section 11). Cette procédure convient à un environnement de démonstration, de
+Qualification ou de Recette que l'on souhaite remettre à zéro -- jamais à une
+Production sans sauvegarde vérifiée.
+
+Effectuez d'abord la remise à plat du code (16.1), puis supprimez les données
+selon le backend utilisé :
+
+**MySQL**
+
+```sql
+DROP DATABASE adm;
+CREATE DATABASE adm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Recréez ensuite le compte MySQL dédié s'il a été supprimé avec la base
+(section 3.2), puis reprenez à l'étape 7 (`alembic upgrade head`) pour recréer le
+schéma. Ne supprimez pas seulement les tables `applications`/`evaluations`/
+`accounts` une par une : la table `alembic_version` resterait désynchronisée et
+empêcherait une réinitialisation propre de l'historique des migrations.
+
+**SQLite**
+
+```bash
+rm -f /chemin/persistant/adm.db
+```
+
+Reprenez ensuite à l'étape 14 (`alembic upgrade head`, puis création du premier
+compte).
+
+**JSON**
+
+```bash
+rm -f /chemin/persistant/applications.json /chemin/persistant/accounts.json
+```
+
+Ces deux fichiers sont recréés vides au prochain démarrage de l'application
+(section 15).
+
+**Dans tous les cas**, recréez ensuite le premier compte administrateur
+(section 8) : sans lui, personne ne peut plus se connecter.
+
+### 16.3 Décommissionner complètement une instance PythonAnywhere
+
+Pour retirer entièrement ADM d'un compte PythonAnywhere :
+
+1. dans l'onglet **Web**, désactivez puis supprimez l'application Web (cela
+   retire aussi le mapping statique `/static/`) ;
+2. supprimez la base MySQL dans l'onglet **Databases**, après une dernière
+   sauvegarde si nécessaire ;
+3. supprimez le virtualenv (`rm -rf /home/<utilisateur>/.virtualenvs/adm`) ou
+   désinstallez le paquet `--user` (16.1) ;
+4. supprimez le checkout (`rm -rf /home/<utilisateur>/ADM`) ainsi que tout
+   fichier `ADM_CONFIG_PATH` ou fichier JSON persistant situé en dehors de ce
+   dossier ;
+5. révoquez `ADM_SECRET_KEY` et les identifiants MySQL dans le gestionnaire de
+   secrets utilisé.
