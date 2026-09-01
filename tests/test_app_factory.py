@@ -135,6 +135,8 @@ def test_create_app_requires_database_url_for_sqlite(monkeypatch: pytest.MonkeyP
                 "DB_BACKEND": "sqlite",
             }
         )
+
+
 def test_create_app_uses_packaged_resources(tmp_path: Path) -> None:
     import ADM.app as app_module
 
