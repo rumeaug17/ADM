@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}ADM - Synthèse{% endblock %}
+
+{% block extra_head %}
+  <style>
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .badge {
+            font-size: 1rem;
+            padding: 8px 12px;
+        }
+		.bg-score-high {
+			background-color: red !important;
+			color: white !important;
+		}
+        .table {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        th {
+            background-color: #0d6efd;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+  </style>
+{% endblock %}
+
+{% block content %}
+
+    <h2 class="text-center text-primary">📊 Synthèse des Applications</h2>
+    
+    <!-- Section des KPI -->
+    <div class="row my-4 text-center">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary p-3">
+            <h4>📌 Nombre total d'applications</h4>
+            <h2>{{ total_apps }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success p-3">
+            <h4>⭐ Score moyen</h4>
+            <h2>{{ avg_score }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-primary p-3">
+            <h4>Risque global</h4>
+		{% if global_risk is not none %}
+		    {% if global_risk > display_thresholds.risk.critical %}
+		        <span class="badge bg-danger">{{ global_risk }}</span>
+		    {% elif global_risk > display_thresholds.risk.warning %}
+		        <span class="badge bg-warning">{{ global_risk }}</span>
+		    {% else %}
+		        <span class="badge bg-success">{{ global_risk }}</span>
+		    {% endif %}
+		{% else %}
+		    <span>Non évalué</span>
+		{% endif %}
+        </div>
+    </div>
+<p></p>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning p-3">
+            <h4>✅ Applications &gt; {{ display_thresholds.score.warning|int }}%</h4>
+            <h2>{{ apps_above_warning }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-score-high p-3">
+            <h4>🔥 Applications &gt; {{ display_thresholds.score.critical|int }}%</h4>
+            <h2>{{ apps_above_critical }}</h2>
+        </div>
+    </div>
+	
+<!-- Affichage côte à côte du graphique radar et du tableau des meilleurs scores par catégorie -->
+<div class="row my-4">
+  <!-- Colonne du graphique radar -->
+  <div class="col-md-6 text-center">
+    <img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes" class="img-fluid">
+  </div>
+  <!-- Colonne du tableau des meilleurs scores par catégorie -->
+  <div class="col-md-6">
+    <h3 class="text-center">Pires scores par catégorie</h3>
+    <table class="table table-bordered text-center">
+      <thead>
+        <tr>
+          <th>Application</th>
+          <th>Catégorie</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+	  <tbody>
+        {% for app, entries in best_grouped.items() %}
+          {% for entry in entries %}
+            <tr>
+              {% if loop.first %}
+                <td rowspan="{{ entries|length }}"><strong><a href="/resume/{{ app }}">{{ app }}</a></strong></td>
+              {% endif %}
+              <td>{{ entry[0] }}</td>
+              <td>{{ entry[1] }}</td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>	
+	
+</div>	
+
+<p/>
+    <!-- Tableau des applications -->
+	<div class="btn-group" role="group">
+    <a href="?filter_score=all" class="btn btn-secondary {% if filter_score == 'all' %}active{% endif %}">Tous</a>
+    <a href="?filter_score=warning" class="btn btn-warning {% if filter_score == 'warning' %}active{% endif %}">&gt; {{ display_thresholds.score.warning|int }}%</a>
+    <a href="?filter_score=critical" class="btn btn-danger {% if filter_score == 'critical' %}active{% endif %}">&gt; {{ display_thresholds.score.critical|int }}%</a>
+</div>
+    <table class="table table-bordered text-center">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Score</th>
+                <th>Score max</th>
+                <th>%</th>
+				<th>Risque</th>
+                <th>Dernière évaluation</th>
+		<th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr>
+                <td><strong><a href="/resume/{{ app.name }}">{{ app.name }}</a></strong></td>
+                <td>
+					{% if app.score is none %}
+						Non évaluée
+					{% else %}
+						{{ app.score }}
+					{% endif %}
+				</td>
+                <td>{{ app.max_score or "N/A" }}</td>
+                <td>
+                    {% if app.percentage is not none %}
+                        <span class="badge {% if app.percentage > display_thresholds.score.critical %} bg-danger {% elif app.percentage > display_thresholds.score.warning %} bg-warning {% else %} bg-success {% endif %}">
+                            {{ app.percentage }}%
+                        </span>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+				<td>
+					{% if app.risque is none %}
+						Non évaluée
+					{% else %}
+						{% set risk = app.risque|round(0)|int %}
+						{% if risk > display_thresholds.risk.critical %}
+							<span class="badge bg-danger">{{ risk }}</span>
+						{% elif risk > display_thresholds.risk.warning %}
+							<span class="badge bg-warning">{{ risk }}</span>
+						{% else %}
+							<span class="badge bg-success">{{ risk }}</span>
+						{% endif %}
+					{% endif %}
+				</td>				
+                <td>{{ app.last_evaluation or "Non évaluée" }}</td>
+		<td>
+			<button type="button"
+                  class="btn btn-sm btn-info"
+                  data-bs-toggle="modal"
+                  data-bs-target="#radarModal"
+                  data-appname="{{ app.name }}">
+            Radar...
+          </button>
+		</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+	<!-- Modal pour afficher le graphique radar d'une application -->
+<div class="modal fade" id="radarModal" tabindex="-1" aria-labelledby="radarModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="radarModalLabel">Radar de l'application : <span id="modalAppName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="radarChartImg" src="" alt="Radar Chart" class="img-fluid">
+      </div>
+    </div>
+  </div>
+</div>
+
+	<!-- Inclusion des scripts Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Lorsque le modal de radar est sur le point d'être affiché,
+  // mettre à jour son contenu en fonction de l'application sélectionnée.
+  var radarModal = document.getElementById('radarModal');
+  radarModal.addEventListener('show.bs.modal', function(event) {
+    // Bouton qui a déclenché l'ouverture du modal
+    var button = event.relatedTarget;
+    var appName = button.getAttribute('data-appname');
+    // Mettre à jour le titre du modal
+    document.getElementById('modalAppName').textContent = appName;
+    // Définir la source de l'image avec l'endpoint qui génère le graphique radar pour l'application
+    // Par exemple, si vous avez créé une route /radar/<app_name> qui renvoie l'image en PNG.
+    document.getElementById('radarChartImg').src = "/radar/" + encodeURIComponent(appName);
+  });
+</script>
+
+{% endblock %}	

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}ADM - Évaluation {{ application.name }}{% endblock %}
+
+{% block extra_head %}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-select {
+            width: 100%;
+        }
+        h3 {
+            background-color: #0d6efd;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+			font-weight: bold;
+        }
+	.label {
+		font-weight: bold;
+		margin-top: 15px;
+	}
+        button {
+            margin-top: 15px;
+        }
+	.info-icon {
+            color: white;
+            background-color: #0d6efd;
+            cursor: pointer;
+            margin-left: 5px;
+            font-weight: bold;
+            border-radius: 50%;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .info-tooltip {
+            display: none;
+            background-color: white;
+            border: 1px solid #0d6efd;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            z-index: 1000;
+            width: 450px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mt-2">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}	
+    <h2 class="text-center text-primary">✅ Évaluation : <strong>{{ application.name }}</strong></h2>
+
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+	    
+		<div class="card p-4 my-3">
+            <h3>👤 Évaluateur</h3>
+            <label>Nom de l'évaluateur :</label>
+            <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
+        </div>
+
+		{% for category, questions_list in questions.items() %}
+		<div class="card p-4 my-3">			
+				<h3>{{ category }}</h3>	
+			{% for key, question in questions_list.items() %}
+			<label class="label">{{ question.label }} :
+					<span class="info-icon" data-key="{{ key }}">?</span>
+			</label>
+			{% if question.type == "select" %}
+			<select name="{{ key }}" class="form-select">
+					{% set value = application.responses.get(key, '') %}
+					{% for option in question.options %}
+						<option value="{{ option.value }}" {% if value == option.value %}selected{% endif %}>
+							{{ option.value }}
+						</option>
+					{% endfor %}
+			</select>			
+			{% endif %}
+			<label class="comment">Commentaire :</label>
+			<textarea name="{{ key }}_comment" class="form-control">{{ application.comments.get(key ~ '_comment', '') }}</textarea>
+			{% endfor %}
+		</div>		
+		{% endfor %}
+
+        <button type="submit" id="submitEval" class="btn btn-primary w-100">📊 Mettre à jour le Score</button>
+		<!-- Bouton pour enregistrer le brouillon -->
+		<button type="submit" name="save_draft" value="true" class="btn btn-secondary w-100 mt-2">📝 Enregistrer brouillon</button>
+    </form>
+
+<script>
+  // Lors du clic sur le bouton d'évaluation finale
+  $('#submitEval').click(function(e) {
+      var emptyComment = null;
+      // Parcourt toutes les zones de commentaires dont le nom se termine par _comment
+      $('textarea[name$="_comment"]').each(function() {
+         var val = $(this).val().trim();
+         if (val === "") {
+             // Si c'est la première zone vide, la retenir
+             if(emptyComment === null) {
+                emptyComment = $(this);
+             }
+             // Met en évidence la zone en rose
+             $(this).css('background-color', '#ffc0cb'); 
+         } else {
+             // Réinitialise la couleur si la zone est remplie
+             $(this).css('background-color', '');
+         }
+      });
+      // Si au moins une zone est vide, empêcher la soumission et afficher un message
+      if (emptyComment !== null) {
+         alert("Tous les commentaires sont obligatoires pour l'évaluation.");
+         emptyComment.focus();
+         e.preventDefault();
+         return false;
+      }
+  });
+</script>
+
+<script>
+    $(document).ready(function() {
+		let infoTexts = {};
+
+        // Charger les textes des infobulles depuis un fichier JSON
+        $.getJSON("{{ url_for('static', filename='info_texts.json') }}", function(data) {
+			infoTexts = data;
+    
+			// Convertir les valeurs en chaînes de caractères si elles sont des tableaux
+			Object.keys(infoTexts).forEach(function(key) {
+				if (Array.isArray(infoTexts[key])) {
+					infoTexts[key] = infoTexts[key].join("");
+				}
+			});
+		});
+		
+	
+        $('.info-icon').click(function(event) {
+            event.stopPropagation();
+
+            // Supprime les infobulles existantes
+            $('.info-tooltip').remove();
+
+			// Récupération de la clé et du texte associé
+            var key = $(this).attr('data-key');
+            var infoText = infoTexts[key] || "Information non disponible.";
+			
+            // Création et ajout de l'infobulle
+            var tooltip = $('<div class="info-tooltip">' + infoText + '</div>');
+            $('body').append(tooltip);
+
+            // Positionnement dynamique sous l'icône
+            var iconPosition = $(this).offset();
+            tooltip.css({
+                top: iconPosition.top + 25,
+                left: iconPosition.left,
+                position: 'absolute'
+            }).fadeIn();
+        });
+
+        // Ferme l'infobulle si on clique ailleurs
+        $(document).click(function() {
+            $('.info-tooltip').fadeOut(function() {
+                $(this).remove();
+            });
+        });
+
+        // Empêche la fermeture immédiate si on clique sur l'infobulle
+        $(document).on('click', '.info-tooltip', function(event) {
+            event.stopPropagation();
+        });
+    });
+</script>
+
+{% endblock %}

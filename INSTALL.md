@@ -278,6 +278,27 @@ Sans virtualenv, effectuez les mêmes contrôles avec `python3.11 -m pip show
 adm-catalogue` et réinstallez si nécessaire avec `python3.11 -m pip install --user
 .`.
 
+Si l’initialisation signale un `FileNotFoundError` sur un `config.json` situé
+sous `site-packages`, à la racine du virtualenv ou sous `~/.local/lib`, le paquet
+installé est antérieur à la version qui embarque ses ressources d’exécution.
+Réinstallez le tag corrigé sans réutiliser le cache de `pip`, puis vérifiez avec
+le même interpréteur :
+
+```bash
+# Avec virtualenv
+/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip install --no-cache-dir --force-reinstall .
+/home/<utilisateur>/.virtualenvs/adm/bin/python -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
+
+# Sans virtualenv
+python3.11 -m pip install --user --no-cache-dir --force-reinstall .
+python3.11 -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
+```
+
+Dans les deux modes, `create_app` utilise les fichiers du dépôt lorsque le paquet
+est exécuté depuis son checkout et les ressources incluses dans le paquet dans
+les autres cas. Il ne doit donc pas être nécessaire de copier manuellement
+`config.json`, `static/` ou `templates/` dans le virtualenv ou sous `~/.local/lib`.
+
 ## 8. Créer le premier administrateur
 
 Toujours dans le même environnement configuré :
