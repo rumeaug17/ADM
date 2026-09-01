@@ -39,8 +39,8 @@ def test_run_demo_forwards_debug_mode_to_virtualenv_python(tmp_path: Path) -> No
         ["bash", str(scripts_directory / "run_demo.sh"), "--debug-mode", "on"],
         check=True,
         capture_output=True,
+        encoding="utf-8",
         env={**os.environ, "ADM_DEMO_VENV": str(tmp_path / ".venv")},
-        text=True,
     )
 
     assert result.stdout.splitlines() == ["main.py", "--debug"]
@@ -68,8 +68,8 @@ def test_setup_demo_runs_complete_command_sequence_with_selected_python(tmp_path
         ["bash", str(scripts_directory / "setup_demo.sh")],
         check=True,
         capture_output=True,
+        encoding="utf-8",
         env={**os.environ, "PYTHON_BIN": str(fake_python)},
-        text=True,
     )
 
     assert "Installation terminée" in result.stdout
