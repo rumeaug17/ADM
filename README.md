@@ -117,13 +117,18 @@ variables d'environnement :
 | `ADM_DB_BACKEND` | Non | `json` par défaut, `sqlite` ou `mysql`. |
 | `ADM_DATABASE_URL` | Avec SQLite/MySQL | URL SQLAlchemy (ou chemin de fichier avec JSON). |
 | `ADM_ACCOUNTS_URL` | Non | Chemin du fichier de comptes (backend JSON), remplace `accounts_connection_url`. |
+| `ADM_CONFIG_PATH` | Non (recommandé en production) | Chemin persistant de `config.json`, hors du paquet installé ; créé automatiquement au premier démarrage s'il est absent. |
 
 Les seuils de couleur et de filtrage des affichages sont définis dans
-`src/ADM/resources/config.json`, sous `display_thresholds`. Les valeurs `score` sont
+`src/ADM/resources/config.json` (ou dans le fichier pointé par `ADM_CONFIG_PATH`
+si elle est définie), sous `display_thresholds`. Les valeurs `score` sont
 des pourcentages et les valeurs `risk` utilisent l'unité du risque calculé. Pour chaque indicateur,
 `warning` doit être positif ou nul et strictement inférieur à `critical`.
 
-Ces seuils sont également modifiables depuis l'interface, à l'adresse `/settings`.
+Ces seuils sont également modifiables depuis l'interface, à l'adresse `/settings`. Comme
+ces modifications réécrivent le fichier, définissez `ADM_CONFIG_PATH` vers un emplacement
+persistant en production : sans cela, une réinstallation du paquet (mise à jour)
+écrase le fichier et réinitialise les seuils personnalisés (voir INSTALL.md, section 12).
 
 Avec le backend JSON, le chemin du fichier est défini par `json_connection_url` dans
 `config.json` et peut être remplacé par `ADM_DATABASE_URL`.

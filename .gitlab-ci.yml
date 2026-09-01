@@ -28,8 +28,10 @@ stages:
   - deploy-production
 
 variables:
-  # Le dépôt pip interne du projet (voir pip.ini) ; à surcharger via une
-  # variable CI/CD si le runner ne peut pas l'atteindre.
+  # Dépôt pip interne éventuel : si l'équipe d'exploitation fournit un `pip.ini`
+  # (non versionné ici -- absent de ce dépôt -- à déposer sur le runner ou à
+  # injecter via une variable CI/CD protégée), il sera utilisé automatiquement ;
+  # sinon pip retombe silencieusement sur l'index PyPI public.
   PIP_CONFIG_FILE: "${CI_PROJECT_DIR}/pip.ini"
   PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
 
@@ -74,8 +76,20 @@ build:
   stage: build
   script:
     - rm -rf dist
-    - python -m build
-    - sha256sum dist/* | tee dist/SHA256SUMS
+    # Le fichier de version appartient au même artefact immuable que le code
+    # et les autres ressources (INSTALL.md, section 4) : il doit donc être
+    # généré avant la construction du wheel, pas après.
+    - git describe --tags --always > src/ADM/resources/static/version.txt
+    - python -m build --wheel
+    # Vérifie que les ressources indispensables au démarrage sont bien
+    # incluses dans le wheel construit (INSTALL.md, section 4) : sans ce
+    # contrôle, un wheel mal empaqueté ne serait détecté qu'au déploiement.
+    - >
+      python -m zipfile -l dist/*.whl | grep -E
+      'ADM/resources/(config.json|static/questions.json|templates/base.html)'
+    # Empreinte individuelle par fichier, au format attendu par
+    # `sha256sum --check <wheel>.whl.sha256` (INSTALL.md, section 4 et 12).
+    - (cd dist && for artifact in *.whl; do sha256sum "$artifact" > "$artifact.sha256"; done)
   artifacts:
     paths:
       - dist/
@@ -89,7 +103,7 @@ build:
       artifacts: true
   script:
     - echo "Artefact promu vers ${ADM_TARGET_ENV} (empreinte ci-dessous, à comparer avec celle publiée par le job build) :"
-    - cat dist/SHA256SUMS
+    - cat dist/*.whl.sha256
     - echo "TODO -- déploiement réel de dist/*.whl vers ${ADM_TARGET_ENV}, sans reconstruction."
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'

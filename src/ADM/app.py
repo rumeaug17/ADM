@@ -23,7 +23,6 @@ def _load_json(path: Path) -> object:
     with path.open(encoding="utf-8") as stream:
         return json.load(stream)
 
-
 def _default_config() -> dict[str, object]:
     """Retourne la configuration non sensible utilisée sans fichier dédié."""
     return {
@@ -46,6 +45,25 @@ def _load_app_config(path: Path, *, use_defaults_when_missing: bool) -> AppConfi
         raw_config = _default_config()
     return AppConfig.from_object(raw_config)
 
+def _resolve_config_path(configured: str) -> Path:
+    """Retourne le chemin de ``config.json`` à utiliser pour cette instance.
+
+    ``config.json`` n'est pas une simple ressource statique : les seuils
+    d'affichage y sont réécrits à chaud depuis ``/settings`` (US4.2). Le laisser
+    par défaut sous ``PACKAGE_RESOURCES`` fonctionne, mais ce chemin se trouve
+    à l'intérieur du paquet installé (site-packages ou virtualenv) : une mise à
+    jour du wheel (voir INSTALL.md, section 12) le remplace intégralement et
+    efface silencieusement toute personnalisation. ``ADM_CONFIG_PATH`` permet
+    de pointer vers un emplacement persistant, à l'image d'``ADM_DATABASE_URL``
+    ou ``ADM_ACCOUNTS_URL``. S'il désigne un fichier qui n'existe pas encore,
+    il est initialisé à partir du gabarit empaqueté.
+    """
+    path = Path(configured)
+    if not path.exists():
+        default_content = (PACKAGE_RESOURCES / "config.json").read_text(encoding="utf-8")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(default_content, encoding="utf-8")
+    return path
 
 def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     """Construit et configure une instance isolée de l'application."""
@@ -55,17 +73,15 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
         template_folder=str(PACKAGE_RESOURCES / "templates"),
     )
     app.config.from_mapping(
-        CONFIG=str(PACKAGE_RESOURCES / "config.json"),
+        CONFIG=os.environ.get("ADM_CONFIG_PATH") or str(PACKAGE_RESOURCES / "config.json"),
         QUESTIONS_FILE="questions.json",
         MAX_CONTENT_LENGTH=5 * 1024 * 1024,
     )
     if test_config:
         app.config.update(test_config)
-    config_path = Path(str(app.config["CONFIG"]))
-    config = _load_app_config(
-        config_path,
-        use_defaults_when_missing=config_path == PACKAGE_RESOURCES / "config.json",
-    )
+    config_path = _resolve_config_path(str(app.config["CONFIG"]))
+    app.config["CONFIG"] = str(config_path)
+    config = AppConfig.from_object(_load_json(config_path))
     questions = parse_questions(
         _load_json(Path(app.static_folder or "") / str(app.config["QUESTIONS_FILE"]))
     )

@@ -154,7 +154,6 @@ def test_create_app_uses_packaged_resources(tmp_path: Path) -> None:
     assert Path(application.static_folder or "") == app_module.PACKAGE_RESOURCES / "static"
     assert application.test_client().get("/login").status_code == 200
 
-
 def test_packaged_config_uses_safe_defaults_when_file_is_missing(tmp_path: Path) -> None:
     from ADM.app import _load_app_config
 
@@ -174,3 +173,29 @@ def test_explicit_missing_config_is_rejected(tmp_path: Path) -> None:
             tmp_path / "missing-config.json",
             use_defaults_when_missing=False,
         )
+
+def test_create_app_seeds_config_from_env_when_absent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """ADM_CONFIG_PATH doit permettre de stocker config.json hors du paquet installé,
+    afin qu'une réinstallation du wheel (mise à jour) n'efface pas les seuils
+    personnalisés depuis /settings (voir INSTALL.md, section 12)."""
+    from ADM.app import create_app
+
+    config_path = tmp_path / "persistent" / "config.json"
+    monkeypatch.setenv("ADM_CONFIG_PATH", str(config_path))
+
+    application = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(tmp_path / "catalogue.json"),
+            "ACCOUNTS_CONNECTION": str(tmp_path / "accounts.json"),
+        }
+    )
+
+    assert config_path.exists()
+    assert Path(application.config["CONFIG"]) == config_path
+    assert application.extensions["adm_display_thresholds"].score.warning == 30
+
