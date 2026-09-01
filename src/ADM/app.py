@@ -23,6 +23,7 @@ def _load_json(path: Path) -> object:
     with path.open(encoding="utf-8") as stream:
         return json.load(stream)
 
+
 def _default_config() -> dict[str, object]:
     """Retourne la configuration non sensible utilisée sans fichier dédié."""
     return {
@@ -45,6 +46,7 @@ def _load_app_config(path: Path, *, use_defaults_when_missing: bool) -> AppConfi
         raw_config = _default_config()
     return AppConfig.from_object(raw_config)
 
+
 def _resolve_config_path(configured: str) -> Path:
     """Retourne le chemin de ``config.json`` à utiliser pour cette instance.
 
@@ -64,6 +66,7 @@ def _resolve_config_path(configured: str) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(default_content, encoding="utf-8")
     return path
+
 
 def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     """Construit et configure une instance isolée de l'application."""

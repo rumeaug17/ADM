@@ -36,16 +36,14 @@ def load_connection_from_environment() -> dict:
     parsed = urlsplit(database_url)
     if "mysql" not in parsed.scheme:
         raise ConnectionConfigError(
-            "ADM_DATABASE_URL ne décrit pas une connexion MySQL "
-            f"(schéma {parsed.scheme!r})."
+            f"ADM_DATABASE_URL ne décrit pas une connexion MySQL (schéma {parsed.scheme!r})."
         )
     if not parsed.hostname or not parsed.username or not parsed.path.lstrip("/"):
         raise ConnectionConfigError(
-            "ADM_DATABASE_URL est incomplète : hôte, utilisateur et nom de base sont "
-            "obligatoires."
+            "ADM_DATABASE_URL est incomplète : hôte, utilisateur et nom de base sont obligatoires."
         )
-    password = unquote(parsed.password) if parsed.password else os.environ.get(
-        "ADM_DATABASE_PASSWORD"
+    password = (
+        unquote(parsed.password) if parsed.password else os.environ.get("ADM_DATABASE_PASSWORD")
     )
     if not password:
         raise ConnectionConfigError(
