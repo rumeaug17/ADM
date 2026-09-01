@@ -70,6 +70,7 @@ finally:
     session.close()
 PYTHON
 
+rm -f static/version.txt
 git describe --tags --abbrev=0 2>/dev/null > src/ADM/resources/static/version.txt || \
     printf 'v0.1.0\n' > src/ADM/resources/static/version.txt
 

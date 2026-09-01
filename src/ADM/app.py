@@ -100,9 +100,8 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
 
         connection = app.config.get("DB_CONNECTION") or os.environ.get("ADM_DATABASE_URL")
         if not connection:
-            raise RuntimeError(
-                f"ADM_DATABASE_URL est obligatoire avec le backend {backend.capitalize()}."
-            )
+            backend_name = "SQLite" if backend == "sqlite" else "MySQL"
+            raise RuntimeError(f"ADM_DATABASE_URL est obligatoire avec le backend {backend_name}.")
     elif backend == "json":
         from ADM.database_json import get_session_factory, init_db
 
