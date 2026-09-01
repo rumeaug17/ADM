@@ -20,7 +20,7 @@ et les données :
 | Environnement virtuel | `/home/<utilisateur>/.virtualenvs/adm` | `/opt/adm/venv` |
 | Données Python persistantes | MySQL ; aucun fichier métier local | MySQL ; aucun fichier métier local |
 | Secrets/configuration d'exécution | Variables du processus WSGI, hors Git | `/etc/adm/adm.env`, mode `600` |
-| Fichiers statiques | `/home/<utilisateur>/ADM/static` | `/opt/adm/app/static` |
+| Fichiers statiques | `/home/<utilisateur>/ADM/src/ADM/resources/static` | `/opt/adm/app/src/ADM/resources/static` |
 
 Dans les commandes ci-dessous, remplacez les valeurs entre chevrons. Ne copiez
 jamais un mot de passe, une clé de session ou une URL contenant un mot de passe
@@ -304,6 +304,27 @@ Sans virtualenv, effectuez les mêmes contrôles avec `python3.11 -m pip show
 adm-catalogue` et réinstallez si nécessaire avec `python3.11 -m pip install --user
 <repertoire-artefacts>/<nom-exact-du-wheel>.whl`.
 
+Si l’initialisation signale un `FileNotFoundError` sur un `config.json` situé
+sous `site-packages`, à la racine du virtualenv ou sous `~/.local/lib`, le paquet
+installé est antérieur à la version qui embarque ses ressources d’exécution.
+Réinstallez le tag corrigé sans réutiliser le cache de `pip`, puis vérifiez avec
+le même interpréteur :
+
+```bash
+# Avec virtualenv
+/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip install --no-cache-dir --force-reinstall .
+/home/<utilisateur>/.virtualenvs/adm/bin/python -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
+
+# Sans virtualenv
+python3.11 -m pip install --user --no-cache-dir --force-reinstall .
+python3.11 -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
+```
+
+Dans les deux modes, `create_app` utilise les fichiers du dépôt lorsque le paquet
+est exécuté depuis son checkout et les ressources incluses dans le paquet dans
+les autres cas. Il ne doit donc pas être nécessaire de copier manuellement
+`config.json`, `static/` ou `templates/` dans le virtualenv ou sous `~/.local/lib`.
+
 ## 8. Créer le premier administrateur
 
 Toujours dans le même environnement configuré :
@@ -333,7 +354,7 @@ Dans l'onglet **Web** :
    décrite à l'étape 5 ;
 5. ajoutez ensuite le code suivant, en adaptant le chemin ;
 6. configurez le mapping statique `/static/` vers
-   `/home/<utilisateur>/ADM/static` ;
+   `/home/<utilisateur>/ADM/src/ADM/resources/static` ;
 7. rechargez l'application depuis l'onglet Web.
 
 ```python
@@ -454,7 +475,32 @@ que de lancer une migration descendante sans validation.
 - n'utilisez jamais le mode debug sur un serveur exposé ;
 - conservez des sauvegardes chiffrées et vérifiez périodiquement leur restauration.
 
-## 14. Variante locale JSON (développement uniquement)
+## 14. Variante locale SQLite (déploiement mono-processus)
+
+SQLite fournit une installation persistante sans serveur de base de données. Le
+catalogue, les évaluations et les comptes partagent un fichier relationnel unique.
+Créez au préalable son répertoire, puis configurez une URL SQLAlchemy absolue :
+
+```text
+ADM_DB_BACKEND=sqlite
+ADM_DATABASE_URL=sqlite:////chemin/persistant/adm.db
+ADM_SECRET_KEY=<cle-de-session-longue-et-aleatoire>
+```
+
+`ADM_ACCOUNTS_URL` n'est pas utilisée avec SQLite. Le processus Web doit pouvoir
+lire et écrire le fichier et son répertoire. Initialisez ensuite le schéma et le
+premier compte comme pour MySQL :
+
+```bash
+alembic upgrade head
+python scripts/create_account.py --username <nom-administrateur> --role admin
+```
+
+Arrêtez l'application avant de copier `adm.db` pour une sauvegarde cohérente. Cette
+variante convient à un déploiement local avec un seul processus applicatif ; utilisez
+MySQL lorsque plusieurs processus ou serveurs accèdent simultanément aux données.
+
+## 15. Variante locale JSON (développement uniquement)
 
 Pour une démonstration locale sans MySQL, utilisez les scripts documentés dans le
 `README.md`. Si vous configurez manuellement le backend JSON, donnez des chemins

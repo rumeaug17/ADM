@@ -16,7 +16,7 @@ et présente une synthèse destinée à faciliter la priorisation des actions.
 - historique des évaluations et génération de graphiques radar ;
 - import et export atomiques du catalogue au format JSON (réimportation totale
   réservée au rôle administrateur) ;
-- persistance locale dans un fichier JSON ou dans MySQL via SQLAlchemy ;
+- persistance locale dans un fichier JSON ou SQLite, ou dans MySQL via SQLAlchemy ;
 - validation des entrées, protection CSRF et limitation des imports à 5 Mio.
 
 Les règles du questionnaire et du calcul sont détaillées dans
@@ -28,7 +28,8 @@ défaut, générée depuis les fichiers de configuration, est disponible dans
 
 - Python 3.11 ou une version ultérieure ;
 - Git, pour écrire la version affichée par l'application ;
-- un serveur MySQL uniquement si le backend MySQL est utilisé.
+- un serveur MySQL uniquement si le backend MySQL est utilisé ; SQLite ne nécessite
+  aucun serveur supplémentaire.
 
 ## Démarrage rapide
 
@@ -76,7 +77,7 @@ Le script PowerShell recherche automatiquement `py`, `python`, puis `python3`.
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install -e '.[dev]'
-git describe --tags --always > static/version.txt
+git describe --tags --always > src/ADM/resources/static/version.txt
 ```
 
 Définissez ensuite le secret dans l'environnement, créez le premier compte
@@ -96,26 +97,43 @@ L'interface est alors accessible à l'adresse <http://127.0.0.1:5000/>.
 
 ## Configuration
 
-`config.json` contient uniquement les valeurs non sensibles par défaut. Les secrets
-et paramètres propres à un environnement sont fournis par variables d'environnement :
+`src/ADM/resources/config.json` contient uniquement les valeurs non sensibles par
+défaut. Les secrets et paramètres propres à un environnement sont fournis par
+variables d'environnement :
 
 | Variable | Obligatoire | Description |
 | --- | --- | --- |
 | `ADM_SECRET_KEY` | Oui | Clé longue et aléatoire utilisée pour signer la session Flask. |
-| `ADM_DB_BACKEND` | Non | `json` par défaut, ou `mysql`. |
-| `ADM_DATABASE_URL` | Avec MySQL | URL SQLAlchemy fournie par le gestionnaire de secrets. |
+| `ADM_DB_BACKEND` | Non | `json` par défaut, `sqlite` ou `mysql`. |
+| `ADM_DATABASE_URL` | Avec SQLite/MySQL | URL SQLAlchemy (ou chemin de fichier avec JSON). |
 | `ADM_ACCOUNTS_URL` | Non | Chemin du fichier de comptes (backend JSON), remplace `accounts_connection_url`. |
 
 Les seuils de couleur et de filtrage des affichages sont définis dans
-`config.json`, sous `display_thresholds`. Les valeurs `score` sont des pourcentages
-et les valeurs `risk` utilisent l'unité du risque calculé. Pour chaque indicateur,
+`src/ADM/resources/config.json`, sous `display_thresholds`. Les valeurs `score` sont
+des pourcentages et les valeurs `risk` utilisent l'unité du risque calculé. Pour chaque indicateur,
 `warning` doit être positif ou nul et strictement inférieur à `critical`.
 
 Ces seuils sont également modifiables depuis l'interface, à l'adresse `/settings`.
 
 Avec le backend JSON, le chemin du fichier est défini par `json_connection_url` dans
-`config.json` et peut être remplacé par `ADM_DATABASE_URL`. Avec MySQL, appliquez les
-migrations avant le premier démarrage :
+`config.json` et peut être remplacé par `ADM_DATABASE_URL`.
+
+Pour un déploiement local persistant mono-processus, SQLite stocke le catalogue,
+les évaluations et les comptes dans un même fichier, sans serveur à installer :
+
+```bash
+export ADM_DB_BACKEND=sqlite
+export ADM_DATABASE_URL='sqlite:////chemin/absolu/adm.db'
+alembic upgrade head
+python scripts/create_account.py --username admin --role admin
+python main.py
+```
+
+Le répertoire contenant `adm.db` doit exister et être accessible en écriture par
+le processus ADM. Sauvegardez le fichier lorsque l'application est arrêtée. Ce mode
+n'est pas destiné à plusieurs processus applicatifs concurrents.
+
+Avec MySQL, appliquez également les migrations avant le premier démarrage :
 
 ```bash
 export ADM_DB_BACKEND=mysql
@@ -144,8 +162,8 @@ du document ; conservez donc une sauvegarde avant l'opération.
 
 ```text
 src/ADM/       application, métier, validation et persistance
-templates/     vues Jinja
-static/        questionnaire, aides et ressources statiques
+src/ADM/resources/templates/  vues Jinja
+src/ADM/resources/static/     questionnaire, aides et ressources statiques
 tests/         tests automatisés
 migrations/    versions du schéma MySQL
 scripts/       setup, génération de données, sauvegarde et documentation
