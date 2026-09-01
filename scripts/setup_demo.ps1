@@ -183,6 +183,7 @@ print(json.dumps({"username": demo_username, "password": demo_password}))
     # seul propriétaire courant, par analogie avec le chmod 0600 appliqué côté bash.
     Protect-DemoConfigFile -Path $ConfigFile
 
+    Remove-Item -Force (Join-Path $ProjectRoot "static\version.txt") -ErrorAction SilentlyContinue
     $version = & git describe --tags --abbrev=0 2>$null
     if ($LASTEXITCODE -ne 0) {
         $version = "v0.1.0"
