@@ -115,8 +115,8 @@ def main():
     )
     parser.add_argument(
         "--config",
-        default=str(PROJECT_ROOT / "config.json"),
-        help="Chemin vers le fichier de configuration (default: config.json)",
+        default=str(PROJECT_ROOT / "src" / "ADM" / "resources" / "config.json"),
+        help="Chemin vers le fichier de configuration (par défaut : ressource intégrée au paquet)",
     )
     parser.add_argument(
         "--file", help="Fichier de sauvegarde à restaurer (obligatoire pour l'action 'restore')"

@@ -77,7 +77,7 @@ Le script PowerShell recherche automatiquement `py`, `python`, puis `python3`.
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install -e '.[dev]'
-git describe --tags --always > static/version.txt
+git describe --tags --always > src/ADM/resources/static/version.txt
 ```
 
 Définissez ensuite le secret dans l'environnement, créez le premier compte
@@ -97,8 +97,9 @@ L'interface est alors accessible à l'adresse <http://127.0.0.1:5000/>.
 
 ## Configuration
 
-`config.json` contient uniquement les valeurs non sensibles par défaut. Les secrets
-et paramètres propres à un environnement sont fournis par variables d'environnement :
+`src/ADM/resources/config.json` contient uniquement les valeurs non sensibles par
+défaut. Les secrets et paramètres propres à un environnement sont fournis par
+variables d'environnement :
 
 | Variable | Obligatoire | Description |
 | --- | --- | --- |
@@ -108,8 +109,8 @@ et paramètres propres à un environnement sont fournis par variables d'environn
 | `ADM_ACCOUNTS_URL` | Non | Chemin du fichier de comptes (backend JSON), remplace `accounts_connection_url`. |
 
 Les seuils de couleur et de filtrage des affichages sont définis dans
-`config.json`, sous `display_thresholds`. Les valeurs `score` sont des pourcentages
-et les valeurs `risk` utilisent l'unité du risque calculé. Pour chaque indicateur,
+`src/ADM/resources/config.json`, sous `display_thresholds`. Les valeurs `score` sont
+des pourcentages et les valeurs `risk` utilisent l'unité du risque calculé. Pour chaque indicateur,
 `warning` doit être positif ou nul et strictement inférieur à `critical`.
 
 Ces seuils sont également modifiables depuis l'interface, à l'adresse `/settings`.
@@ -161,8 +162,8 @@ du document ; conservez donc une sauvegarde avant l'opération.
 
 ```text
 src/ADM/       application, métier, validation et persistance
-templates/     vues Jinja
-static/        questionnaire, aides et ressources statiques
+src/ADM/resources/templates/  vues Jinja
+src/ADM/resources/static/     questionnaire, aides et ressources statiques
 tests/         tests automatisés
 migrations/    versions du schéma MySQL
 scripts/       setup, génération de données, sauvegarde et documentation

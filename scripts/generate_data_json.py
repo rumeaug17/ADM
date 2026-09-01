@@ -2,6 +2,10 @@
 import json
 import random
 from datetime import datetime, timedelta
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+QUESTIONS_PATH = PROJECT_ROOT / "src" / "ADM" / "resources" / "static" / "questions.json"
 
 # Nombre d'applications à générer
 NUM_APPS = 20
@@ -107,7 +111,7 @@ def generate_comment(key: str, app_name: str) -> str:
 
 
 # Charger la configuration des questions depuis questions.json
-with open("static/questions.json", encoding="utf-8") as f:
+with QUESTIONS_PATH.open(encoding="utf-8") as f:
     questions_config = json.load(f)
 
 # Construire la liste des clés de questions et les options associées (pour générer des réponses)

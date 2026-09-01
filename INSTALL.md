@@ -20,7 +20,7 @@ et les données :
 | Environnement virtuel | `/home/<utilisateur>/.virtualenvs/adm` | `/opt/adm/venv` |
 | Données Python persistantes | MySQL ; aucun fichier métier local | MySQL ; aucun fichier métier local |
 | Secrets/configuration d'exécution | Variables du processus WSGI, hors Git | `/etc/adm/adm.env`, mode `600` |
-| Fichiers statiques | `/home/<utilisateur>/ADM/static` | `/opt/adm/app/static` |
+| Fichiers statiques | `/home/<utilisateur>/ADM/src/ADM/resources/static` | `/opt/adm/app/src/ADM/resources/static` |
 
 Dans les commandes ci-dessous, remplacez les valeurs entre chevrons. Ne copiez
 jamais un mot de passe, une clé de session ou une URL contenant un mot de passe
@@ -71,6 +71,10 @@ pas strictement privé.
 
 ## 4. Installer le code et l'environnement Python
 
+Un virtualenv est recommandé pour isoler les dépendances et rendre le déploiement
+reproductible, mais il n'est pas obligatoire. La section 4.3 décrit une
+installation dans le compte utilisateur lorsque l'hébergeur fournit déjà Python.
+
 ### 4.1 PythonAnywhere
 
 Ouvrez une console Bash :
@@ -86,7 +90,7 @@ python3.11 -m venv /home/<utilisateur>/.virtualenvs/adm
 source /home/<utilisateur>/.virtualenvs/adm/bin/activate
 python -m pip install --upgrade pip
 python -m pip install .
-git describe --tags --always > static/version.txt
+git describe --tags --always > src/ADM/resources/static/version.txt
 ```
 
 Si l'offre ne fournit pas exactement la commande `python3.11`, sélectionnez dans
@@ -103,14 +107,37 @@ sudo -u adm git checkout <tag-de-version>
 sudo -u adm python3.11 -m venv /opt/adm/venv
 sudo -u adm /opt/adm/venv/bin/python -m pip install --upgrade pip
 sudo -u adm /opt/adm/venv/bin/python -m pip install .
-sudo -u adm sh -c 'git describe --tags --always > static/version.txt'
+sudo -u adm sh -c 'git describe --tags --always > src/ADM/resources/static/version.txt'
 ```
 
 L'installation standard n'utilise pas `applications.json` ni `accounts.json` :
 le catalogue, les évaluations **et les comptes** sont stockés dans la même base
 MySQL. Le dossier `src/` contient les paquets Python ; `pip install .` les installe
-dans le virtualenv. Il ne faut donc ni déplacer `src/ADM`, ni ajouter un dossier
-de données Python arbitraire au `PYTHONPATH`.
+dans l'environnement Python choisi. Il ne faut donc ni déplacer `src/ADM`, ni
+ajouter un dossier de données Python arbitraire au `PYTHONPATH`.
+
+### 4.3 Installation sans virtualenv
+
+Sur PythonAnywhere, ou sur un serveur où ADM s'exécute sous un compte dédié,
+installez le projet dans le répertoire utilisateur de ce compte :
+
+```bash
+cd /home/<utilisateur>/ADM
+python3.11 -m pip install --user .
+git describe --tags --always > src/ADM/resources/static/version.txt
+python3.11 -c "import ADM; print(ADM.__file__)"
+```
+
+Utilisez ensuite exactement cette version de Python pour les migrations, le
+diagnostic et le processus WSGI. Sur PythonAnywhere, choisissez aussi cette
+version dans l'onglet Web et ne renseignez pas de virtualenv. L'installation
+`--user` doit être réalisée avec le même compte que celui qui exécute
+l'application, car un autre compte ne verra pas ces paquets.
+
+N'utilisez pas `sudo pip install` dans le Python système. Certaines distributions
+Linux interdisent par ailleurs `pip install --user` dans leur Python administré ;
+dans ce cas, utilisez le virtualenv de la section 4.2 ou construisez un paquet selon
+la procédure de votre distribution.
 
 ## 5. Configurer les variables d'environnement
 
@@ -196,7 +223,7 @@ console qui exécutera les migrations, sans les enregistrer dans l'historique.
 
 ## 7. Créer ou mettre à jour le schéma
 
-Depuis la racine du dépôt et avec le virtualenv actif :
+Depuis la racine du dépôt, avec le virtualenv actif si vous en utilisez un :
 
 ```bash
 cd /home/<utilisateur>/ADM
@@ -208,13 +235,69 @@ alembic current
 Sur un serveur classique, adaptez les deux chemins à `/opt/adm/app` et
 `/opt/adm/venv`. `alembic upgrade head` est la procédure de référence ; n'importez
 pas manuellement `sql/create-db-mysql.sql`, qui ne remplace pas l'historique des
-migrations.
+migrations. Sans virtualenv, exécutez `python3.11 -m alembic upgrade head`, puis
+`python3.11 -m alembic current`, afin d'utiliser les modules installés à l'étape
+4.3 même si `~/.local/bin` n'est pas dans `PATH`.
 
-Pour un diagnostic sans afficher l'URL :
+Pour un diagnostic sans afficher l'URL, utilisez le même interpréteur que lors de
+l'installation. Avec le virtualenv recommandé :
 
 ```bash
-python -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
+/home/<utilisateur>/.virtualenvs/adm/bin/python -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
 ```
+
+Sans virtualenv :
+
+```bash
+python3.11 -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
+```
+
+Une erreur `ModuleNotFoundError: No module named 'ADM'` à cette étape ne signale
+pas un problème de chemin courant. Le projet utilise une arborescence `src/` : le
+paquet devient importable après son installation dans l'environnement Python,
+réalisée à l'étape 4. Vérifiez l'interpréteur et l'installation sans modifier
+`PYTHONPATH`. Avec un virtualenv :
+
+```bash
+command -v python
+/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip show adm-catalogue
+/home/<utilisateur>/.virtualenvs/adm/bin/python -c "import ADM; print(ADM.__file__)"
+```
+
+La première commande doit désigner
+`/home/<utilisateur>/.virtualenvs/adm/bin/python` après activation. Si
+`pip show` ne trouve pas le paquet, reprenez l'installation depuis la racine du
+dépôt avec le même interpréteur :
+
+```bash
+cd /home/<utilisateur>/ADM
+/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip install .
+```
+
+Sans virtualenv, effectuez les mêmes contrôles avec `python3.11 -m pip show
+adm-catalogue` et réinstallez si nécessaire avec `python3.11 -m pip install --user
+.`.
+
+Si l’initialisation signale un `FileNotFoundError` sur un `config.json` situé
+sous `site-packages`, à la racine du virtualenv ou sous `~/.local/lib`, le paquet
+installé est antérieur à la version qui embarque ses ressources d’exécution.
+Réinstallez le tag corrigé sans réutiliser le cache de `pip`, puis vérifiez avec
+le même interpréteur :
+
+```bash
+# Avec virtualenv
+/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip install --no-cache-dir --force-reinstall .
+/home/<utilisateur>/.virtualenvs/adm/bin/python -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
+
+# Sans virtualenv
+python3.11 -m pip install --user --no-cache-dir --force-reinstall .
+python3.11 -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
+```
+
+Dans les deux modes, `create_app` utilise les fichiers du dépôt lorsque le paquet
+est exécuté depuis son checkout et les ressources incluses dans le paquet dans
+les autres cas. Il ne doit donc pas être nécessaire de copier manuellement
+`config.json`, `static/` ou `templates/` dans le virtualenv ou sous `~/.local/lib`.
 
 ## 8. Créer le premier administrateur
 
@@ -234,13 +317,14 @@ administrateur.
 Dans l'onglet **Web** :
 
 1. créez une application Web en configuration manuelle (pas l'assistant Django) ;
-2. choisissez la même version Python que celle du virtualenv ;
-3. indiquez `/home/<utilisateur>/.virtualenvs/adm` comme virtualenv ;
+2. choisissez la même version Python que celle utilisée pour installer ADM ;
+3. indiquez `/home/<utilisateur>/.virtualenvs/adm` comme virtualenv, ou laissez ce
+   champ vide si vous avez suivi l'installation `--user` de la section 4.3 ;
 4. éditez le fichier de configuration WSGI et conservez l'injection des variables
    décrite à l'étape 5 ;
 5. ajoutez ensuite le code suivant, en adaptant le chemin ;
 6. configurez le mapping statique `/static/` vers
-   `/home/<utilisateur>/ADM/static` ;
+   `/home/<utilisateur>/ADM/src/ADM/resources/static` ;
 7. rechargez l'application depuis l'onglet Web.
 
 ```python
@@ -259,11 +343,16 @@ Le nom `application` est celui attendu par le serveur WSGI. N'utilisez pas
 `python main.py` en production : ce point d'entrée lance le serveur de
 développement Flask, pas un serveur WSGI de production.
 
-Si l'import `ADM` échoue, contrôlez en priorité le chemin du virtualenv, la version
-Python et le résultat de :
+Si l'import `ADM` échoue, contrôlez en priorité la version Python, l'environnement
+configuré dans l'onglet Web et le résultat de la commande correspondant à votre
+mode d'installation :
 
 ```bash
+# Avec virtualenv
 /home/<utilisateur>/.virtualenvs/adm/bin/python -c "import ADM; print(ADM.__file__)"
+
+# Sans virtualenv
+python3.11 -c "import ADM; print(ADM.__file__)"
 ```
 
 ## 10. Validation fonctionnelle après déploiement
@@ -307,7 +396,7 @@ git fetch --tags
 git checkout <nouveau-tag>
 source /home/<utilisateur>/.virtualenvs/adm/bin/activate
 python -m pip install .
-git describe --tags --always > static/version.txt
+git describe --tags --always > src/ADM/resources/static/version.txt
 alembic upgrade head
 ```
 
