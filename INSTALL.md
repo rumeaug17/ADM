@@ -35,8 +35,11 @@ dans le dépôt, un ticket, un journal ou l'historique du shell.
 - un accès HTTPS au site final ;
 - un shell permettant de créer un environnement virtuel et d'exécuter Alembic.
 
-Pour figer un déploiement hors DEV, partez de `main` et d'un tag immuable. Le
-même commit doit être utilisé en Qualification, Recette et Production.
+Pour figer un déploiement hors DEV, partez de `main` et d'un tag immuable. Construisez
+une seule fois un wheel depuis ce tag dans la chaîne de livraison, publiez-le avec sa
+somme SHA-256 dans un dépôt d'artefacts, puis installez **ce même fichier** en
+Qualification, Recette et Production. Ne reconstruisez jamais le wheel à partir du
+checkout propre à chaque environnement.
 
 ## 3. Préparer MySQL
 
@@ -75,6 +78,30 @@ Un virtualenv est recommandé pour isoler les dépendances et rendre le déploie
 reproductible, mais il n'est pas obligatoire. La section 4.3 décrit une
 installation dans le compte utilisateur lorsque l'hébergeur fournit déjà Python.
 
+Avant le premier déploiement hors DEV, la chaîne de livraison construit le livrable
+une seule fois depuis un tag appartenant à `main` :
+
+```bash
+git checkout <tag-de-version>
+python3.11 -m pip install build
+python3.11 -m build --wheel
+(cd dist && sha256sum <nom-exact-du-wheel>.whl > <nom-exact-du-wheel>.whl.sha256)
+```
+
+Publiez le wheel et le fichier `.sha256` dans un dépôt d'artefacts immuable. Dans
+chacun des environnements promus, récupérez ces deux fichiers dans un répertoire
+`<repertoire-artefacts>`, vérifiez la somme avec la commande suivante et conservez le
+nom exact du fichier dans toutes les commandes d'installation :
+
+```bash
+cd <repertoire-artefacts>
+sha256sum --check <nom-exact-du-wheel>.whl.sha256
+```
+
+Les commandes ci-dessous supposent que ce contrôle a réussi. Le checkout du même tag
+reste nécessaire pour les migrations, les scripts et les fichiers statiques, mais il
+ne sert pas à reconstruire le paquet Python.
+
 ### 4.1 PythonAnywhere
 
 Ouvrez une console Bash :
@@ -89,7 +116,7 @@ git checkout <tag-de-version>
 python3.11 -m venv /home/<utilisateur>/.virtualenvs/adm
 source /home/<utilisateur>/.virtualenvs/adm/bin/activate
 python -m pip install --upgrade pip
-python -m pip install .
+python -m pip install <repertoire-artefacts>/<nom-exact-du-wheel>.whl
 git describe --tags --always > static/version.txt
 ```
 
@@ -106,15 +133,15 @@ cd /opt/adm/app
 sudo -u adm git checkout <tag-de-version>
 sudo -u adm python3.11 -m venv /opt/adm/venv
 sudo -u adm /opt/adm/venv/bin/python -m pip install --upgrade pip
-sudo -u adm /opt/adm/venv/bin/python -m pip install .
+sudo -u adm /opt/adm/venv/bin/python -m pip install <repertoire-artefacts>/<nom-exact-du-wheel>.whl
 sudo -u adm sh -c 'git describe --tags --always > static/version.txt'
 ```
 
 L'installation standard n'utilise pas `applications.json` ni `accounts.json` :
 le catalogue, les évaluations **et les comptes** sont stockés dans la même base
-MySQL. Le dossier `src/` contient les paquets Python ; `pip install .` les installe
-dans l'environnement Python choisi. Il ne faut donc ni déplacer `src/ADM`, ni
-ajouter un dossier de données Python arbitraire au `PYTHONPATH`.
+MySQL. Le dossier `src/` contient les paquets Python ; l'installation du wheel les
+installe dans l'environnement Python choisi. Il ne faut donc ni déplacer `src/ADM`,
+ni ajouter un dossier de données Python arbitraire au `PYTHONPATH`.
 
 ### 4.3 Installation sans virtualenv
 
@@ -123,7 +150,7 @@ installez le projet dans le répertoire utilisateur de ce compte :
 
 ```bash
 cd /home/<utilisateur>/ADM
-python3.11 -m pip install --user .
+python3.11 -m pip install --user <repertoire-artefacts>/<nom-exact-du-wheel>.whl
 git describe --tags --always > static/version.txt
 python3.11 -c "import ADM; print(ADM.__file__)"
 ```
@@ -266,24 +293,27 @@ command -v python
 
 La première commande doit désigner
 `/home/<utilisateur>/.virtualenvs/adm/bin/python` après activation. Si
-`pip show` ne trouve pas le paquet, reprenez l'installation depuis la racine du
-dépôt avec le même interpréteur :
+`pip show` ne trouve pas le paquet, reprenez l'installation du wheel déjà vérifié
+avec le même interpréteur :
 
 ```bash
-cd /home/<utilisateur>/ADM
-/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip install .
+/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip install <repertoire-artefacts>/<nom-exact-du-wheel>.whl
 ```
 
 Sans virtualenv, effectuez les mêmes contrôles avec `python3.11 -m pip show
 adm-catalogue` et réinstallez si nécessaire avec `python3.11 -m pip install --user
-.`.
+<repertoire-artefacts>/<nom-exact-du-wheel>.whl`.
 
 ## 8. Créer le premier administrateur
 
 Toujours dans le même environnement configuré :
 
 ```bash
+# Avec virtualenv actif
 python scripts/create_account.py --username <nom-administrateur> --role admin
+
+# Sans virtualenv
+python3.11 scripts/create_account.py --username <nom-administrateur> --role admin
 ```
 
 Le programme demande deux fois le mot de passe de manière interactive. Ne le
@@ -355,7 +385,11 @@ Avant l'ouverture du service, activez les sauvegardes MySQL de l'hébergeur et
 testez une restauration sur une base isolée. Le dépôt fournit aussi :
 
 ```bash
+# Avec virtualenv actif
 python scripts/backup_restore.py --help
+
+# Sans virtualenv
+python3.11 scripts/backup_restore.py --help
 ```
 
 Cette commande nécessite les clients `mysqldump`/`mysql` et des variables
@@ -367,16 +401,38 @@ pas une sauvegarde complète et testée de MySQL.
 ## 12. Mises à jour et retour arrière
 
 Avant toute mise à jour : sauvegardez MySQL, lisez les migrations et testez le tag
-sur un environnement distinct. Puis :
+sur un environnement distinct. Construisez le nouveau wheel une seule fois avec la
+procédure de la section 4, publiez-le, puis vérifiez et installez exactement ce même
+artefact dans chaque environnement promu.
+
+Avec le virtualenv :
 
 ```bash
 cd /home/<utilisateur>/ADM
 git fetch --tags
 git checkout <nouveau-tag>
 source /home/<utilisateur>/.virtualenvs/adm/bin/activate
-python -m pip install .
+cd <repertoire-artefacts>
+sha256sum --check <nom-exact-du-wheel>.whl.sha256
+python -m pip install <repertoire-artefacts>/<nom-exact-du-wheel>.whl
+cd /home/<utilisateur>/ADM
 git describe --tags --always > static/version.txt
-alembic upgrade head
+python -m alembic upgrade head
+```
+
+Sans virtualenv, conservez explicitement l'interpréteur sélectionné à la section
+4.3 pour l'installation et la migration :
+
+```bash
+cd /home/<utilisateur>/ADM
+git fetch --tags
+git checkout <nouveau-tag>
+cd <repertoire-artefacts>
+sha256sum --check <nom-exact-du-wheel>.whl.sha256
+python3.11 -m pip install --user <repertoire-artefacts>/<nom-exact-du-wheel>.whl
+cd /home/<utilisateur>/ADM
+git describe --tags --always > static/version.txt
+python3.11 -m alembic upgrade head
 ```
 
 Rechargez ensuite le processus WSGI et refaites la validation fonctionnelle. Un
