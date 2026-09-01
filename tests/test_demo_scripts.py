@@ -75,3 +75,11 @@ def test_setup_demo_runs_complete_command_sequence_with_selected_python(tmp_path
     assert "Installation terminée" in result.stdout
     assert (tmp_path / ".venv" / "bin" / "python").is_file()
     assert (static_directory / "version.txt").read_text(encoding="utf-8") == "v0.1.0\n"
+
+
+def test_windows_setup_uses_acl_command_without_security_privilege() -> None:
+    script = (PROJECT_ROOT / "scripts" / "setup_demo.ps1").read_text(encoding="utf-8")
+
+    assert "Protect-DemoConfigFile -Path $ConfigFile" in script
+    assert 'Invoke-CheckedCommand -Command "icacls.exe"' in script
+    assert "Set-Acl" not in script

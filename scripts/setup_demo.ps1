@@ -81,6 +81,21 @@ function New-RandomToken {
     return [Convert]::ToBase64String($bytes).TrimEnd("=").Replace("+", "-").Replace("/", "_")
 }
 
+function Protect-DemoConfigFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $currentUserSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+    Invoke-CheckedCommand -Command "icacls.exe" -CommandArguments @(
+        $Path,
+        "/inheritance:r",
+        "/grant:r",
+        "*${currentUserSid}:(F)"
+    )
+}
+
 Push-Location $ProjectRoot
 try {
     $PythonBin = Resolve-PythonCommand -RequestedCommand $PythonBin
@@ -166,14 +181,7 @@ print(json.dumps({"username": demo_username, "password": demo_password}))
     $configuration | ConvertTo-Json | Set-Content -Encoding UTF8 $ConfigFile
     # Restreint l'accès au fichier de configuration (identifiants de démo inclus) au
     # seul propriétaire courant, par analogie avec le chmod 0600 appliqué côté bash.
-    $acl = Get-Acl $ConfigFile
-    $acl.SetAccessRuleProtection($true, $false)
-    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
-    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
-        $currentUser, "FullControl", "Allow"
-    )
-    $acl.SetAccessRule($rule)
-    Set-Acl -Path $ConfigFile -AclObject $acl
+    Protect-DemoConfigFile -Path $ConfigFile
 
     $version = & git describe --tags --abbrev=0 2>$null
     if ($LASTEXITCODE -ne 0) {
