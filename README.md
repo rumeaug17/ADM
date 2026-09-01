@@ -91,7 +91,10 @@ python main.py
 
 `create_account.py` demande le mot de passe de façon interactive (jamais en
 argument de ligne de commande, jamais journalisé). Sans compte créé au
-préalable, aucune connexion à l'interface n'est possible.
+préalable, aucune connexion à l'interface n'est possible. Le script charge
+explicitement le paquet depuis le dossier `src` du checkout courant : il ne peut
+donc pas utiliser par erreur une autre version déjà installée dans le profil
+utilisateur ou dans l'environnement virtuel.
 
 L'interface est alors accessible à l'adresse <http://127.0.0.1:5000/>.
 
