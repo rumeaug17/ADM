@@ -73,6 +73,13 @@ Le script PowerShell recherche automatiquement `py`, `python`, puis `python3`.
 
 ### Installation manuelle
 
+Les chemins `scripts/...` ci-dessous sont relatifs à la racine du dépôt. Placez-vous
+d'abord dans le dossier ADM, quel que soit votre répertoire courant :
+
+```bash
+cd "$(git -C ~/ADM rev-parse --show-toplevel)"
+```
+
 ```bash
 python -m venv .venv
 . .venv/bin/activate
@@ -180,6 +187,10 @@ de leurs dépendances et du parcours d'une requête se trouve dans
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Commandes utiles
+
+Exécutez ces commandes depuis la racine du dépôt, et non depuis
+`src/ADM/resources`. Pour retrouver cette racine depuis n'importe quel
+sous-dossier du dépôt : `cd "$(git rev-parse --show-toplevel)"`.
 
 ```bash
 # Régénérer la documentation fonctionnelle

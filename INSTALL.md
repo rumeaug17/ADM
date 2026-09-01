@@ -341,6 +341,9 @@ les autres cas. Il ne doit donc pas être nécessaire de copier manuellement
 Toujours dans le même environnement configuré :
 
 ```bash
+# Les chemins scripts/... sont relatifs à la racine du dépôt.
+cd /home/<utilisateur>/ADM
+
 # Avec virtualenv actif
 python scripts/create_account.py --username <nom-administrateur> --role admin
 
@@ -351,7 +354,10 @@ python3.11 scripts/create_account.py --username <nom-administrateur> --role admi
 Le programme demande deux fois le mot de passe de manière interactive. Ne le
 fournissez jamais en argument. Sans ce compte, il est impossible de se connecter.
 Les comptes suivants pourront être administrés depuis l'interface par un
-administrateur.
+administrateur. Si le terminal se trouve dans un sous-dossier tel que
+`src/ADM/resources`, revenez d'abord à la racine avec
+`cd "$(git rev-parse --show-toplevel)"` : sinon Python cherchera à tort un dossier
+`scripts` dans le répertoire courant.
 
 ## 9. Configurer l'application WSGI sur PythonAnywhere
 
@@ -501,6 +507,7 @@ lire et écrire le fichier et son répertoire. Initialisez ensuite le schéma et
 premier compte comme pour MySQL :
 
 ```bash
+cd /chemin/vers/ADM
 alembic upgrade head
 python scripts/create_account.py --username <nom-administrateur> --role admin
 ```
