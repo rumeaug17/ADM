@@ -20,7 +20,7 @@ et les données :
 | Environnement virtuel | `/home/<utilisateur>/.virtualenvs/adm` | `/opt/adm/venv` |
 | Données Python persistantes | MySQL ; aucun fichier métier local | MySQL ; aucun fichier métier local |
 | Secrets/configuration d'exécution | Variables du processus WSGI, hors Git | `/etc/adm/adm.env`, mode `600` |
-| Fichiers statiques | `/home/<utilisateur>/ADM/static` | `/opt/adm/app/static` |
+| Fichiers statiques | `/home/<utilisateur>/ADM/src/ADM/resources/static` | `/opt/adm/app/src/ADM/resources/static` |
 
 Dans les commandes ci-dessous, remplacez les valeurs entre chevrons. Ne copiez
 jamais un mot de passe, une clé de session ou une URL contenant un mot de passe
@@ -90,7 +90,7 @@ python3.11 -m venv /home/<utilisateur>/.virtualenvs/adm
 source /home/<utilisateur>/.virtualenvs/adm/bin/activate
 python -m pip install --upgrade pip
 python -m pip install .
-git describe --tags --always > static/version.txt
+git describe --tags --always > src/ADM/resources/static/version.txt
 ```
 
 Si l'offre ne fournit pas exactement la commande `python3.11`, sélectionnez dans
@@ -107,7 +107,7 @@ sudo -u adm git checkout <tag-de-version>
 sudo -u adm python3.11 -m venv /opt/adm/venv
 sudo -u adm /opt/adm/venv/bin/python -m pip install --upgrade pip
 sudo -u adm /opt/adm/venv/bin/python -m pip install .
-sudo -u adm sh -c 'git describe --tags --always > static/version.txt'
+sudo -u adm sh -c 'git describe --tags --always > src/ADM/resources/static/version.txt'
 ```
 
 L'installation standard n'utilise pas `applications.json` ni `accounts.json` :
@@ -124,7 +124,7 @@ installez le projet dans le répertoire utilisateur de ce compte :
 ```bash
 cd /home/<utilisateur>/ADM
 python3.11 -m pip install --user .
-git describe --tags --always > static/version.txt
+git describe --tags --always > src/ADM/resources/static/version.txt
 python3.11 -c "import ADM; print(ADM.__file__)"
 ```
 
@@ -324,7 +324,7 @@ Dans l'onglet **Web** :
    décrite à l'étape 5 ;
 5. ajoutez ensuite le code suivant, en adaptant le chemin ;
 6. configurez le mapping statique `/static/` vers
-   `/home/<utilisateur>/ADM/static` ;
+   `/home/<utilisateur>/ADM/src/ADM/resources/static` ;
 7. rechargez l'application depuis l'onglet Web.
 
 ```python
@@ -396,7 +396,7 @@ git fetch --tags
 git checkout <nouveau-tag>
 source /home/<utilisateur>/.virtualenvs/adm/bin/activate
 python -m pip install .
-git describe --tags --always > static/version.txt
+git describe --tags --always > src/ADM/resources/static/version.txt
 alembic upgrade head
 ```
 

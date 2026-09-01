@@ -70,7 +70,7 @@ finally:
     session.close()
 PYTHON
 
-git describe --tags --abbrev=0 2>/dev/null > static/version.txt || \
-    printf 'v0.1.0\n' > static/version.txt
+git describe --tags --abbrev=0 2>/dev/null > src/ADM/resources/static/version.txt || \
+    printf 'v0.1.0\n' > src/ADM/resources/static/version.txt
 
 echo "Installation terminée. Lancez la démo avec : scripts/run_demo.sh"

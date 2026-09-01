@@ -107,7 +107,7 @@ def generate_comment(key: str, app_name: str) -> str:
 
 
 # Charger la configuration des questions depuis questions.json
-with open("static/questions.json", encoding="utf-8") as f:
+with open("src/ADM/resources/static/questions.json", encoding="utf-8") as f:
     questions_config = json.load(f)
 
 # Construire la liste des clés de questions et les options associées (pour générer des réponses)

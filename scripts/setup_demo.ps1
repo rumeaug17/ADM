@@ -187,7 +187,7 @@ print(json.dumps({"username": demo_username, "password": demo_password}))
     if ($LASTEXITCODE -ne 0) {
         $version = "v0.1.0"
     }
-    Set-Content -Encoding UTF8 (Join-Path $ProjectRoot "static\version.txt") $version
+    Set-Content -Encoding UTF8 (Join-Path $ProjectRoot "src\ADM\resources\static\version.txt") $version
 
     Write-Host "Installation terminée. Lancez la démo avec : .\scripts\run_demo.ps1"
 }

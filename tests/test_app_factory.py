@@ -97,12 +97,9 @@ def test_create_app_wires_local_auth_provider_by_default(tmp_path: Path) -> None
     assert callable(application.extensions["adm_account_session_factory"])
 
 
-def test_create_app_uses_packaged_resources_outside_source_checkout(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_create_app_uses_packaged_resources(tmp_path: Path) -> None:
     import ADM.app as app_module
 
-    monkeypatch.setattr(app_module, "PROJECT_ROOT", tmp_path / "installation")
     application = app_module.create_app(
         {
             "TESTING": True,

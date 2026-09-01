@@ -1,4 +1,4 @@
-"""Vérifie que les ressources installées restent identiques à leurs sources."""
+"""Vérifie que les ressources d’exécution ont une source unique dans le paquet."""
 
 from pathlib import Path
 
@@ -6,25 +6,17 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PACKAGED_RESOURCES = PROJECT_ROOT / "src" / "ADM" / "resources"
 
 
-def _relative_files(directory: Path) -> set[Path]:
-    return {
-        path.relative_to(directory)
-        for path in directory.rglob("*")
-        if path.is_file() and path.name != "version.txt"
+def test_runtime_resources_only_exist_in_package() -> None:
+    expected_resources = {
+        Path("config.json"),
+        Path("static/info_texts.json"),
+        Path("static/logo.svg"),
+        Path("static/questions.json"),
+        Path("templates/base.html"),
+        Path("templates/login.html"),
     }
 
-
-def test_packaged_resources_match_runtime_sources() -> None:
-    source_directories = (Path("static"), Path("templates"))
-
-    assert (PACKAGED_RESOURCES / "config.json").read_bytes() == (
-        PROJECT_ROOT / "config.json"
-    ).read_bytes()
-    for relative_directory in source_directories:
-        source_directory = PROJECT_ROOT / relative_directory
-        packaged_directory = PACKAGED_RESOURCES / relative_directory
-        assert _relative_files(packaged_directory) == _relative_files(source_directory)
-        for relative_file in _relative_files(source_directory):
-            assert (packaged_directory / relative_file).read_bytes() == (
-                source_directory / relative_file
-            ).read_bytes()
+    assert all((PACKAGED_RESOURCES / path).is_file() for path in expected_resources)
+    assert not (PROJECT_ROOT / "config.json").exists()
+    assert not (PROJECT_ROOT / "static").exists()
+    assert not (PROJECT_ROOT / "templates").exists()

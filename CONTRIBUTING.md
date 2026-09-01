@@ -76,7 +76,7 @@ les vérifications alternatives dans la Pull Request.
   d'utilisation, sans y placer de valeur sensible.
 - Mettez à jour `docs/BUSINESS_RULES.md` lorsqu'un invariant métier évolue et
   `docs/ARCHITECTURE.md` lorsque les responsabilités ou dépendances changent.
-- Après une modification de `static/questions.json` ou `static/info_texts.json`,
+- Après une modification de `src/ADM/resources/static/questions.json` ou `src/ADM/resources/static/info_texts.json`,
   régénérez et commitez `documentation.md` avec
   `python scripts/generate_md_doc.py`.
 - Toute modification du modèle SQL doit inclure une révision Alembic. Vérifiez la

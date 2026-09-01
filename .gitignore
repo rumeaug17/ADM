@@ -9,4 +9,4 @@ dist/
 .adm-demo.json
 # Fichiers générés et métadonnées
 src/*.egg-info/
-static/version.txt
+src/ADM/resources/static/version.txt

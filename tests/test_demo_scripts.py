@@ -48,9 +48,9 @@ def test_run_demo_forwards_debug_mode_to_virtualenv_python(tmp_path: Path) -> No
 
 def test_setup_demo_runs_complete_command_sequence_with_selected_python(tmp_path: Path) -> None:
     scripts_directory = tmp_path / "scripts"
-    static_directory = tmp_path / "static"
+    static_directory = tmp_path / "src" / "ADM" / "resources" / "static"
     scripts_directory.mkdir()
-    static_directory.mkdir()
+    static_directory.mkdir(parents=True)
     shutil.copy(PROJECT_ROOT / "scripts" / "setup_demo.sh", scripts_directory)
     fake_python = tmp_path / "python-factice"
     fake_python.write_text(
