@@ -16,7 +16,7 @@ from ADM.routes import accounts, applications, auth, evaluations, exports, setti
 from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PACKAGE_RESOURCES = Path(__file__).resolve().parent / "resources"
 
 
 def _load_json(path: Path) -> object:
@@ -28,11 +28,11 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     """Construit et configure une instance isolée de l'application."""
     app = Flask(
         __name__,
-        static_folder=str(PROJECT_ROOT / "static"),
-        template_folder=str(PROJECT_ROOT / "templates"),
+        static_folder=str(PACKAGE_RESOURCES / "static"),
+        template_folder=str(PACKAGE_RESOURCES / "templates"),
     )
     app.config.from_mapping(
-        CONFIG=str(PROJECT_ROOT / "config.json"),
+        CONFIG=str(PACKAGE_RESOURCES / "config.json"),
         QUESTIONS_FILE="questions.json",
         MAX_CONTENT_LENGTH=5 * 1024 * 1024,
     )

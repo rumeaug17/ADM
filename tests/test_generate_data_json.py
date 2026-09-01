@@ -12,13 +12,6 @@ from ADM.database_json import JsonSession
 def test_generated_applications_can_be_loaded_by_json_backend(tmp_path: Path) -> None:
     """Le catalogue produit doit respecter les types attendus par la persistance."""
     project_root = Path(__file__).resolve().parents[1]
-    static_directory = tmp_path / "static"
-    static_directory.mkdir()
-    (static_directory / "questions.json").write_text(
-        (project_root / "static" / "questions.json").read_text(encoding="utf-8"),
-        encoding="utf-8",
-    )
-
     subprocess.run(
         [sys.executable, str(project_root / "scripts" / "generate_data_json.py")],
         cwd=tmp_path,

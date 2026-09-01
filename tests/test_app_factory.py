@@ -95,3 +95,21 @@ def test_create_app_wires_local_auth_provider_by_default(tmp_path: Path) -> None
 
     assert isinstance(application.extensions["adm_auth_provider"], LocalAuthProvider)
     assert callable(application.extensions["adm_account_session_factory"])
+
+
+def test_create_app_uses_packaged_resources(tmp_path: Path) -> None:
+    import ADM.app as app_module
+
+    application = app_module.create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(tmp_path / "catalogue.json"),
+            "ACCOUNTS_CONNECTION": str(tmp_path / "accounts.json"),
+        }
+    )
+
+    assert Path(application.config["CONFIG"]) == app_module.PACKAGE_RESOURCES / "config.json"
+    assert Path(application.static_folder or "") == app_module.PACKAGE_RESOURCES / "static"
+    assert application.test_client().get("/login").status_code == 200
