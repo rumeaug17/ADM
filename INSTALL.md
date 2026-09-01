@@ -419,7 +419,32 @@ que de lancer une migration descendante sans validation.
 - n'utilisez jamais le mode debug sur un serveur exposé ;
 - conservez des sauvegardes chiffrées et vérifiez périodiquement leur restauration.
 
-## 14. Variante locale JSON (développement uniquement)
+## 14. Variante locale SQLite (déploiement mono-processus)
+
+SQLite fournit une installation persistante sans serveur de base de données. Le
+catalogue, les évaluations et les comptes partagent un fichier relationnel unique.
+Créez au préalable son répertoire, puis configurez une URL SQLAlchemy absolue :
+
+```text
+ADM_DB_BACKEND=sqlite
+ADM_DATABASE_URL=sqlite:////chemin/persistant/adm.db
+ADM_SECRET_KEY=<cle-de-session-longue-et-aleatoire>
+```
+
+`ADM_ACCOUNTS_URL` n'est pas utilisée avec SQLite. Le processus Web doit pouvoir
+lire et écrire le fichier et son répertoire. Initialisez ensuite le schéma et le
+premier compte comme pour MySQL :
+
+```bash
+alembic upgrade head
+python scripts/create_account.py --username <nom-administrateur> --role admin
+```
+
+Arrêtez l'application avant de copier `adm.db` pour une sauvegarde cohérente. Cette
+variante convient à un déploiement local avec un seul processus applicatif ; utilisez
+MySQL lorsque plusieurs processus ou serveurs accèdent simultanément aux données.
+
+## 15. Variante locale JSON (développement uniquement)
 
 Pour une démonstration locale sans MySQL, utilisez les scripts documentés dans le
 `README.md`. Si vous configurez manuellement le backend JSON, donnez des chemins

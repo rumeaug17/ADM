@@ -28,7 +28,7 @@ backends exposent le sous-ensemble de session consommé par les routes.
 | `ADM.validation` / `ADM.schemas` | Validation des formulaires et documents externes. |
 | `ADM.catalogue_io` | Import et export atomiques du catalogue. |
 | `ADM.persistence` | Cycle commit, rollback et fermeture d'une transaction. |
-| `ADM.database` / `ADM.database_json` | Adaptateurs SQLAlchemy et JSON. |
+| `ADM.database` / `ADM.database_json` | Adaptateurs SQLAlchemy (SQLite/MySQL) et JSON. |
 | `ADM.config_io` | Lecture/écriture atomique de la configuration non sensible (`config.json`). |
 | `ADM.accounts_service` | Opérations métier sur les comptes (création, rôle, invariant du dernier admin). |
 | `ADM.accounts_json` | Persistance JSON dédiée aux comptes, isolée du catalogue. |

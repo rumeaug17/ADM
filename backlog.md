@@ -22,6 +22,12 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
 ### User Stories
 - ~~**US2.3** : *Import / Export*~~  
   ~~Proposer un export global du catalogue, avec les évaluations et historique, puis un import global~~
+- ~~**US2.4** : *Backend SQLite*~~
+  ~~Ajouter, en complément des backends JSON et MySQL existants, un backend de persistance SQLite
+  (fichier local, sans serveur à installer) pour un déploiement mono-processus persistant. Réutilise
+  le backend relationnel générique (`ADM.database`, comptes inclus), déjà exercé par les tests via
+  SQLite ; seules l'URL de connexion (`ADM_DATABASE_URL=sqlite:///...`) et la documentation
+  d'installation changent par rapport à MySQL.~~
 
 ## Epic 3 : Amélioration de la Qualité du Code et Tests
 
