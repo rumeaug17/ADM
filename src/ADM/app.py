@@ -24,6 +24,29 @@ def _load_json(path: Path) -> object:
         return json.load(stream)
 
 
+def _default_config() -> dict[str, object]:
+    """Retourne la configuration non sensible utilisée sans fichier dédié."""
+    return {
+        "db_backend": "json",
+        "json_connection_url": "applications.json",
+        "display_thresholds": {
+            "score": {"warning": 30, "critical": 60},
+            "risk": {"warning": 100, "critical": 350},
+        },
+    }
+
+
+def _load_app_config(path: Path, *, use_defaults_when_missing: bool) -> AppConfig:
+    """Charge la configuration, avec des valeurs sûres si le fichier est absent."""
+    try:
+        raw_config = _load_json(path)
+    except FileNotFoundError:
+        if not use_defaults_when_missing:
+            raise
+        raw_config = _default_config()
+    return AppConfig.from_object(raw_config)
+
+
 def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     """Construit et configure une instance isolée de l'application."""
     app = Flask(
@@ -38,7 +61,11 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     )
     if test_config:
         app.config.update(test_config)
-    config = AppConfig.from_object(_load_json(Path(str(app.config["CONFIG"]))))
+    config_path = Path(str(app.config["CONFIG"]))
+    config = _load_app_config(
+        config_path,
+        use_defaults_when_missing=config_path == PACKAGE_RESOURCES / "config.json",
+    )
     questions = parse_questions(
         _load_json(Path(app.static_folder or "") / str(app.config["QUESTIONS_FILE"]))
     )
