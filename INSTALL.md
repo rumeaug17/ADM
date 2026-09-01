@@ -309,6 +309,26 @@ Sans virtualenv, effectuez les mêmes contrôles avec `python3.11 -m pip show
 adm-catalogue` et réinstallez si nécessaire avec `python3.11 -m pip install --user
 <repertoire-artefacts>/<nom-exact-du-wheel>.whl`.
 
+Contrôlez également le chemin de configuration calculé par le code effectivement
+installé. Cette commande ne lit ni n'affiche aucun secret :
+
+```bash
+python3.11 -c "from ADM.app import PACKAGE_RESOURCES; print(PACKAGE_RESOURCES); print((PACKAGE_RESOURCES / 'config.json').is_file())"
+```
+
+Sans virtualenv, le premier résultat doit se terminer par
+`.local/lib/python3.13/site-packages/ADM/resources` (en adaptant `python3.13` à la
+version sélectionnée) et le second doit être `True`. Un chemin qui se termine
+directement par `.local/lib/python3.13` identifie sans ambiguïté une ancienne
+version défectueuse du paquet ; créer manuellement un `config.json` à cet endroit
+masquerait le défaut de déploiement et n'est pas une correction.
+
+Une version corrigée démarre désormais avec les valeurs non sensibles par défaut
+si cette ressource est absente. Cette tolérance évite l'indisponibilité du site,
+mais ne dispense pas de remplacer le wheel incomplet : les autres ressources du
+paquet doivent également être présentes et la configuration doit rester
+reproductible.
+
 Si l’initialisation signale un `FileNotFoundError` sur un `config.json` situé à la
 racine du virtualenv (par exemple `.virtualenvs/adm/lib/python3.13/config.json`),
 le wheel installé est défectueux : il cherche les ressources relativement à
@@ -331,10 +351,10 @@ python3.11 -m pip install --user --no-cache-dir --force-reinstall <repertoire-ar
 python3.11 -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
 ```
 
-Dans les deux modes, `create_app` utilise les fichiers du dépôt lorsque le paquet
-est exécuté depuis son checkout et les ressources incluses dans le paquet dans
-les autres cas. Il ne doit donc pas être nécessaire de copier manuellement
-`config.json`, `static/` ou `templates/` dans le virtualenv ou sous `~/.local/lib`.
+Dans les deux modes, `create_app` utilise les ressources incluses à côté du module
+`ADM` qui a réellement été importé. Il ne doit donc pas être nécessaire de copier
+manuellement `config.json`, `static/` ou `templates/` à la racine du virtualenv ou
+sous `~/.local/lib/python3.13`.
 
 ## 8. Créer le premier administrateur
 
@@ -369,26 +389,22 @@ Dans l'onglet **Web** :
    champ vide si vous avez suivi l'installation `--user` de la section 4.3 ;
 4. éditez le fichier de configuration WSGI et conservez l'injection des variables
    décrite à l'étape 5 ;
-5. ajoutez ensuite le code suivant, en adaptant le chemin ;
+5. ajoutez ensuite le code suivant ;
 6. configurez le mapping statique `/static/` vers
    `/home/<utilisateur>/ADM/src/ADM/resources/static` ;
 7. rechargez l'application depuis l'onglet Web.
 
 ```python
-import sys
-
-PROJECT_ROOT = "/home/<utilisateur>/ADM"
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
-
 from ADM.app import create_app
 
 application = create_app()
 ```
 
-Le nom `application` est celui attendu par le serveur WSGI. N'utilisez pas
-`python main.py` en production : ce point d'entrée lance le serveur de
-développement Flask, pas un serveur WSGI de production.
+Le nom `application` est celui attendu par le serveur WSGI. Le paquet provient du
+wheel installé à l'étape 4 ; le fichier WSGI ne modifie donc pas `sys.path` pour
+pointer vers une autre copie du code. N'utilisez pas `python main.py` en
+production : ce point d'entrée lance le serveur de développement Flask, pas un
+serveur WSGI de production.
 
 Si l'import `ADM` échoue, contrôlez en priorité la version Python, l'environnement
 configuré dans l'onglet Web et le résultat de la commande correspondant à votre
