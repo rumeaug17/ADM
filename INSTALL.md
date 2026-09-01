@@ -84,9 +84,17 @@ une seule fois depuis un tag appartenant à `main` :
 ```bash
 git checkout <tag-de-version>
 python3.11 -m pip install build
+git describe --tags --always > src/ADM/resources/static/version.txt
 python3.11 -m build --wheel
+(python3.11 -m zipfile -l dist/<nom-exact-du-wheel>.whl | grep -E \
+  'ADM/resources/(config.json|static/questions.json|templates/base.html)')
 (cd dist && sha256sum <nom-exact-du-wheel>.whl > <nom-exact-du-wheel>.whl.sha256)
 ```
+
+La vérification du contenu doit afficher les trois ressources indiquées. Si l'une
+d'elles manque, ne publiez pas le wheel : il ne pourra pas démarrer une fois installé.
+Le fichier de version est généré **avant** la construction afin qu'il appartienne au
+même artefact immuable que le code et les autres ressources.
 
 Publiez le wheel et le fichier `.sha256` dans un dépôt d'artefacts immuable. Dans
 chacun des environnements promus, récupérez ces deux fichiers dans un répertoire
@@ -117,7 +125,6 @@ python3.11 -m venv /home/<utilisateur>/.virtualenvs/adm
 source /home/<utilisateur>/.virtualenvs/adm/bin/activate
 python -m pip install --upgrade pip
 python -m pip install <repertoire-artefacts>/<nom-exact-du-wheel>.whl
-git describe --tags --always > static/version.txt
 ```
 
 Si l'offre ne fournit pas exactement la commande `python3.11`, sélectionnez dans
@@ -134,7 +141,6 @@ sudo -u adm git checkout <tag-de-version>
 sudo -u adm python3.11 -m venv /opt/adm/venv
 sudo -u adm /opt/adm/venv/bin/python -m pip install --upgrade pip
 sudo -u adm /opt/adm/venv/bin/python -m pip install <repertoire-artefacts>/<nom-exact-du-wheel>.whl
-sudo -u adm sh -c 'git describe --tags --always > static/version.txt'
 ```
 
 L'installation standard n'utilise pas `applications.json` ni `accounts.json` :
@@ -151,7 +157,6 @@ installez le projet dans le répertoire utilisateur de ce compte :
 ```bash
 cd /home/<utilisateur>/ADM
 python3.11 -m pip install --user <repertoire-artefacts>/<nom-exact-du-wheel>.whl
-git describe --tags --always > static/version.txt
 python3.11 -c "import ADM; print(ADM.__file__)"
 ```
 
@@ -304,19 +309,25 @@ Sans virtualenv, effectuez les mêmes contrôles avec `python3.11 -m pip show
 adm-catalogue` et réinstallez si nécessaire avec `python3.11 -m pip install --user
 <repertoire-artefacts>/<nom-exact-du-wheel>.whl`.
 
-Si l’initialisation signale un `FileNotFoundError` sur un `config.json` situé
-sous `site-packages`, à la racine du virtualenv ou sous `~/.local/lib`, le paquet
-installé est antérieur à la version qui embarque ses ressources d’exécution.
-Réinstallez le tag corrigé sans réutiliser le cache de `pip`, puis vérifiez avec
-le même interpréteur :
+Si l’initialisation signale un `FileNotFoundError` sur un `config.json` situé à la
+racine du virtualenv (par exemple `.virtualenvs/adm/lib/python3.13/config.json`),
+le wheel installé est défectueux : il cherche les ressources relativement à
+l'interpréteur au lieu de les charger depuis `ADM/resources`. C'est notamment le
+cas de l'artefact construit depuis le tag `v1.4.0`. Le fait de changer de tag dans
+le checkout ne remplace pas le paquet déjà installé dans le virtualenv.
+
+Construisez et publiez depuis un tag corrigé un **nouvel** artefact avec la
+procédure de l'étape 4, contrôlez sa somme et son contenu, puis forcez la
+réinstallation de ce wheel précis. Ne réinstallez pas directement le checkout :
+cela reconstruirait un artefact différent dans l'environnement cible.
 
 ```bash
 # Avec virtualenv
-/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip install --no-cache-dir --force-reinstall .
+/home/<utilisateur>/.virtualenvs/adm/bin/python -m pip install --no-cache-dir --force-reinstall <repertoire-artefacts>/<nouveau-wheel-corrige>.whl
 /home/<utilisateur>/.virtualenvs/adm/bin/python -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
 
 # Sans virtualenv
-python3.11 -m pip install --user --no-cache-dir --force-reinstall .
+python3.11 -m pip install --user --no-cache-dir --force-reinstall <repertoire-artefacts>/<nouveau-wheel-corrige>.whl
 python3.11 -c "from ADM.app import create_app; create_app(); print('Initialisation ADM réussie')"
 ```
 
@@ -437,7 +448,6 @@ cd <repertoire-artefacts>
 sha256sum --check <nom-exact-du-wheel>.whl.sha256
 python -m pip install <repertoire-artefacts>/<nom-exact-du-wheel>.whl
 cd /home/<utilisateur>/ADM
-git describe --tags --always > static/version.txt
 python -m alembic upgrade head
 ```
 
@@ -452,7 +462,6 @@ cd <repertoire-artefacts>
 sha256sum --check <nom-exact-du-wheel>.whl.sha256
 python3.11 -m pip install --user <repertoire-artefacts>/<nom-exact-du-wheel>.whl
 cd /home/<utilisateur>/ADM
-git describe --tags --always > static/version.txt
 python3.11 -m alembic upgrade head
 ```
 
