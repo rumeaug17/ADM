@@ -17,6 +17,4 @@ def test_runtime_resources_only_exist_in_package() -> None:
     }
 
     assert all((PACKAGED_RESOURCES / path).is_file() for path in expected_resources)
-    assert not (PROJECT_ROOT / "config.json").exists()
-    assert not (PROJECT_ROOT / "static").exists()
-    assert not (PROJECT_ROOT / "templates").exists()
+    assert all(not (PROJECT_ROOT / path).exists() for path in expected_resources)

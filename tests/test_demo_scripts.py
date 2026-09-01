@@ -51,6 +51,9 @@ def test_setup_demo_runs_complete_command_sequence_with_selected_python(tmp_path
     static_directory = tmp_path / "src" / "ADM" / "resources" / "static"
     scripts_directory.mkdir()
     static_directory.mkdir(parents=True)
+    legacy_version = tmp_path / "static" / "version.txt"
+    legacy_version.parent.mkdir()
+    legacy_version.write_text("ancienne-version\n", encoding="utf-8")
     shutil.copy(PROJECT_ROOT / "scripts" / "setup_demo.sh", scripts_directory)
     fake_python = tmp_path / "python-factice"
     fake_python.write_text(
@@ -75,6 +78,7 @@ def test_setup_demo_runs_complete_command_sequence_with_selected_python(tmp_path
     assert "Installation terminée" in result.stdout
     assert (tmp_path / ".venv" / "bin" / "python").is_file()
     assert (static_directory / "version.txt").read_text(encoding="utf-8") == "v0.1.0\n"
+    assert not legacy_version.exists()
 
 
 def test_windows_setup_uses_acl_command_without_security_privilege() -> None:
@@ -82,4 +86,5 @@ def test_windows_setup_uses_acl_command_without_security_privilege() -> None:
 
     assert "Protect-DemoConfigFile -Path $ConfigFile" in script
     assert 'Invoke-CheckedCommand -Command "icacls.exe"' in script
+    assert 'Remove-Item -Force (Join-Path $ProjectRoot "static\\version.txt")' in script
     assert "Set-Acl" not in script
