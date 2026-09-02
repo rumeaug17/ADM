@@ -9,7 +9,8 @@ description = "Catalogue d'applications et évaluation de leur dette technique"
 authors = [
     { name = "Guillaume Rumeau" }
 ]
-license = { text = "MIT" } # Ou selon la licence de votre projet
+license = { text = "MIT" } 
+
 [project.urls]
 Homepage = "https://github.com/rumeaug17/ADM"
 Repository = "https://github.com/rumeaug17/ADM"
@@ -30,6 +31,13 @@ dev = [
     "mypy>=1.10,<2",
     "pytest>=8,<9",
     "ruff>=0.6,<1",
+]
+
+[tool.setuptools]
+script-files = [
+    "scripts/*.sh",
+    "scripts/*.ps1",
+    "scripts/*.py",
 ]
 
 [tool.setuptools.packages.find]
