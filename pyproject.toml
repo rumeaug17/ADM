@@ -10,10 +10,6 @@ authors = [
     { name = "Guillaume Rumeau" }
 ]
 license = { text = "MIT" } 
-
-[project.urls]
-Homepage = "https://github.com/rumeaug17/ADM"
-Repository = "https://github.com/rumeaug17/ADM"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -24,6 +20,10 @@ dependencies = [
     "numpy>=1.26,<2",
     "SQLAlchemy>=2.0,<3",
 ]
+
+[project.urls]
+Homepage = "https://github.com/rumeaug17/ADM"
+Repository = "https://github.com/rumeaug17/ADM"
 
 [project.optional-dependencies]
 dev = [
