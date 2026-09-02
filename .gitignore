@@ -10,3 +10,7 @@ dist/
 # Fichiers générés et métadonnées
 src/*.egg-info/
 src/ADM/resources/static/version.txt
+
+# Secret Kubernetes local (Tâche 0.3) : ne jamais committer de valeurs réelles,
+# voir k8s/secret.example.yaml et docs/CONTAINER.md.
+k8s/secret.yaml

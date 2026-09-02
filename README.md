@@ -161,6 +161,18 @@ Cette URL est un gabarit : ne copiez aucun secret réel dans un fichier versionn
 commande enregistrée ou un journal. Une nouvelle migration se crée avec
 `alembic revision --autogenerate -m "description"`.
 
+## Déploiement
+
+Deux modes de déploiement sont documentés :
+
+- installation traditionnelle du wheel Python sur un serveur ou PythonAnywhere :
+  [`INSTALL.md`](INSTALL.md) ;
+- image conteneurisée et manifestes Kubernetes (`Dockerfile`, `k8s/`) :
+  [`docs/CONTAINER.md`](docs/CONTAINER.md).
+
+Les deux modes installent le même wheel, construit une seule fois par la chaîne
+de livraison (voir [`docs/CODING_GUIDELINES.md`](docs/CODING_GUIDELINES.md)).
+
 ## Utilisation
 
 1. Connectez-vous avec un compte créé via `scripts/create_account.py` (voir
@@ -183,6 +195,8 @@ tests/         tests automatisés
 migrations/    versions du schéma MySQL
 scripts/       setup, génération de données, sauvegarde et documentation
 docs/          architecture, règles métier et conventions
+Dockerfile     image de production, construite à partir du wheel (voir docs/CONTAINER.md)
+k8s/           manifestes de déploiement Kubernetes (voir docs/CONTAINER.md)
 main.py        point d'entrée minimal du serveur de développement
 ```
 

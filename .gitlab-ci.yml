@@ -141,3 +141,28 @@ deploy-production:
   environment:
     name: production
   when: manual
+
+# Publie le livrable conteneurisé (Tâche 0.3 du backlog, voir docs/CONTAINER.md).
+# Réutilise le wheel du job `build` via `needs:artifacts` sans jamais le
+# reconstruire, exactement comme les jobs deploy-* : un seul artefact Python
+# est produit par pipeline, cette image n'en est qu'un second emballage. Kaniko
+# est utilisé pour ne pas requérir de Docker-in-Docker sur le runner.
+build-image:
+  stage: build
+  needs:
+    - job: build
+      artifacts: true
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  script:
+    - echo "Image publiée depuis le wheel vérifié par le job build (voir son empreinte ci-dessous) :"
+    - cat dist/*.whl.sha256
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}:latest"
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'

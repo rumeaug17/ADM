@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: adm-config-data
+  labels:
+    app.kubernetes.io/name: adm
+spec:
+  # Contient uniquement config.json (seuils d'affichage, voir configmap.yaml) :
+  # aucune donnée métier n'y est stockée avec le backend MySQL recommandé
+  # (README.md, section Configuration). ReadWriteOnce suffit puisque toutes
+  # les réplicas partagent la même valeur applicative, lue au démarrage et
+  # réécrite occasionnellement depuis /settings.
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi
+  # Adaptez à la classe de stockage de votre cluster ; laissez vide pour
+  # utiliser la classe par défaut.
+  # storageClassName: standard

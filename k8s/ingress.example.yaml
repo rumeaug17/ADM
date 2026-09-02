@@ -1,0 +1,31 @@
+# GABARIT — non appliqué par défaut (voir kustomization.yaml).
+#
+# Exemple d'exposition HTTPS via un contrôleur Ingress (ingress-nginx) et
+# cert-manager. Adaptez au minimum le nom d'hôte, la classe d'Ingress et
+# l'émetteur TLS à votre cluster avant de décommenter cette ressource dans
+# kustomization.yaml. Voir docs/CONTAINER.md, section « Exposition HTTPS ».
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: adm
+  labels:
+    app.kubernetes.io/name: adm
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - adm.example.org
+      secretName: adm-tls
+  rules:
+    - host: adm.example.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: adm
+                port:
+                  name: http
