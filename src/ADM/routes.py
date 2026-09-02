@@ -288,7 +288,10 @@ def change_own_password() -> ResponseReturnValue:
     le mot de passe local stocké n'est jamais utilisé pour l'authentification.
     """
     if app_config().auth_backend != "local":
-        abort(404, description="Cette fonctionnalité n'est disponible qu'avec l'authentification locale.")
+        abort(
+            404,
+            description="Cette fonctionnalité n'est disponible qu'avec l'authentification locale.",
+        )
     if request.method == "POST":
         try:
             current_password, new_password = validate_password_change_form(request.form)
@@ -297,9 +300,9 @@ def change_own_password() -> ResponseReturnValue:
             return render_template("change_password.html"), 400
         accounts_session = account_session_factory()()
         try:
-            account = accounts_session.query(Account).filter_by(
-                username=session.get("username")
-            ).first()
+            account = (
+                accounts_session.query(Account).filter_by(username=session.get("username")).first()
+            )
             if account is None or not verify_password(account, current_password):
                 flash("Le mot de passe actuel est incorrect.", "danger")
                 return render_template("change_password.html"), 400
