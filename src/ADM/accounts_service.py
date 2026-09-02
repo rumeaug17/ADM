@@ -58,7 +58,11 @@ def create_account(
     if session.query(Account).filter_by(username=username).first() is not None:
         raise AccountError(f"Le compte {username!r} existe déjà.")
     account = Account(
-        username=username, password_hash=hash_password(password), role=role, active=active
+        username=username,
+        password_hash=hash_password(password),
+        role=role,
+        active=active,
+        auth_generation=0,
     )
     session.add(account)
     return account

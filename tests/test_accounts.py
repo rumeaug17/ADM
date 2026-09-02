@@ -90,6 +90,7 @@ def test_create_account_hashes_password_and_never_stores_it_in_clear(tmp_path: P
     account = create_account(session, username="alice", password="secret-de-test", role="admin")
 
     assert account.password_hash != "secret-de-test"
+    assert account.auth_generation == 0
     assert verify_password(account, "secret-de-test")
     assert not verify_password(account, "mauvais-mot-de-passe")
 
