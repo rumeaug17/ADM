@@ -85,11 +85,55 @@
             <button type="submit" class="btn btn-sm btn-success">Activer</button>
           {% endif %}
         </form>
+        {% if local_auth %}
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resetPasswordModal-{{ loop.index }}">
+            Mot de passe
+          </button>
+        {% endif %}
+        {% if account.username != session.username %}
+          <form method="post" action="{{ url_for('accounts.delete_account_route', username=account.username) }}" class="d-inline"
+                onsubmit="return confirm('Supprimer définitivement ce compte ?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+          </form>
+        {% endif %}
       </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+
+{% for account in accounts %}
+  {% if local_auth %}
+  <div class="modal fade" id="resetPasswordModal-{{ loop.index }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" action="{{ url_for('accounts.reset_account_password', username=account.username) }}">
+          <div class="modal-header">
+            <h5 class="modal-title">Réinitialiser le mot de passe de {{ account.username }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="mb-3">
+              <label class="form-label">Nouveau mot de passe :</label>
+              <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirmation :</label>
+              <input type="password" name="password_confirm" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-primary">Réinitialiser</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endfor %}
 
 <!-- Modale de création de compte -->
 <div class="modal fade" id="createAccountModal" tabindex="-1" aria-labelledby="createAccountModalLabel" aria-hidden="true">

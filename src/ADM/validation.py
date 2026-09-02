@@ -94,6 +94,42 @@ def validate_account_creation_form(form: Mapping[str, str]) -> dict[str, object]
     return {"username": username, "password": password, "role": role}
 
 
+def validate_password_reset_form(form: Mapping[str, str]) -> str:
+    """Valide le nouveau mot de passe imposé à un compte par un administrateur (US6.2)."""
+    password = form.get("password", "")
+    confirmation = form.get("password_confirm", "")
+    if not password:
+        raise InputValidationError("Le mot de passe est obligatoire.")
+    if len(password) > 255:
+        raise InputValidationError("Le mot de passe ne doit pas dépasser 255 caractères.")
+    if password != confirmation:
+        raise InputValidationError("Les mots de passe ne correspondent pas.")
+    return password
+
+
+def validate_password_change_form(form: Mapping[str, str]) -> tuple[str, str]:
+    """Valide le formulaire d'auto-changement de mot de passe (US6.2).
+
+    Contrairement à ``validate_password_reset_form`` (réinitialisation par un
+    administrateur), ce formulaire exige le mot de passe actuel : sa validité est
+    vérifiée par l'appelant, cette fonction se limitant à la forme des champs.
+    """
+    current_password = form.get("current_password", "")
+    if not current_password:
+        raise InputValidationError("Le mot de passe actuel est obligatoire.")
+    new_password = form.get("new_password", "")
+    confirmation = form.get("new_password_confirm", "")
+    if not new_password:
+        raise InputValidationError("Le nouveau mot de passe est obligatoire.")
+    if len(new_password) > 255:
+        raise InputValidationError("Le mot de passe ne doit pas dépasser 255 caractères.")
+    if new_password != confirmation:
+        raise InputValidationError("Les mots de passe ne correspondent pas.")
+    if new_password == current_password:
+        raise InputValidationError("Le nouveau mot de passe doit être différent de l'actuel.")
+    return current_password, new_password
+
+
 def validate_evaluation_form(
     form: Mapping[str, str], question_keys: frozenset[str], scoring_values: frozenset[str]
 ) -> None:

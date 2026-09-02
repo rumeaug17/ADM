@@ -58,7 +58,11 @@ def create_account(
     if session.query(Account).filter_by(username=username).first() is not None:
         raise AccountError(f"Le compte {username!r} existe déjà.")
     account = Account(
-        username=username, password_hash=hash_password(password), role=role, active=active
+        username=username,
+        password_hash=hash_password(password),
+        role=role,
+        active=active,
+        auth_generation=0,
     )
     session.add(account)
     return account
@@ -96,5 +100,6 @@ def delete_account(session: AccountSession, account: Account) -> None:
 
 
 def set_account_password(account: Account, password: str) -> None:
-    """Change le mot de passe d'un compte."""
+    """Change le mot de passe et révoque les sessions authentifiées existantes."""
     account.password_hash = hash_password(password)
+    account.auth_generation += 1
