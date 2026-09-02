@@ -35,9 +35,15 @@ dev = [
 
 [tool.setuptools]
 script-files = [
-    "scripts/*.sh",
-    "scripts/*.ps1",
-    "scripts/*.py",
+    "scripts/backup_restore.py",
+    "scripts/create_account.py",
+    "scripts/generate_md_doc.py",
+    "scripts/generate_data_json.py",
+    "scripts/generate_data_mysql.py",
+    "scripts/run_demo.ps1",
+    "scripts/run_demo.sh",
+    "scripts/setup_demo.ps1",
+    "scripts/setup_demo.sh",
 ]
 
 [tool.setuptools.packages.find]
