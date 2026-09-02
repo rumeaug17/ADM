@@ -35,6 +35,7 @@ def test_account_round_trip() -> None:
     account = Account.from_dict(account_record())
     assert account.to_dict()["role"] == "admin"
     assert account.to_dict()["active"] is True
+    assert account.to_dict()["auth_generation"] == 0
 
 
 def test_account_rejects_unknown_role() -> None:
@@ -172,7 +173,9 @@ def test_set_account_password_updates_hash(tmp_path: Path) -> None:
     session = AccountJsonSession(init_account_db(str(tmp_path / "accounts.json")))
     account = create_account(session, username="alice", password="ancien-secret", role="admin")
 
+    previous_generation = account.auth_generation
     set_account_password(account, "nouveau-secret")
 
+    assert account.auth_generation == previous_generation + 1
     assert verify_password(account, "nouveau-secret")
     assert not verify_password(account, "ancien-secret")

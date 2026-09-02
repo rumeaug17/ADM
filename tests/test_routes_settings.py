@@ -194,6 +194,7 @@ def test_update_settings_requires_csrf_token(tmp_path: Path) -> None:
         sess["logged_in"] = True
         sess["username"] = "alice"
         sess["role"] = "admin"
+        sess["auth_generation"] = 0
 
     response = client.post(
         "/settings",
@@ -228,6 +229,7 @@ def test_update_settings_valid_persists_and_reloads(tmp_path: Path) -> None:
         sess["logged_in"] = True
         sess["username"] = "alice"
         sess["role"] = "admin"
+        sess["auth_generation"] = 0
         sess["csrf_token"] = "jeton-de-test"
 
     response = client.post(
@@ -269,6 +271,7 @@ def test_update_settings_rejects_invalid_thresholds_without_persisting(tmp_path:
         sess["logged_in"] = True
         sess["username"] = "alice"
         sess["role"] = "admin"
+        sess["auth_generation"] = 0
         sess["csrf_token"] = "jeton-de-test"
 
     response = client.post(

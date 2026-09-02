@@ -14,6 +14,7 @@ class AuthenticatedAccount:
 
     username: str
     role: str
+    auth_generation: int
 
 
 class AuthProvider(Protocol):
@@ -36,7 +37,11 @@ class LocalAuthProvider:
                 return None
             if not verify_password(account, password):
                 return None
-            return AuthenticatedAccount(username=account.username, role=account.role)
+            return AuthenticatedAccount(
+                username=account.username,
+                role=account.role,
+                auth_generation=account.auth_generation,
+            )
         finally:
             account_session.close()
 
