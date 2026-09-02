@@ -30,8 +30,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Compte non privilégié dédié : voir docs/CONTAINER.md et INSTALL.md section 13
 # (« faites tourner l'application avec un compte système non privilégié »).
-RUN groupadd --gid 1000 adm \
-    && useradd --uid 1000 --gid adm --create-home --shell /usr/sbin/nologin adm
+# Crée le groupe adm s'il n'existe pas déjà, puis crée l'utilisateur s'il n'existe pas
+RUN groupadd -g 1000 -f adm \
+    && id -u adm >/dev/null 2>&1 || useradd --uid 1000 --gid adm --create-home --shell /usr/sbin/nologin adm
 
 WORKDIR /app
 
