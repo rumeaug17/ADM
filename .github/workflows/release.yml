@@ -3,6 +3,7 @@ name: Build, Attach Wheel and Push Container to Release
 on:
   release:
     types: [published]
+  workflow_dispatch: # Permet de relancer le workflow manuellement depuis l'interface GitHub
 
 jobs:
   check-and-build:
