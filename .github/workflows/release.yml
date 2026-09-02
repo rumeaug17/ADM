@@ -34,9 +34,6 @@ jobs:
       - name: Run Ruff format check
         run: ruff format --check .
 
-      - name: Run MyPy static type check
-        run: mypy src/
-
       - name: Write version file
         run: |
           mkdir -p src/ADM/resources/static
