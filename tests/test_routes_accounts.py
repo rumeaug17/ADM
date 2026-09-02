@@ -61,6 +61,7 @@ def _admin_session(client: object, username: str = "alice") -> None:
         sess["logged_in"] = True
         sess["username"] = username
         sess["role"] = "admin"
+        sess["auth_generation"] = 0
         sess["csrf_token"] = "jeton-de-test"
 
 
@@ -72,6 +73,7 @@ def test_list_accounts_forbidden_for_non_admin(tmp_path: Path) -> None:
         sess["logged_in"] = True
         sess["username"] = "bob"
         sess["role"] = "user"
+        sess["auth_generation"] = 0
 
     response = client.get("/accounts")
 
@@ -290,6 +292,7 @@ def test_reset_account_password(tmp_path: Path) -> None:
     saved = json.loads(accounts_path.read_text(encoding="utf-8"))
     bob = next(record for record in saved if record["username"] == "bob")
     assert bob["password_hash"] != "ancien-secret"
+    assert bob["auth_generation"] == 1
 
 
 def test_reset_account_password_rejects_mismatched_confirmation(tmp_path: Path) -> None:
@@ -382,6 +385,7 @@ def test_account_routes_require_csrf_token(tmp_path: Path) -> None:
         sess["logged_in"] = True
         sess["username"] = "alice"
         sess["role"] = "admin"
+        sess["auth_generation"] = 0
 
     response = client.post(
         "/accounts",

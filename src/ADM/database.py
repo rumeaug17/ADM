@@ -159,6 +159,7 @@ class Account(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(20))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    auth_generation: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     def __repr__(self) -> str:
@@ -177,6 +178,7 @@ class Account(Base):
             "password_hash": self.password_hash,
             "role": self.role,
             "active": self.active,
+            "auth_generation": self.auth_generation,
             "created_at": (self.created_at or datetime.now()).isoformat(),
         }
 
@@ -194,6 +196,7 @@ class Account(Base):
             password_hash=_required_string(data.get("password_hash"), "password_hash"),
             role=_required_role(data.get("role"), "role"),
             active=_required_bool(data.get("active"), "active"),
+            auth_generation=_optional_int(data.get("auth_generation"), "auth_generation") or 0,
             created_at=_optional_datetime(data.get("created_at"), "created_at") or datetime.now(),
         )
 

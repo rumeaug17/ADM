@@ -164,7 +164,14 @@ def resolve_current_active_account() -> Account | None:
         account = accounts_session.query(Account).filter_by(username=username).first()
     finally:
         accounts_session.close()
-    if account is None or not account.active:
+    session_generation = session.get("auth_generation")
+    if (
+        account is None
+        or not account.active
+        or not isinstance(session_generation, int)
+        or isinstance(session_generation, bool)
+        or session_generation != account.auth_generation
+    ):
         return None
     return account
 
@@ -263,6 +270,7 @@ def login() -> ResponseReturnValue:
             session["logged_in"] = True
             session["username"] = identity.username
             session["role"] = identity.role
+            session["auth_generation"] = identity.auth_generation
             flash("Connexion réussie.", "success")
             return redirect(url_for("applications.index"))
         flash("Identifiants incorrects.", "danger")
@@ -275,6 +283,7 @@ def logout() -> ResponseReturnValue:
     session.pop("logged_in", None)
     session.pop("username", None)
     session.pop("role", None)
+    session.pop("auth_generation", None)
     flash("Vous êtes déconnecté.", "info")
     return redirect(url_for("auth.login"))
 
@@ -308,6 +317,7 @@ def change_own_password() -> ResponseReturnValue:
                 return render_template("change_password.html"), 400
             set_account_password(account, new_password)
             accounts_session.commit()
+            session["auth_generation"] = account.auth_generation
         finally:
             accounts_session.close()
         flash("Votre mot de passe a été mis à jour.", "success")

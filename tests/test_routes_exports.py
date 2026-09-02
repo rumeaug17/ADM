@@ -75,6 +75,7 @@ def test_import_data_forbidden_for_non_admin(tmp_path: Path) -> None:
         sess["logged_in"] = True
         sess["username"] = "bob"
         sess["role"] = "user"
+        sess["auth_generation"] = 0
 
     response = client.get("/import_data")
 
@@ -89,6 +90,7 @@ def test_import_data_post_forbidden_for_non_admin(tmp_path: Path) -> None:
         sess["logged_in"] = True
         sess["username"] = "bob"
         sess["role"] = "user"
+        sess["auth_generation"] = 0
         sess["csrf_token"] = "jeton-de-test"
 
     response = client.post(
@@ -111,6 +113,7 @@ def test_import_data_allowed_for_admin(tmp_path: Path) -> None:
         sess["logged_in"] = True
         sess["username"] = "alice"
         sess["role"] = "admin"
+        sess["auth_generation"] = 0
         sess["csrf_token"] = "jeton-de-test"
 
     response = client.post(

@@ -96,5 +96,6 @@ def delete_account(session: AccountSession, account: Account) -> None:
 
 
 def set_account_password(account: Account, password: str) -> None:
-    """Change le mot de passe d'un compte."""
+    """Change le mot de passe et révoque les sessions authentifiées existantes."""
     account.password_hash = hash_password(password)
+    account.auth_generation += 1
