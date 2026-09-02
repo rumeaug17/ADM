@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adm
+  labels:
+    app.kubernetes.io/name: adm
+spec:
+  # Une seule réplique par défaut : ADM_CONFIG_PATH est monté sur une PVC
+  # ReadWriteOnce (voir pvc.yaml). Plusieurs répliques exigeraient soit une
+  # classe de stockage ReadWriteMany, soit d'abandonner la persistance de
+  # config.json (seuils d'affichage figés à ceux du ConfigMap). Voir
+  # docs/CONTAINER.md, section « Faire évoluer le nombre de répliques ».
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: adm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: adm
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: adm
+          image: adm  # résolu par kustomization.yaml (images:)
+          args: ["web"]
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: adm-config
+            - secretRef:
+                name: adm-secrets
+          volumeMounts:
+            - name: config-data
+              mountPath: /var/lib/adm
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          # /healthz contrôle l'application et l'accès à son backend de
+          # persistance sans exiger d'authentification.
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: config-data
+          persistentVolumeClaim:
+            claimName: adm-config-data
+        - name: tmp
+          emptyDir: {}

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adm-config
+  labels:
+    app.kubernetes.io/name: adm
+data:
+  # Valeurs non sensibles uniquement (voir docs/CODING_GUIDELINES.md,
+  # « Protéger secrets et données sensibles »). ADM_SECRET_KEY et
+  # ADM_DATABASE_URL vivent dans secret.yaml, jamais ici.
+  ADM_DB_BACKEND: "mysql"
+  # Chemin persistant de config.json (seuils d'affichage modifiables depuis
+  # /settings), sur le volume monté par deployment.yaml et migration-job.yaml.
+  # Voir INSTALL.md section 5.
+  ADM_CONFIG_PATH: "/var/lib/adm/config.json"
+  ADM_HTTP_PORT: "8000"
+  ADM_GUNICORN_WORKERS: "2"

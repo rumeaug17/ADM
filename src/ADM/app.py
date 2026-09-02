@@ -12,7 +12,7 @@ from werkzeug.exceptions import HTTPException
 
 from ADM.accounts_service import AccountSession
 from ADM.auth_providers import get_auth_provider
-from ADM.routes import accounts, applications, auth, evaluations, exports, settings
+from ADM.routes import accounts, applications, auth, evaluations, exports, settings, supervision
 from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
 
@@ -150,7 +150,7 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
 
 
 def _register_web_components(app: Flask) -> None:
-    for blueprint in (auth, applications, evaluations, exports, settings, accounts):
+    for blueprint in (supervision, auth, applications, evaluations, exports, settings, accounts):
         app.register_blueprint(blueprint)
 
     def protect_posts() -> None:

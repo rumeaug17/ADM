@@ -14,8 +14,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   `exports.export_csv` écrit le CSV en UTF-8 simple ; Excel (notamment sous Windows, cas d'usage
   probable de cet export) mal-interprète alors les caractères accentués à l'ouverture directe du
   fichier. Écrire le flux en `utf-8-sig` (BOM) pour une ouverture correcte sans étape d'import manuel.
-- **[Nouveau] Tâche 0.3** : *Livrable en mode conteneur*  
-  Propose la production d'un livrable en mode conteneurisé pouvant être déployé sur une architecture kubernetes standard.
 ## Epic 1 : Fonctionnel
 
 ### User Stories
@@ -26,10 +24,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
 ## Epic 3 : Amélioration de la Qualité du Code, Tests et Exploitation
 
 ### Tâches Techniques
-- **[Nouveau] Tâche 3.5** : *Point de contrôle de supervision*  
-  Aucune route de type `/healthz` n'existe pour vérifier la disponibilité de l'application et de son
-  backend de persistance ; utile pour le déploiement/orchestration (le projet dispose déjà d'un
-  `.gitlab-ci.yml`).
 - **[Nouveau] Tâche 3.6** : *Pagination des listes*  
   `applications.index` (`/`) et `accounts.list_accounts` (`/accounts`) chargent l'intégralité des
   enregistrements en mémoire et les rendent sans pagination ni recherche. Sans impact aujourd'hui,

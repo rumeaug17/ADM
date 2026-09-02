@@ -1,0 +1,26 @@
+# Manifestes Kubernetes — gabarit, à adapter avant tout déploiement réel.
+#
+# ADM est un démonstrateur (voir README.md) : ces manifestes montrent une
+# topologie standard (Deployment + Service + PVC + Job de migration), pas une
+# configuration prête pour un cluster de production précis. Adaptez au minimum
+# le nom d'image, les ressources, la classe de stockage et l'Ingress à votre
+# environnement. Voir docs/CONTAINER.md pour le détail de chaque choix.
+
+resources:
+  - configmap.yaml
+  # secret.yaml n'est pas versionné (voir .gitignore) : copiez d'abord
+  # secret.example.yaml vers secret.yaml et renseignez vos propres valeurs,
+  # voir docs/CONTAINER.md.
+  - secret.yaml
+  - pvc.yaml
+  - migration-job.yaml
+  - deployment.yaml
+  - service.yaml
+  # Gabarit non appliqué par défaut : décommentez après adaptation
+  # (domaine, classe d'Ingress, émetteur TLS). Voir docs/CONTAINER.md.
+  # - ingress.example.yaml
+
+images:
+  - name: adm
+    newName: registry.example.org/adm/adm
+    newTag: v1.5.1

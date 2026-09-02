@@ -32,6 +32,13 @@ dev = [
     "pytest>=8,<9",
     "ruff>=0.6,<1",
 ]
+# Serveur WSGI de production utilisé par l'image conteneurisée (Tâche 0.3 du
+# backlog, voir Dockerfile et docs/CONTAINER.md). Volontairement absent de la
+# liste `dependencies` : les installations traditionnelles (INSTALL.md) restent
+# libres de leur propre serveur WSGI.
+container = [
+    "gunicorn>=22,<23",
+]
 
 [tool.setuptools]
 script-files = [

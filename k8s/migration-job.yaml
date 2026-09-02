@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # Les Jobs sont immuables : ce nom fixe est supprimé puis recréé à chaque
+  # déploiement (voir docs/CONTAINER.md, section « Déployer »). C'est sans
+  # risque : `alembic upgrade head` ne fait rien si le schéma est déjà à jour.
+  name: adm-migrate
+  labels:
+    app.kubernetes.io/name: adm
+    app.kubernetes.io/component: migration
+spec:
+  # Ne jamais exécuter les migrations depuis plusieurs réplicas en parallèle
+  # (voir docker-entrypoint.sh) : ce Job s'exécute une seule fois, avant le
+  # rollout du Deployment (voir docs/CONTAINER.md, section « Déployer »).
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: adm
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: adm  # résolu par kustomization.yaml (images:)
+          args: ["migrate"]
+          envFrom:
+            - configMapRef:
+                name: adm-config
+            - secretRef:
+                name: adm-secrets
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
