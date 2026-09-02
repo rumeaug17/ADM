@@ -10,6 +10,8 @@ from ADM.validation import (
     validate_application_form,
     validate_evaluation_form,
     validate_import,
+    validate_password_change_form,
+    validate_password_reset_form,
 )
 
 
@@ -63,6 +65,49 @@ def test_evaluation_rejects_unknown_question() -> None:
         validate_evaluation_form(
             {"question_inconnue": "Oui"}, frozenset({"question_connue"}), frozenset({"Oui"})
         )
+
+
+def test_password_reset_form_rejects_mismatched_confirmation() -> None:
+    with pytest.raises(InputValidationError, match="ne correspondent pas"):
+        validate_password_reset_form({"password": "secret-un", "password_confirm": "secret-deux"})
+
+
+def test_password_reset_form_returns_password_on_match() -> None:
+    password = validate_password_reset_form(
+        {"password": "nouveau-secret", "password_confirm": "nouveau-secret"}
+    )
+
+    assert password == "nouveau-secret"
+
+
+def test_password_change_form_requires_current_password() -> None:
+    with pytest.raises(InputValidationError, match="mot de passe actuel"):
+        validate_password_change_form(
+            {"new_password": "nouveau-secret", "new_password_confirm": "nouveau-secret"}
+        )
+
+
+def test_password_change_form_rejects_identical_new_password() -> None:
+    with pytest.raises(InputValidationError, match="différent de l'actuel"):
+        validate_password_change_form(
+            {
+                "current_password": "meme-secret",
+                "new_password": "meme-secret",
+                "new_password_confirm": "meme-secret",
+            }
+        )
+
+
+def test_password_change_form_returns_both_passwords_on_success() -> None:
+    current, new = validate_password_change_form(
+        {
+            "current_password": "ancien-secret",
+            "new_password": "nouveau-secret",
+            "new_password_confirm": "nouveau-secret",
+        }
+    )
+
+    assert (current, new) == ("ancien-secret", "nouveau-secret")
 
 
 def test_all_post_routes_require_csrf_token(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -10,12 +10,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
 ## Epic 0 : Correction des bugs et dette technique
 
 ### Tâches Techniques
-- **[Nouveau] Tâche 0.1** : *Fonctions de service sans route associée (code mort)*  
-  `ADM.accounts_service.delete_account` et `ADM.accounts_service.set_account_password` sont
-  implémentées, testées au niveau service, mais ne sont exposées par aucune route ni aucun bouton
-  dans `accounts.html` : impossible aujourd'hui de supprimer un compte ou de changer un mot de passe
-  depuis l'interface web une fois le compte créé. Ajouter les routes/vues correspondantes (voir
-  Epic 6).
 - **[Nouveau] Tâche 0.2** : *Export CSV sans BOM UTF-8*  
   `exports.export_csv` écrit le CSV en UTF-8 simple ; Excel (notamment sous Windows, cas d'usage
   probable de cet export) mal-interprète alors les caractères accentués à l'ouverture directe du
@@ -72,15 +66,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   Voir l'invariant du dernier admin actif et le rôle requis pour `/settings`
   dans [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md).
   - [ ] Étendre la protection par rôle à la gestion des questions (US4.3)
-
-- **[Nouveau] US6.2** : *Cycle de vie complet des comptes depuis l'interface*  
-  Compléter l'administration des comptes, dont le service métier existe déjà mais n'est pas exposé
-  (voir Tâche 0.1) :
-  - [ ] Route et bouton de suppression d'un compte (`delete_account`), avec confirmation et respect
-    de l'invariant du dernier admin actif
-  - [ ] Route de réinitialisation du mot de passe d'un compte par un admin (`set_account_password`)
-  - [ ] Auto-service : page permettant à un utilisateur connecté de changer son propre mot de passe,
-    sans passer par un admin
 
 - **[Nouveau] US6.3** : *Renforcement de la sécurité des sessions et de l'authentification*  
   - [ ] Limiter les tentatives de connexion (compteur d'échecs / délai progressif / verrouillage

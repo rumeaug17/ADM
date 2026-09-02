@@ -29,8 +29,11 @@ from ADM.accounts_service import (
     AccountError,
     AccountSession,
     create_account,
+    delete_account,
     set_account_active,
+    set_account_password,
     set_account_role,
+    verify_password,
 )
 from ADM.auth_providers import AuthProvider
 from ADM.catalogue_io import replace_catalogue, serialize_catalogue
@@ -58,6 +61,8 @@ from ADM.validation import (
     validate_evaluation_form,
     validate_import,
     validate_login_form,
+    validate_password_change_form,
+    validate_password_reset_form,
 )
 
 accounts = Blueprint("accounts", __name__)
@@ -272,6 +277,39 @@ def logout() -> ResponseReturnValue:
     session.pop("role", None)
     flash("Vous êtes déconnecté.", "info")
     return redirect(url_for("auth.login"))
+
+
+@route(auth, "/account/password", methods=["GET", "POST"])
+@login_required
+def change_own_password() -> ResponseReturnValue:
+    """Permet à l'utilisateur connecté de changer lui-même son mot de passe (US6.2).
+
+    Ne s'applique qu'au fournisseur d'authentification ``local`` : avec ``ldap``/``oidc``,
+    le mot de passe local stocké n'est jamais utilisé pour l'authentification.
+    """
+    if app_config().auth_backend != "local":
+        abort(404, description="Cette fonctionnalité n'est disponible qu'avec l'authentification locale.")
+    if request.method == "POST":
+        try:
+            current_password, new_password = validate_password_change_form(request.form)
+        except InputValidationError as error:
+            flash(str(error), "danger")
+            return render_template("change_password.html"), 400
+        accounts_session = account_session_factory()()
+        try:
+            account = accounts_session.query(Account).filter_by(
+                username=session.get("username")
+            ).first()
+            if account is None or not verify_password(account, current_password):
+                flash("Le mot de passe actuel est incorrect.", "danger")
+                return render_template("change_password.html"), 400
+            set_account_password(account, new_password)
+            accounts_session.commit()
+        finally:
+            accounts_session.close()
+        flash("Votre mot de passe a été mis à jour.", "success")
+        return redirect(url_for("applications.index"))
+    return render_template("change_password.html")
 
 
 @route(applications, "/")
@@ -747,7 +785,12 @@ def list_accounts() -> ResponseReturnValue:
     try:
         all_accounts = accounts_session.query(Account).all()
         all_accounts.sort(key=lambda account: account.username.casefold())
-        return render_template("accounts.html", accounts=all_accounts, roles=sorted(ROLES))
+        return render_template(
+            "accounts.html",
+            accounts=all_accounts,
+            roles=sorted(ROLES),
+            local_auth=app_config().auth_backend == "local",
+        )
     finally:
         accounts_session.close()
 
@@ -822,6 +865,54 @@ def toggle_account_active(username: str) -> ResponseReturnValue:
             return redirect(url_for("accounts.list_accounts"))
         state_label = "activé" if new_state else "désactivé"
         flash(f"Compte {username!r} {state_label}.", "success")
+        return redirect(url_for("accounts.list_accounts"))
+    finally:
+        accounts_session.close()
+
+
+@route(accounts, "/accounts/<username>/password", methods=["POST"])
+@role_required("admin")
+def reset_account_password(username: str) -> ResponseReturnValue:
+    """Réinitialise le mot de passe d'un compte depuis l'interface d'administration (Tâche 0.1)."""
+    try:
+        new_password = validate_password_reset_form(request.form)
+    except InputValidationError as error:
+        flash(str(error), "danger")
+        return redirect(url_for("accounts.list_accounts"))
+    accounts_session = account_session_factory()()
+    try:
+        account = require_account_by_username(username, accounts_session)
+        set_account_password(account, new_password)
+        accounts_session.commit()
+        flash(f"Mot de passe de {username!r} réinitialisé.", "success")
+        return redirect(url_for("accounts.list_accounts"))
+    finally:
+        accounts_session.close()
+
+
+@route(accounts, "/accounts/<username>/delete", methods=["POST"])
+@role_required("admin")
+def delete_account_route(username: str) -> ResponseReturnValue:
+    """Supprime un compte depuis l'interface d'administration (Tâche 0.1).
+
+    La suppression de son propre compte est refusée indépendamment de l'invariant du
+    dernier admin actif : elle laisserait la session courante référencer un compte
+    inexistant.
+    """
+    if username == session.get("username"):
+        flash("Vous ne pouvez pas supprimer votre propre compte.", "danger")
+        return redirect(url_for("accounts.list_accounts"))
+    accounts_session = account_session_factory()()
+    try:
+        account = require_account_by_username(username, accounts_session)
+        try:
+            delete_account(accounts_session, account)
+            accounts_session.commit()
+        except AccountError as error:
+            accounts_session.rollback()
+            flash(str(error), "danger")
+            return redirect(url_for("accounts.list_accounts"))
+        flash(f"Compte {username!r} supprimé.", "success")
         return redirect(url_for("accounts.list_accounts"))
     finally:
         accounts_session.close()

@@ -6,7 +6,7 @@ from pathlib import Path
 from flask import Flask
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
-from ADM.accounts_service import create_account
+from ADM.accounts_service import create_account, verify_password
 from ADM.database import Account
 
 
@@ -222,6 +222,65 @@ def test_deactivated_account_loses_access_immediately(tmp_path: Path) -> None:
     assert response.headers["Location"].endswith("/login")
     with client.session_transaction() as sess:
         assert "logged_in" not in sess
+
+
+def test_change_own_password_succeeds_with_correct_current_password(tmp_path: Path) -> None:
+    accounts_path = _seed_account(
+        tmp_path, username="alice", password="ancien-secret", role="admin"
+    )
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["username"] = "alice"
+        sess["role"] = "admin"
+    csrf_token = _extract_csrf_token(client.get("/account/password").get_data(as_text=True))
+
+    response = client.post(
+        "/account/password",
+        data={
+            "csrf_token": csrf_token,
+            "current_password": "ancien-secret",
+            "new_password": "nouveau-secret",
+            "new_password_confirm": "nouveau-secret",
+        },
+    )
+
+    assert response.status_code == 302
+    account_session = AccountJsonSession(init_account_db(str(accounts_path)))
+    alice = account_session.query(Account).filter_by(username="alice").first()
+    assert alice is not None
+    assert verify_password(alice, "nouveau-secret")
+    assert not verify_password(alice, "ancien-secret")
+
+
+def test_change_own_password_rejects_wrong_current_password(tmp_path: Path) -> None:
+    accounts_path = _seed_account(
+        tmp_path, username="alice", password="ancien-secret", role="admin"
+    )
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["username"] = "alice"
+        sess["role"] = "admin"
+    csrf_token = _extract_csrf_token(client.get("/account/password").get_data(as_text=True))
+
+    response = client.post(
+        "/account/password",
+        data={
+            "csrf_token": csrf_token,
+            "current_password": "mauvais-mot-de-passe",
+            "new_password": "nouveau-secret",
+            "new_password_confirm": "nouveau-secret",
+        },
+    )
+
+    assert response.status_code == 400
+    account_session = AccountJsonSession(init_account_db(str(accounts_path)))
+    alice = account_session.query(Account).filter_by(username="alice").first()
+    assert alice is not None
+    assert verify_password(alice, "ancien-secret")
 
 
 def test_demoted_admin_loses_admin_access_immediately(tmp_path: Path) -> None:

@@ -174,6 +174,7 @@ def _register_web_components(app: Flask) -> None:
             "csrf_token": token,
             "app_version": version,
             "display_thresholds": app.extensions["adm_display_thresholds"],
+            "local_auth": app.extensions["adm_app_config"].auth_backend == "local",
         }
 
     def http_error(error: HTTPException) -> tuple[str, int]:
