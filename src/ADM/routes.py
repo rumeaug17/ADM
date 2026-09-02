@@ -15,6 +15,7 @@ from flask import (
     abort,
     current_app,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -71,6 +72,7 @@ applications = Blueprint("applications", __name__)
 evaluations = Blueprint("evaluations", __name__)
 exports = Blueprint("exports", __name__)
 settings = Blueprint("settings", __name__)
+supervision = Blueprint("supervision", __name__)
 
 ViewParameters = ParamSpec("ViewParameters")
 ViewReturn = TypeVar("ViewReturn")
@@ -125,6 +127,32 @@ def app_config() -> AppConfig:
 def auth_provider() -> AuthProvider:
     """Retourne le fournisseur d'authentification injecté au démarrage."""
     return cast(AuthProvider, current_app.extensions["adm_auth_provider"])
+
+
+def persistence_is_available() -> bool:
+    """Vérifie que le backend du catalogue accepte une requête en lecture."""
+    try:
+        database_session = session_factory()()
+        try:
+            database_session.query(Application).first()
+        finally:
+            database_session.close()
+    except (OSError, SQLAlchemyError, ValueError) as error:
+        current_app.logger.warning(
+            "Backend de persistance indisponible (%s).", type(error).__name__
+        )
+        return False
+    return True
+
+
+@route(supervision, "/healthz", methods=["GET"])
+def healthz() -> ResponseReturnValue:
+    """Expose l'état de l'application et de son backend, sans authentification."""
+    status = "ok" if persistence_is_available() else "unavailable"
+    status_code = 200 if status == "ok" else 503
+    response = jsonify({"status": status})
+    response.headers["Cache-Control"] = "no-store"
+    return response, status_code
 
 
 def get_app_by_name(name: str, database_session: TransactionSession) -> Application | None:

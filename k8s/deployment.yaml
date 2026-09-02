@@ -59,19 +59,18 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
-          # /login est public (aucune authentification requise) et sert de
-          # sonde en l'absence d'un point de contrôle dédié : voir la Tâche
-          # 3.5 du backlog et docs/CONTAINER.md, section « Sondes ».
+          # /healthz contrôle l'application et l'accès à son backend de
+          # persistance sans exiger d'authentification.
           readinessProbe:
             httpGet:
-              path: /login
+              path: /healthz
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
           livenessProbe:
             httpGet:
-              path: /login
+              path: /healthz
               port: http
             initialDelaySeconds: 15
             periodSeconds: 20

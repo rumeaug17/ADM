@@ -24,10 +24,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
 ## Epic 3 : Amélioration de la Qualité du Code, Tests et Exploitation
 
 ### Tâches Techniques
-- **[Nouveau] Tâche 3.5** : *Point de contrôle de supervision*  
-  Aucune route de type `/healthz` n'existe pour vérifier la disponibilité de l'application et de son
-  backend de persistance ; utile pour le déploiement/orchestration (le projet dispose déjà d'un
-  `.gitlab-ci.yml`).
 - **[Nouveau] Tâche 3.6** : *Pagination des listes*  
   `applications.index` (`/`) et `accounts.list_accounts` (`/accounts`) chargent l'intégralité des
   enregistrements en mémoire et les rendent sans pagination ni recherche. Sans impact aujourd'hui,
