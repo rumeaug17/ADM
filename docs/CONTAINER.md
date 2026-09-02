@@ -147,12 +147,12 @@ JSON ne conviennent à un déploiement Kubernetes à plusieurs répliques.
 
 ## 7. Sondes de vivacité et de disponibilité
 
-ADM n'expose pas encore de point de contrôle de supervision dédié (Tâche 3.5 du
-backlog, encore ouverte). En attendant, `k8s/deployment.yaml` utilise `/login`
-comme `readinessProbe`/`livenessProbe` : cette route est publique (aucune
-authentification requise) et répond `200` dès que l'application, sa
-configuration et sa connexion à MySQL sont opérationnelles. Remplacez ces
-sondes par `/healthz` une fois la Tâche 3.5 réalisée.
+La route publique `GET /healthz` vérifie que l'application peut effectuer une
+lecture sur son backend de persistance. Elle renvoie `200` et
+`{"status":"ok"}` lorsque le service est disponible, ou `503` et
+`{"status":"unavailable"}` lorsque la persistance ne répond pas. La réponse
+ne contient ni détail de connexion ni donnée métier. `k8s/deployment.yaml`
+utilise cette route pour ses `readinessProbe` et `livenessProbe`.
 
 ## 8. Sécurité du conteneur
 
