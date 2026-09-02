@@ -6,6 +6,13 @@ build-backend = "setuptools.build_meta"
 name = "adm-catalogue"
 version = "1.5.1"
 description = "Catalogue d'applications et évaluation de leur dette technique"
+authors = [
+    { name = "Guillaume Rumeau" }
+]
+license = { text = "MIT" } # Ou selon la licence de votre projet
+[project.urls]
+Homepage = "https://github.com/rumeaug17/ADM"
+Repository = "https://github.com/rumeaug17/ADM"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
