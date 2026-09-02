@@ -2,48 +2,53 @@
 
 Ce document liste les fonctionnalités, user stories et tâches techniques à réaliser pour améliorer et étendre l'application.
 
+Dernière relecture du code source (`src/ADM`) : les tâches déjà réalisées ont été retirées et de
+nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouveau]**).
+
 ---
 
-## Epic 0 : Correction des bugs 
+## Epic 0 : Correction des bugs et dette technique
+
+### Tâches Techniques
+- **[Nouveau] Tâche 0.1** : *Fonctions de service sans route associée (code mort)*  
+  `ADM.accounts_service.delete_account` et `ADM.accounts_service.set_account_password` sont
+  implémentées, testées au niveau service, mais ne sont exposées par aucune route ni aucun bouton
+  dans `accounts.html` : impossible aujourd'hui de supprimer un compte ou de changer un mot de passe
+  depuis l'interface web une fois le compte créé. Ajouter les routes/vues correspondantes (voir
+  Epic 6).
+- **[Nouveau] Tâche 0.2** : *Export CSV sans BOM UTF-8*  
+  `exports.export_csv` écrit le CSV en UTF-8 simple ; Excel (notamment sous Windows, cas d'usage
+  probable de cet export) mal-interprète alors les caractères accentués à l'ouverture directe du
+  fichier. Écrire le flux en `utf-8-sig` (BOM) pour une ouverture correcte sans étape d'import manuel.
 
 ## Epic 1 : Fonctionnel
 
 ### User Stories
-- ~~**US1.1** : *Précision de l'estimation du score de dette*~~
-  ~~Augmenter le nombre des questions à répondre et avoir des questions plus précises~~
-- ~~**US1.2** : *Pondération des scores*~~  
-  ~~Pondérer le poids des questions pour le calcul du score (toutes les dettes ne se valent pas)~~
 - **US1.3** : *Ajouter un score de dette global*  
   Ajouter un score de dette correspondant aux applications non évaluées. Par exemple 30 points par application non évaluées.
   Le nombre total d'application dans le SI est un paramètre de configuration (?)
 
-## Epic 2 : Sauvegarde et Historique des Données
-
-### User Stories
-- ~~**US2.3** : *Import / Export*~~  
-  ~~Proposer un export global du catalogue, avec les évaluations et historique, puis un import global~~
-- ~~**US2.4** : *Backend SQLite*~~
-  ~~Ajouter, en complément des backends JSON et MySQL existants, un backend de persistance SQLite
-  (fichier local, sans serveur à installer) pour un déploiement mono-processus persistant. Réutilise
-  le backend relationnel générique (`ADM.database`, comptes inclus), déjà exercé par les tests via
-  SQLite ; seules l'URL de connexion (`ADM_DATABASE_URL=sqlite:///...`) et la documentation
-  d'installation changent par rapport à MySQL.~~
-
-## Epic 3 : Amélioration de la Qualité du Code et Tests
+## Epic 3 : Amélioration de la Qualité du Code, Tests et Exploitation
 
 ### Tâches Techniques
-- ~~**Tâche 3.1** : Ajouter des tests unitaires pour les fonctions critiques (chargement/sauvegarde, calcul des scores, génération des graphiques).~~
-- ~~**Tâche 3.2** : Documenter le projet (README, commentaires dans le code, guide de contribution).~~
-- ~~**Tâche 3.3** : Rendre configurable les seuils de score et de risque dans les affichages~~
-- ~~**Tâche 3.4** : Découper le fichier app.py. Au minimum séparer les fonctions utilitaires des fonctions de route~~
+- **[Nouveau] Tâche 3.5** : *Point de contrôle de supervision*  
+  Aucune route de type `/healthz` n'existe pour vérifier la disponibilité de l'application et de son
+  backend de persistance ; utile pour le déploiement/orchestration (le projet dispose déjà d'un
+  `.gitlab-ci.yml`).
+- **[Nouveau] Tâche 3.6** : *Pagination des listes*  
+  `applications.index` (`/`) et `accounts.list_accounts` (`/accounts`) chargent l'intégralité des
+  enregistrements en mémoire et les rendent sans pagination ni recherche. Sans impact aujourd'hui,
+  mais à traiter avant que le catalogue ou la liste des comptes ne grossisse significativement.
+- **[Nouveau] Tâche 3.7** : *Génération du radar chart non mise en cache*  
+  `generate_radar_chart` (matplotlib) est recalculée à chaque affichage de `/synthese` et de
+  `/resume/<name>`, y compris lorsque les données n'ont pas changé depuis le dernier rendu. À évaluer
+  si cela devient un point de lenteur perçu.
 
 ## Epic 4 : Interface Utilisateur et Expérience (UI/UX)
 
 ### User Stories
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage
-- ~~**US4.2** : *Configuration*~~ 
-  ~~Ajouter une page de configuration pour pouvoir modifier la configuration de l'application à la volée~~
 - **US4.3** : *Gestion des questions*  
   Ajouter une page de configuration des questions pour permettre des ajouts, des modifications, des suppressions.
   L'aide en ligne de chaque question doit également être modifiable par ce moyen.
@@ -66,19 +71,25 @@ Ce document liste les fonctionnalités, user stories et tâches techniques à r�
   Ajouter une habilitation multi-comptes avec un backend paramétrable.
   Voir l'invariant du dernier admin actif et le rôle requis pour `/settings`
   dans [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md).
-  - [x] Modèle de compte (rôle, actif/inactif) et persistance JSON/MySQL,
-    invariant du dernier admin actif
-  - [x] Fournisseur d'authentification abstrait (`local` implémenté ;
-    `ldap`/`oidc` reconnus, non implémentés)
-  - [x] Connexion/déconnexion déléguées au fournisseur configuré, rôle porté
-    par la session, `/settings` restreint aux admins
-  - [x] Commande `scripts/create_account.py` pour le bootstrap et
-    l'administration des comptes
-  - [x] Interface d'administration des comptes (lister, créer, changer le
-    rôle, désactiver depuis le navigateur)
   - [ ] Étendre la protection par rôle à la gestion des questions (US4.3)
-  - [x] Restreindre au rôle admin la suppression totale et la réimportation d'un
-    export total (route `/import_data`, qui remplace intégralement le catalogue) ;
-    bouton correspondant masqué dans l'interface pour les comptes non-admin
-  
+
+- **[Nouveau] US6.2** : *Cycle de vie complet des comptes depuis l'interface*  
+  Compléter l'administration des comptes, dont le service métier existe déjà mais n'est pas exposé
+  (voir Tâche 0.1) :
+  - [ ] Route et bouton de suppression d'un compte (`delete_account`), avec confirmation et respect
+    de l'invariant du dernier admin actif
+  - [ ] Route de réinitialisation du mot de passe d'un compte par un admin (`set_account_password`)
+  - [ ] Auto-service : page permettant à un utilisateur connecté de changer son propre mot de passe,
+    sans passer par un admin
+
+- **[Nouveau] US6.3** : *Renforcement de la sécurité des sessions et de l'authentification*  
+  - [ ] Limiter les tentatives de connexion (compteur d'échecs / délai progressif / verrouillage
+    temporaire) : `auth.login` n'a aujourd'hui aucune protection contre le brute-force
+  - [ ] Configurer explicitement les attributs des cookies de session (`SESSION_COOKIE_SECURE`,
+    `SESSION_COOKIE_SAMESITE`, durée de vie) dans `create_app`, plutôt que de s'appuyer sur les
+    valeurs par défaut de Flask
+  - [ ] Journal d'audit des actions sensibles (création/suppression de compte, changement de rôle,
+    activation/désactivation, réimport total du catalogue) : aujourd'hui seuls les échecs techniques
+    sont journalisés (`current_app.logger.warning`), pas les actions métier réussies
+
 ---
