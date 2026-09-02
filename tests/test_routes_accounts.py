@@ -1,6 +1,7 @@
 """Tests de l'interface d'administration des comptes (US6.1)."""
 
 import json
+import re
 from pathlib import Path
 
 from flask import Flask
@@ -89,6 +90,31 @@ def test_list_accounts_shows_seeded_account(tmp_path: Path) -> None:
 
     assert response.status_code == 200
     assert "alice" in response.get_data(as_text=True)
+
+
+def test_delete_confirmation_does_not_embed_username(tmp_path: Path) -> None:
+    accounts_path = tmp_path / "accounts.json"
+    engine = init_account_db(str(accounts_path))
+    accounts_session = AccountJsonSession(engine)
+    create_account(accounts_session, username="alice", password="secret-de-test", role="admin")
+    dangerous_username = "'+alert(1)+'"
+    create_account(
+        accounts_session,
+        username=dangerous_username,
+        password="secret-de-test",
+        role="user",
+    )
+    accounts_session.commit()
+    accounts_session.close()
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+    _admin_session(client)
+
+    response = client.get("/accounts")
+
+    confirmation_handlers = re.findall(r'onsubmit="([^"]+)"', response.get_data(as_text=True))
+    assert confirmation_handlers == ["return confirm('Supprimer définitivement ce compte ?');"]
+    assert dangerous_username not in confirmation_handlers[0]
 
 
 def test_create_account_via_form(tmp_path: Path) -> None:
