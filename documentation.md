@@ -17,7 +17,7 @@
     - Quelques exceptions (Score: 1)
     - API incomplètes (Score: 2)
     - Aucune API (Score: 3)
-- Non applicable (Score: N/A)
+    - Non applicable (Score: N/A)
 
     **Aide :**
 
