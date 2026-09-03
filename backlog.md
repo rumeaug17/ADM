@@ -71,5 +71,7 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   - [ ] Journal d'audit des actions sensibles (création/suppression de compte, changement de rôle,
     activation/désactivation, réimport total du catalogue) : aujourd'hui seuls les échecs techniques
     sont journalisés (`current_app.logger.warning`), pas les actions métier réussies
-
+- **[Nouveau] US6.4** : *Utilisazteur readonly*  
+  Ajouter une typer d'utilisateur pouvant se connecter en readonly sur l'application et ne pouvant
+  faire aucune modification (ni config, ni application, ni notation)
 ---
