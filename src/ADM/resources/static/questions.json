@@ -110,7 +110,7 @@
         {"value": "Non, ou incompatible", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "app_types": ["Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
 	"version_recente": {
@@ -124,7 +124,8 @@
         {"value": "Oui, majeure", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Editeur", "Open source"]
+	  "app_types": ["Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
 	"compétences": {
       "label": "Les compétences nécessaires au MCO de l’application sont-elles faciles à trouver sur le marché ?",
@@ -151,7 +152,7 @@
         {"value": "Non, pas de support", "score": 3},
         {"value": "Non applicable", "score": null}
       ],
-	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "app_types": ["Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
 	"fin": {
@@ -295,7 +296,7 @@
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
-    	"ci_cd": {
+    "ci_cd": {
       "label": "Le système est-il intégré dans les chaines standards CI/CD de l'entreprise ?",
       "type": "select",
 	  "weight": 2,
