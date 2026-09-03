@@ -27,6 +27,19 @@
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
+	"isolation": {
+		"label" : "Un dysfonctionnement ou une lenteur sur un service tiers / composant secondaire (ex. envoi de mails, API externe) peut-il bloquer l'usage principal de l'application ?",
+		"type": "select",
+		"weight" : 1,
+		"options": [
+       	 	{"value": "Non", "score": 0},
+        	{"value": "Oui, partiellement", "score": 1},
+        	{"value": "Oui, totalement", "score": 2},
+        	{"value": "Non applicable", "score": null}
+      ],
+	  "app_types": ["Interne", "Editeur", "Open source"],
+	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
+	},
 	"décommissionnement": {
       "label": "Existe-t-il une procédure claire de décommissionnement ou de remplacement de l'application ?",
       "type": "select",
@@ -41,7 +54,7 @@
 	  "app_types": ["Interne", "Editeur", "Open source"],
 	  "hosting_types": ["On prem", "Hybride", "Cloud", "SaaS"]
     },
-    	"portabilite": {
+    "portabilite": {
       "label": "L'application peut-elle être migrée ou portée facilement sur un autre environnement ?",
       "type": "select",
 	  "weight": 1,
