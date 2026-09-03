@@ -88,6 +88,14 @@
 		"<br><strong>Éléments à vérifier :</strong>",
 		"<ul><li>Cartographie applicative</li><li>interfaces de l'application</li><li>schémas d’architecture</li><li>impacts en cas d'indisponibilité</li></ul>"
 	],
+	"isolation": [
+		"<strong>L’application est-elle tolérante à de pannes sur des systèmes tiers ou secondaires ?</strong>",
+		"<br>Quel est le comportement de l'application en cas d'indisponibilité ou de dysfonctionnement sur un système tiers ou une dépendance non essentielle de l'application ?",
+		"<br>Plus un couplage est important et intrusif dans un SI, plus la gestion des évolutions et des remplacements devient complexe.",
+		"<br><br>",
+		"<br><strong>Éléments à vérifier :</strong>",
+		"<ul><li>Cartographie applicative</li><li>interfaces de l'application</li><li>schémas d’architecture</li><li>impacts en cas d'indisponibilité</li></ul>"
+	],
 	"décommissionnement": [
 		"<strong>Existe-t-il une procédure de décommissionnement de la solution, ou une procédure de remplacement par une autre solution sur le même périmètre ?</strong>",
 		"<br>Dans l'idéal cette procédure a été testée.",
