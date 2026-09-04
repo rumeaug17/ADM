@@ -28,6 +28,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from ADM.accounts_service import (
     ROLES,
     AccountError,
+    AccountLockedError,
     AccountSession,
     create_account,
     delete_account,
@@ -127,6 +128,21 @@ def app_config() -> AppConfig:
 def auth_provider() -> AuthProvider:
     """Retourne le fournisseur d'authentification injecté au démarrage."""
     return cast(AuthProvider, current_app.extensions["adm_auth_provider"])
+
+
+def log_audit_event(action: str, *, target: str | None = None) -> None:
+    """Journalise une action sensible réussie, avec son auteur et sa cible (US6.3).
+
+    Complète les échecs techniques déjà journalisés en ``warning`` ailleurs dans ce
+    module : cette trace couvre les actions métier qui aboutissent (création ou
+    suppression de compte, changement de rôle, activation/désactivation, réimport
+    total du catalogue). Seul le nom d'utilisateur transite, jamais de secret.
+    """
+    actor = session.get("username", "?")
+    if target is not None:
+        current_app.logger.info("Audit : %s par %r sur %r.", action, actor, target)
+    else:
+        current_app.logger.info("Audit : %s par %r.", action, actor)
 
 
 def persistence_is_available() -> bool:
@@ -286,19 +302,29 @@ def role_required(
 
 @route(auth, "/login", methods=["GET", "POST"])
 def login() -> ResponseReturnValue:
-    """Route de connexion, déléguée au fournisseur d'authentification configuré (US6.1)."""
+    """Route de connexion, déléguée au fournisseur d'authentification configuré (US6.1).
+
+    US6.3 : un compte temporairement verrouillé après trop d'échecs de connexion
+    reçoit un message dédié (429), sans qu'aucune vérification de mot de passe ne
+    soit tentée pendant le verrouillage.
+    """
     if request.method == "POST":
         try:
             username, password = validate_login_form(request.form)
         except InputValidationError as error:
             flash(str(error), "danger")
             return render_template("login.html"), 400
-        identity = auth_provider().authenticate(username, password)
+        try:
+            identity = auth_provider().authenticate(username, password)
+        except AccountLockedError as error:
+            flash(str(error), "danger")
+            return render_template("login.html"), 429
         if identity is not None:
             session["logged_in"] = True
             session["username"] = identity.username
             session["role"] = identity.role
             session["auth_generation"] = identity.auth_generation
+            session.permanent = True
             flash("Connexion réussie.", "success")
             return redirect(url_for("applications.index"))
         flash("Identifiants incorrects.", "danger")
@@ -399,7 +425,7 @@ def add_application() -> ResponseReturnValue:
     return render_template("add.html")
 
 
-@route(applications, "/edit/<name>", methods=["GET", "POST"])
+@route(applications, "/edit/<n>", methods=["GET", "POST"])
 @login_required
 def edit_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -421,7 +447,7 @@ def edit_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@route(applications, "/delete/<name>", methods=["POST"])
+@route(applications, "/delete/<n>", methods=["POST"])
 @login_required
 def delete_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -434,7 +460,7 @@ def delete_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@route(evaluations, "/score/<name>", methods=["GET", "POST"])
+@route(evaluations, "/score/<n>", methods=["GET", "POST"])
 @login_required
 def score_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -506,7 +532,7 @@ def score_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@route(evaluations, "/reset/<name>", methods=["POST"])
+@route(evaluations, "/reset/<n>", methods=["POST"])
 @login_required
 def reset_evaluation(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -543,7 +569,7 @@ def reevaluate_all() -> ResponseReturnValue:
 
 
 # --- Nouvelle route : Radar Chart ---
-@route(evaluations, "/radar/<name>")
+@route(evaluations, "/radar/<n>")
 @login_required
 def radar_chart(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -679,7 +705,7 @@ def export_csv() -> ResponseReturnValue:
         session_db.close()
 
 
-@route(evaluations, "/resume/<name>")
+@route(evaluations, "/resume/<n>")
 @login_required
 def resume(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -777,6 +803,7 @@ def import_data() -> ResponseReturnValue:
             # conserve donc le catalogue dans son état antérieur.
             with transactional_session(session_factory()) as session_db:
                 replace_catalogue(session_db, applications)
+            log_audit_event("réimport total du catalogue", target=file.filename)
             flash("Les données ont été réimportées avec succès.", "success")
         except (SQLAlchemyError, ValueError, OSError):
             current_app.logger.warning("Echec de persistance d'un import JSON.")
@@ -862,6 +889,7 @@ def create_account_route() -> ResponseReturnValue:
             accounts_session.rollback()
             flash(str(error), "danger")
             return redirect(url_for("accounts.list_accounts"))
+        log_audit_event("création de compte", target=str(fields["username"]))
         flash(f"Compte {fields['username']!r} créé.", "success")
         return redirect(url_for("accounts.list_accounts"))
     finally:
@@ -883,6 +911,7 @@ def change_account_role(username: str) -> ResponseReturnValue:
             accounts_session.rollback()
             flash(str(error), "danger")
             return redirect(url_for("accounts.list_accounts"))
+        log_audit_event(f"changement de rôle vers {role!r}", target=username)
         flash(f"Rôle de {username!r} mis à jour.", "success")
         return redirect(url_for("accounts.list_accounts"))
     finally:
@@ -905,6 +934,7 @@ def toggle_account_active(username: str) -> ResponseReturnValue:
             flash(str(error), "danger")
             return redirect(url_for("accounts.list_accounts"))
         state_label = "activé" if new_state else "désactivé"
+        log_audit_event(f"compte {state_label}", target=username)
         flash(f"Compte {username!r} {state_label}.", "success")
         return redirect(url_for("accounts.list_accounts"))
     finally:
@@ -925,6 +955,7 @@ def reset_account_password(username: str) -> ResponseReturnValue:
         account = require_account_by_username(username, accounts_session)
         set_account_password(account, new_password)
         accounts_session.commit()
+        log_audit_event("réinitialisation de mot de passe", target=username)
         flash(f"Mot de passe de {username!r} réinitialisé.", "success")
         return redirect(url_for("accounts.list_accounts"))
     finally:
@@ -953,6 +984,7 @@ def delete_account_route(username: str) -> ResponseReturnValue:
             accounts_session.rollback()
             flash(str(error), "danger")
             return redirect(url_for("accounts.list_accounts"))
+        log_audit_event("suppression de compte", target=username)
         flash(f"Compte {username!r} supprimé.", "success")
         return redirect(url_for("accounts.list_accounts"))
     finally:

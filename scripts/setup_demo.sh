@@ -47,6 +47,10 @@ values = {
     "ADM_DATABASE_URL": database_path,
     "ADM_SECRET_KEY": secrets.token_urlsafe(48),
     "ADM_ACCOUNTS_URL": accounts_path,
+    # La démo locale tourne sur le serveur de développement Flask, en HTTP simple
+    # (voir scripts/run_demo.sh) : l'attribut Secure (activé par défaut, US6.3)
+    # empêcherait alors le navigateur de renvoyer le cookie de session.
+    "ADM_SESSION_COOKIE_SECURE": "false",
     "DEMO_USERNAME": demo_username,
     "DEMO_PASSWORD": demo_password,
 }
@@ -54,7 +58,13 @@ content = "".join(f"export {key}={shlex.quote(value)}\n" for key, value in value
 environment_path.write_text(content, encoding="utf-8")
 environment_path.chmod(0o600)
 
-for key in ("ADM_DB_BACKEND", "ADM_DATABASE_URL", "ADM_SECRET_KEY", "ADM_ACCOUNTS_URL"):
+for key in (
+    "ADM_DB_BACKEND",
+    "ADM_DATABASE_URL",
+    "ADM_SECRET_KEY",
+    "ADM_ACCOUNTS_URL",
+    "ADM_SESSION_COOKIE_SECURE",
+):
     os.environ[key] = values[key]
 
 from ADM.accounts_service import create_account

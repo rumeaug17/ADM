@@ -1,17 +1,23 @@
-"""Tests des fournisseurs d'authentification (US6.1)."""
+"""Tests des fournisseurs d'authentification (US6.1, US6.3)."""
 
 from collections.abc import Callable
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
-from ADM.accounts_service import create_account
+from ADM.accounts_service import (
+    LOGIN_LOCKOUT_THRESHOLD,
+    AccountLockedError,
+    create_account,
+)
 from ADM.auth_providers import (
     LocalAuthProvider,
     UnsupportedAuthProviderError,
     get_auth_provider,
 )
+from ADM.database import Account
 
 
 def _account_session_factory(tmp_path: Path) -> Callable[[], AccountJsonSession]:
@@ -84,3 +90,69 @@ def test_get_auth_provider_rejects_unimplemented_backends(tmp_path: Path, backen
 def test_get_auth_provider_rejects_unknown_backend(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="inconnu"):
         get_auth_provider("keycloak-maison", _account_session_factory(tmp_path))
+
+
+# --- US6.3 : verrouillage temporaire après échecs de connexion répétés ---
+
+
+def test_local_auth_provider_locks_account_after_repeated_failures(tmp_path: Path) -> None:
+    factory = _account_session_factory(tmp_path)
+    session = factory()
+    create_account(session, username="alice", password="secret-de-test", role="admin")
+    session.commit()
+    session.close()
+
+    provider = LocalAuthProvider(factory)
+    for _ in range(LOGIN_LOCKOUT_THRESHOLD):
+        assert provider.authenticate("alice", "mauvais-mot-de-passe") is None
+
+    # Même avec le bon mot de passe, le compte verrouillé refuse l'authentification.
+    with pytest.raises(AccountLockedError):
+        provider.authenticate("alice", "secret-de-test")
+
+
+def test_local_auth_provider_unlocks_after_delay(tmp_path: Path) -> None:
+    factory = _account_session_factory(tmp_path)
+    session = factory()
+    create_account(session, username="alice", password="secret-de-test", role="admin")
+    session.commit()
+    session.close()
+
+    provider = LocalAuthProvider(factory)
+    for _ in range(LOGIN_LOCKOUT_THRESHOLD):
+        provider.authenticate("alice", "mauvais-mot-de-passe")
+
+    # On simule l'écoulement du délai de verrouillage en le levant directement.
+    unlock_session = factory()
+    account = unlock_session.query(Account).filter_by(username="alice").first()
+    assert account is not None
+    account.locked_until = datetime.now() - timedelta(seconds=1)
+    unlock_session.commit()
+    unlock_session.close()
+
+    identity = provider.authenticate("alice", "secret-de-test")
+    assert identity is not None
+
+    verify_session = factory()
+    refreshed = verify_session.query(Account).filter_by(username="alice").first()
+    assert refreshed is not None
+    assert refreshed.failed_login_attempts == 0
+    assert refreshed.locked_until is None
+
+
+def test_local_auth_provider_resets_counter_after_successful_login(tmp_path: Path) -> None:
+    factory = _account_session_factory(tmp_path)
+    session = factory()
+    create_account(session, username="alice", password="secret-de-test", role="admin")
+    session.commit()
+    session.close()
+
+    provider = LocalAuthProvider(factory)
+    provider.authenticate("alice", "mauvais-mot-de-passe")
+    provider.authenticate("alice", "mauvais-mot-de-passe")
+    assert provider.authenticate("alice", "secret-de-test") is not None
+
+    verify_session = factory()
+    refreshed = verify_session.query(Account).filter_by(username="alice").first()
+    assert refreshed is not None
+    assert refreshed.failed_login_attempts == 0

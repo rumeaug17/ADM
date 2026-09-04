@@ -22,7 +22,8 @@ $requiredVariables = @(
     "ADM_DB_BACKEND",
     "ADM_DATABASE_URL",
     "ADM_SECRET_KEY",
-    "ADM_ACCOUNTS_URL"
+    "ADM_ACCOUNTS_URL",
+    "ADM_SESSION_COOKIE_SECURE"
 )
 foreach ($variableName in $requiredVariables) {
     $value = $configuration.$variableName

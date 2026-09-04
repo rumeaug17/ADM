@@ -2,9 +2,17 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Protocol
 
-from ADM.accounts_service import AccountSession, verify_password
+from ADM.accounts_service import (
+    AccountLockedError,
+    AccountSession,
+    account_is_locked,
+    register_failed_login,
+    register_successful_login,
+    verify_password,
+)
 from ADM.database import Account
 
 
@@ -18,7 +26,11 @@ class AuthenticatedAccount:
 
 
 class AuthProvider(Protocol):
-    """Vérifie des identifiants et retourne l'identité authentifiée, ou None."""
+    """Vérifie des identifiants et retourne l'identité authentifiée, ou None.
+
+    ``LocalAuthProvider`` peut également lever ``AccountLockedError`` (US6.3)
+    lorsque le compte est temporairement verrouillé après trop d'échecs.
+    """
 
     def authenticate(self, username: str, password: str) -> AuthenticatedAccount | None: ...
 
@@ -30,13 +42,28 @@ class LocalAuthProvider:
         self._account_session_factory = account_session_factory
 
     def authenticate(self, username: str, password: str) -> AuthenticatedAccount | None:
+        """Vérifie les identifiants fournis (US6.3 : protection contre le brute-force).
+
+        Un compte inconnu, inactif ou dont le mot de passe est incorrect renvoie
+        ``None``, sans distinction (pour ne pas révéler l'existence d'un compte).
+        Un compte temporairement verrouillé après trop d'échecs lève
+        ``AccountLockedError`` plutôt que de tenter la vérification du mot de passe.
+        """
         account_session = self._account_session_factory()
         try:
             account = account_session.query(Account).filter_by(username=username).first()
             if account is None or not account.active:
                 return None
+            if account_is_locked(account):
+                assert account.locked_until is not None  # garanti par account_is_locked
+                remaining = (account.locked_until - datetime.now()).total_seconds()
+                raise AccountLockedError(max(1, int(remaining) + 1))
             if not verify_password(account, password):
+                register_failed_login(account)
+                account_session.commit()
                 return None
+            register_successful_login(account)
+            account_session.commit()
             return AuthenticatedAccount(
                 username=account.username,
                 role=account.role,
