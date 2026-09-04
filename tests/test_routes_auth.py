@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import pytest
 from flask import Flask
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
@@ -428,7 +429,11 @@ def test_login_succeeds_again_once_lockout_expires(tmp_path: Path) -> None:
 # --- US6.3 : attributs explicites des cookies de session ---
 
 
-def test_session_cookie_attributes_are_explicit_by_default(tmp_path: Path) -> None:
+def test_session_cookie_attributes_are_explicit_by_default(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ADM_SESSION_COOKIE_SECURE", raising=False)
+    monkeypatch.delenv("ADM_SESSION_LIFETIME_MINUTES", raising=False)
     accounts_path = _seed_account(
         tmp_path, username="alice", password="secret-de-test", role="admin"
     )
@@ -440,7 +445,9 @@ def test_session_cookie_attributes_are_explicit_by_default(tmp_path: Path) -> No
     assert application.config["PERMANENT_SESSION_LIFETIME"] == timedelta(minutes=480)
 
 
-def test_session_cookie_secure_can_be_disabled_via_env(tmp_path: Path, monkeypatch) -> None:
+def test_session_cookie_secure_can_be_disabled_via_env(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("ADM_SESSION_COOKIE_SECURE", "false")
     accounts_path = _seed_account(
         tmp_path, username="alice", password="secret-de-test", role="admin"
@@ -450,7 +457,9 @@ def test_session_cookie_secure_can_be_disabled_via_env(tmp_path: Path, monkeypat
     assert application.config["SESSION_COOKIE_SECURE"] is False
 
 
-def test_session_lifetime_configurable_via_env(tmp_path: Path, monkeypatch) -> None:
+def test_session_lifetime_configurable_via_env(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("ADM_SESSION_LIFETIME_MINUTES", "15")
     accounts_path = _seed_account(
         tmp_path, username="alice", password="secret-de-test", role="admin"
