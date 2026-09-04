@@ -186,6 +186,8 @@ ADM reconnaît les variables suivantes :
 | `ADM_DATABASE_URL` | obligatoire | URL SQLAlchemy de la base. |
 | `ADM_ACCOUNTS_URL` | non utilisée | Réservée au chemin du fichier de comptes avec le backend JSON. |
 | `ADM_CONFIG_PATH` | recommandée | Chemin persistant de `config.json` (seuils d'affichage, modifiables depuis `/settings`). Voir l'avertissement ci-dessous. |
+| `ADM_SESSION_COOKIE_SECURE` | optionnelle (défaut `true`) | Désactive (`false`) l'attribut `Secure` du cookie de session pour un accès HTTP local (développement/démo, voir `scripts/setup_demo.sh`) ; laissez la valeur par défaut dès que le service est exposé, l'accès HTTPS étant requis (section 2). |
+| `ADM_SESSION_LIFETIME_MINUTES` | optionnelle (défaut `480`) | Durée de vie de la session authentifiée, en minutes. |
 
 `config.json` n'est pas une ressource figée : les seuils d'affichage y sont
 réécrits à chaud lorsqu'un administrateur les modifie depuis `/settings`. Sans

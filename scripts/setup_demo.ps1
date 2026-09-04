@@ -141,6 +141,10 @@ try {
     $env:ADM_DATABASE_URL = Join-Path $ProjectRoot "applications.json"
     $env:ADM_SECRET_KEY = New-RandomToken 48
     $env:ADM_ACCOUNTS_URL = Join-Path $ProjectRoot "accounts.json"
+    # La démo locale tourne sur le serveur de développement Flask, en HTTP simple
+    # (voir scripts\run_demo.ps1) : l'attribut Secure (activé par défaut, US6.3)
+    # empêcherait alors le navigateur de renvoyer le cookie de session.
+    $env:ADM_SESSION_COOKIE_SECURE = "false"
 
     Write-Host "Création du compte administrateur de démonstration..."
     $bootstrapScript = @'
@@ -171,12 +175,13 @@ print(json.dumps({"username": demo_username, "password": demo_password}))
     $demoCredentials = ($bootstrapOutput -join "`n") | ConvertFrom-Json
 
     $configuration = [ordered]@{
-        ADM_DB_BACKEND   = $env:ADM_DB_BACKEND
-        ADM_DATABASE_URL = $env:ADM_DATABASE_URL
-        ADM_SECRET_KEY   = $env:ADM_SECRET_KEY
-        ADM_ACCOUNTS_URL = $env:ADM_ACCOUNTS_URL
-        DemoUsername     = $demoCredentials.username
-        DemoPassword     = $demoCredentials.password
+        ADM_DB_BACKEND            = $env:ADM_DB_BACKEND
+        ADM_DATABASE_URL          = $env:ADM_DATABASE_URL
+        ADM_SECRET_KEY            = $env:ADM_SECRET_KEY
+        ADM_ACCOUNTS_URL          = $env:ADM_ACCOUNTS_URL
+        ADM_SESSION_COOKIE_SECURE = $env:ADM_SESSION_COOKIE_SECURE
+        DemoUsername              = $demoCredentials.username
+        DemoPassword              = $demoCredentials.password
     }
     $configuration | ConvertTo-Json | Set-Content -Encoding UTF8 $ConfigFile
     # Restreint l'accès au fichier de configuration (identifiants de démo inclus) au

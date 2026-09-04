@@ -1,12 +1,18 @@
-"""Tests de la route de connexion et de l'autorisation par rôle (US6.1)."""
+"""Tests de la route de connexion et de l'autorisation par rôle (US6.1, US6.3)."""
 
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import Flask
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
-from ADM.accounts_service import create_account, set_account_password, verify_password
+from ADM.accounts_service import (
+    LOGIN_LOCKOUT_THRESHOLD,
+    create_account,
+    set_account_password,
+    verify_password,
+)
 from ADM.database import Account
 
 
@@ -196,8 +202,6 @@ def test_settings_allowed_for_admin_role(tmp_path: Path) -> None:
 
 
 def test_deactivated_account_loses_access_immediately(tmp_path: Path) -> None:
-    """Une session signée pour un compte désactivé après coup ne doit plus donner
-    accès aux pages protégées, même si le cookie affirme toujours 'logged_in'."""
     accounts_path = tmp_path / "accounts.json"
     engine = init_account_db(str(accounts_path))
     account_session = AccountJsonSession(engine)
@@ -213,7 +217,6 @@ def test_deactivated_account_loses_access_immediately(tmp_path: Path) -> None:
         sess["role"] = "user"
         sess["auth_generation"] = 0
 
-    # Un autre administrateur désactive le compte pendant que la session est active.
     account_session = AccountJsonSession(init_account_db(str(accounts_path)))
     bob = account_session.query(Account).filter_by(username="bob").first()
     assert bob is not None
@@ -291,9 +294,6 @@ def test_change_own_password_rejects_wrong_current_password(tmp_path: Path) -> N
 
 
 def test_demoted_admin_loses_admin_access_immediately(tmp_path: Path) -> None:
-    """Une rétrogradation vers 'user' effectuée par un autre administrateur doit
-    s'appliquer dès la requête suivante, sans que l'ancien rôle mis en cache dans la
-    session persiste jusqu'à sa restauration explicite."""
     accounts_path = tmp_path / "accounts.json"
     engine = init_account_db(str(accounts_path))
     account_session = AccountJsonSession(engine)
@@ -352,3 +352,126 @@ def test_password_reset_invalidates_an_existing_session(tmp_path: Path) -> None:
     assert response.headers["Location"].endswith("/login")
     with compromised_client.session_transaction() as sess:
         assert "logged_in" not in sess
+
+
+# --- US6.3 : verrouillage temporaire après échecs de connexion répétés ---
+
+
+def test_login_locks_account_after_repeated_failures(tmp_path: Path) -> None:
+    accounts_path = _seed_account(
+        tmp_path, username="alice", password="secret-de-test", role="admin"
+    )
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+
+    for _ in range(LOGIN_LOCKOUT_THRESHOLD):
+        csrf_token = _extract_csrf_token(client.get("/login").get_data(as_text=True))
+        response = client.post(
+            "/login",
+            data={
+                "csrf_token": csrf_token,
+                "username": "alice",
+                "password": "mauvais-mot-de-passe",
+            },
+        )
+        assert response.status_code == 200
+
+    # Le compte est désormais verrouillé, même avec le bon mot de passe.
+    csrf_token = _extract_csrf_token(client.get("/login").get_data(as_text=True))
+    response = client.post(
+        "/login",
+        data={"csrf_token": csrf_token, "username": "alice", "password": "secret-de-test"},
+    )
+
+    assert response.status_code == 429
+    assert "verrouillé" in response.get_data(as_text=True)
+    with client.session_transaction() as sess:
+        assert "logged_in" not in sess
+
+
+def test_login_succeeds_again_once_lockout_expires(tmp_path: Path) -> None:
+    accounts_path = _seed_account(
+        tmp_path, username="alice", password="secret-de-test", role="admin"
+    )
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+    for _ in range(LOGIN_LOCKOUT_THRESHOLD):
+        csrf_token = _extract_csrf_token(client.get("/login").get_data(as_text=True))
+        client.post(
+            "/login",
+            data={
+                "csrf_token": csrf_token,
+                "username": "alice",
+                "password": "mauvais-mot-de-passe",
+            },
+        )
+
+    # On simule l'écoulement du délai de verrouillage directement dans le magasin.
+    account_session = AccountJsonSession(init_account_db(str(accounts_path)))
+    alice = account_session.query(Account).filter_by(username="alice").first()
+    assert alice is not None
+    alice.locked_until = datetime.now() - timedelta(seconds=1)
+    account_session.commit()
+    account_session.close()
+
+    csrf_token = _extract_csrf_token(client.get("/login").get_data(as_text=True))
+    response = client.post(
+        "/login",
+        data={"csrf_token": csrf_token, "username": "alice", "password": "secret-de-test"},
+    )
+
+    assert response.status_code == 302
+    with client.session_transaction() as sess:
+        assert sess["logged_in"] is True
+
+
+# --- US6.3 : attributs explicites des cookies de session ---
+
+
+def test_session_cookie_attributes_are_explicit_by_default(tmp_path: Path) -> None:
+    accounts_path = _seed_account(
+        tmp_path, username="alice", password="secret-de-test", role="admin"
+    )
+    application = _create_test_app(tmp_path, accounts_path)
+
+    assert application.config["SESSION_COOKIE_SECURE"] is True
+    assert application.config["SESSION_COOKIE_HTTPONLY"] is True
+    assert application.config["SESSION_COOKIE_SAMESITE"] == "Lax"
+    assert application.config["PERMANENT_SESSION_LIFETIME"] == timedelta(minutes=480)
+
+
+def test_session_cookie_secure_can_be_disabled_via_env(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("ADM_SESSION_COOKIE_SECURE", "false")
+    accounts_path = _seed_account(
+        tmp_path, username="alice", password="secret-de-test", role="admin"
+    )
+    application = _create_test_app(tmp_path, accounts_path)
+
+    assert application.config["SESSION_COOKIE_SECURE"] is False
+
+
+def test_session_lifetime_configurable_via_env(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("ADM_SESSION_LIFETIME_MINUTES", "15")
+    accounts_path = _seed_account(
+        tmp_path, username="alice", password="secret-de-test", role="admin"
+    )
+    application = _create_test_app(tmp_path, accounts_path)
+
+    assert application.config["PERMANENT_SESSION_LIFETIME"] == timedelta(minutes=15)
+
+
+def test_login_marks_session_as_permanent(tmp_path: Path) -> None:
+    accounts_path = _seed_account(
+        tmp_path, username="alice", password="secret-de-test", role="admin"
+    )
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+    csrf_token = _extract_csrf_token(client.get("/login").get_data(as_text=True))
+
+    client.post(
+        "/login",
+        data={"csrf_token": csrf_token, "username": "alice", "password": "secret-de-test"},
+    )
+
+    with client.session_transaction() as sess:
+        assert sess.permanent is True

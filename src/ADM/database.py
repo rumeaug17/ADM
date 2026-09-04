@@ -19,8 +19,6 @@ JsonObject: TypeAlias = dict[str, object]
 SessionFactory: TypeAlias = Callable[[], Session]
 
 
-# SQLAlchemy est volontairement ignoré par ``follow_imports`` dans la configuration
-# mypy du projet ; son type de base est donc vu comme ``Any`` pendant ce contrôle.
 class Base(DeclarativeBase):  # type: ignore[misc]
     """Base déclarative des modèles SQLAlchemy."""
 
@@ -160,6 +158,8 @@ class Account(Base):
     role: Mapped[str] = mapped_column(String(20))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     auth_generation: Mapped[int] = mapped_column(Integer, default=0)
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     def __repr__(self) -> str:
@@ -179,6 +179,8 @@ class Account(Base):
             "role": self.role,
             "active": self.active,
             "auth_generation": self.auth_generation,
+            "failed_login_attempts": self.failed_login_attempts,
+            "locked_until": self.locked_until.isoformat() if self.locked_until else None,
             "created_at": (self.created_at or datetime.now()).isoformat(),
         }
 
@@ -197,6 +199,11 @@ class Account(Base):
             role=_required_role(data.get("role"), "role"),
             active=_required_bool(data.get("active"), "active"),
             auth_generation=_optional_int(data.get("auth_generation"), "auth_generation") or 0,
+            failed_login_attempts=_optional_int(
+                data.get("failed_login_attempts"), "failed_login_attempts"
+            )
+            or 0,
+            locked_until=_optional_datetime(data.get("locked_until"), "locked_until"),
             created_at=_optional_datetime(data.get("created_at"), "created_at") or datetime.now(),
         )
 
@@ -210,7 +217,6 @@ def get_engine(connection_url: str) -> Engine:
 
 def get_session_factory(engine: Engine) -> SessionFactory:
     """Retourne une fabrique de sessions indépendantes."""
-    # Les types de SQLAlchemy ne sont pas suivis par mypy dans ce projet.
     return sessionmaker(bind=engine)  # type: ignore[no-any-return]
 
 

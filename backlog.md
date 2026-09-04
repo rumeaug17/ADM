@@ -62,15 +62,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   dans [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md).
   - [ ] Étendre la protection par rôle à la gestion des questions (US4.3)
 
-- **[Nouveau] US6.3** : *Renforcement de la sécurité des sessions et de l'authentification*  
-  - [ ] Limiter les tentatives de connexion (compteur d'échecs / délai progressif / verrouillage
-    temporaire) : `auth.login` n'a aujourd'hui aucune protection contre le brute-force
-  - [ ] Configurer explicitement les attributs des cookies de session (`SESSION_COOKIE_SECURE`,
-    `SESSION_COOKIE_SAMESITE`, durée de vie) dans `create_app`, plutôt que de s'appuyer sur les
-    valeurs par défaut de Flask
-  - [ ] Journal d'audit des actions sensibles (création/suppression de compte, changement de rôle,
-    activation/désactivation, réimport total du catalogue) : aujourd'hui seuls les échecs techniques
-    sont journalisés (`current_app.logger.warning`), pas les actions métier réussies
 - **[Nouveau] US6.4** : *Utilisazteur readonly*  
   Ajouter une typer d'utilisateur pouvant se connecter en readonly sur l'application et ne pouvant
   faire aucune modification (ni config, ni application, ni notation)

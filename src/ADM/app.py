@@ -4,6 +4,7 @@ import json
 import os
 import secrets
 from collections.abc import Callable, Mapping
+from datetime import timedelta
 from pathlib import Path
 from typing import cast
 
@@ -17,6 +18,9 @@ from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
 
 PACKAGE_RESOURCES = Path(__file__).resolve().parent / "resources"
+
+_TRUE_ENV_VALUES = frozenset({"1", "true", "yes", "on"})
+_FALSE_ENV_VALUES = frozenset({"0", "false", "no", "off"})
 
 
 def _load_json(path: Path) -> object:
@@ -68,6 +72,42 @@ def _resolve_config_path(configured: str) -> Path:
     return path
 
 
+def _env_flag(name: str, *, default: bool) -> bool:
+    """Interprète une variable d'environnement booléenne (US6.3).
+
+    Accepte ``1``/``true``/``yes``/``on`` et ``0``/``false``/``no``/``off``
+    (insensible à la casse et aux espaces périphériques) ; absente, elle vaut
+    ``default``.
+    """
+    raw_value = os.environ.get(name)
+    if raw_value is None:
+        return default
+    normalized = raw_value.strip().casefold()
+    if normalized in _TRUE_ENV_VALUES:
+        return True
+    if normalized in _FALSE_ENV_VALUES:
+        return False
+    raise ValueError(
+        f"La variable d'environnement {name!r} doit être un booléen ({raw_value!r} invalide)."
+    )
+
+
+def _env_positive_int(name: str, *, default: int) -> int:
+    """Interprète une variable d'environnement entière strictement positive (US6.3)."""
+    raw_value = os.environ.get(name)
+    if raw_value is None:
+        return default
+    try:
+        value = int(raw_value)
+    except ValueError as error:
+        raise ValueError(
+            f"La variable d'environnement {name!r} doit être un entier ({raw_value!r} invalide)."
+        ) from error
+    if value <= 0:
+        raise ValueError(f"La variable d'environnement {name!r} doit être strictement positive.")
+    return value
+
+
 def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     """Construit et configure une instance isolée de l'application."""
     app = Flask(
@@ -79,6 +119,17 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
         CONFIG=os.environ.get("ADM_CONFIG_PATH") or str(PACKAGE_RESOURCES / "config.json"),
         QUESTIONS_FILE="questions.json",
         MAX_CONTENT_LENGTH=5 * 1024 * 1024,
+        # --- US6.3 : attributs de cookie de session explicites, plutôt que de
+        # s'appuyer sur les valeurs par défaut de Flask. ADM_SESSION_COOKIE_SECURE
+        # permet de désactiver l'attribut Secure pour un développement local en
+        # HTTP simple (voir scripts/setup_demo.sh) ; il doit rester activé (valeur
+        # par défaut) dès que le service est exposé, comme l'exige INSTALL.md.
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=_env_flag("ADM_SESSION_COOKIE_SECURE", default=True),
+        PERMANENT_SESSION_LIFETIME=timedelta(
+            minutes=_env_positive_int("ADM_SESSION_LIFETIME_MINUTES", default=480)
+        ),
     )
     if test_config:
         app.config.update(test_config)
