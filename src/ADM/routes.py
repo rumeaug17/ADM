@@ -425,7 +425,7 @@ def add_application() -> ResponseReturnValue:
     return render_template("add.html")
 
 
-@route(applications, "/edit/<n>", methods=["GET", "POST"])
+@route(applications, "/edit/<name>", methods=["GET", "POST"])
 @login_required
 def edit_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -447,7 +447,7 @@ def edit_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@route(applications, "/delete/<n>", methods=["POST"])
+@route(applications, "/delete/<name>", methods=["POST"])
 @login_required
 def delete_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -460,7 +460,7 @@ def delete_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@route(evaluations, "/score/<n>", methods=["GET", "POST"])
+@route(evaluations, "/score/<name>", methods=["GET", "POST"])
 @login_required
 def score_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -532,7 +532,7 @@ def score_application(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
-@route(evaluations, "/reset/<n>", methods=["POST"])
+@route(evaluations, "/reset/<name>", methods=["POST"])
 @login_required
 def reset_evaluation(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -569,7 +569,7 @@ def reevaluate_all() -> ResponseReturnValue:
 
 
 # --- Nouvelle route : Radar Chart ---
-@route(evaluations, "/radar/<n>")
+@route(evaluations, "/radar/<name>")
 @login_required
 def radar_chart(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
@@ -705,7 +705,7 @@ def export_csv() -> ResponseReturnValue:
         session_db.close()
 
 
-@route(evaluations, "/resume/<n>")
+@route(evaluations, "/resume/<name>")
 @login_required
 def resume(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
