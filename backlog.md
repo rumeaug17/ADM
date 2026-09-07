@@ -7,13 +7,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
 
 ---
 
-## Epic 0 : Correction des bugs et dette technique
-
-### Tâches Techniques
-- **[Nouveau] Tâche 0.2** : *Export CSV sans BOM UTF-8*  
-  `exports.export_csv` écrit le CSV en UTF-8 simple ; Excel (notamment sous Windows, cas d'usage
-  probable de cet export) mal-interprète alors les caractères accentués à l'ouverture directe du
-  fichier. Écrire le flux en `utf-8-sig` (BOM) pour une ouverture correcte sans étape d'import manuel.
 ## Epic 1 : Fonctionnel
 
 ### User Stories
