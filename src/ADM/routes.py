@@ -326,7 +326,10 @@ def write_access_required(
             return redirect(url_for("auth.login"))
         session["role"] = account.role
         if account.role == "readonly":
-            abort(403, description="Votre compte est en lecture seule : cette action n'est pas autorisée.")
+            abort(
+                403,
+                description="Votre compte est en lecture seule : cette action n'est pas autorisée.",
+            )
         return function(*args, **kwargs)
 
     return decorated

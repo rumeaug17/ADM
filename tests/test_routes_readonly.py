@@ -122,7 +122,9 @@ def test_create_account_accepts_readonly_role(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_add_application_get(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -134,7 +136,9 @@ def test_readonly_forbidden_on_add_application_get(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_add_application_post(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -161,7 +165,9 @@ def test_readonly_forbidden_on_add_application_post(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_edit_application_get(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -173,7 +179,9 @@ def test_readonly_forbidden_on_edit_application_get(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_edit_application_post(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -199,13 +207,13 @@ def test_readonly_forbidden_on_edit_application_post(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_delete_application(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
-    response = client.post(
-        "/delete/Application%20de%20test", data={"csrf_token": "jeton-de-test"}
-    )
+    response = client.post("/delete/Application%20de%20test", data={"csrf_token": "jeton-de-test"})
 
     assert response.status_code == 403
 
@@ -213,7 +221,9 @@ def test_readonly_forbidden_on_delete_application(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_score_application_get(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -225,7 +235,9 @@ def test_readonly_forbidden_on_score_application_get(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_score_application_post(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -240,13 +252,13 @@ def test_readonly_forbidden_on_score_application_post(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_reset_evaluation(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
-    response = client.post(
-        "/reset/Application%20de%20test", data={"csrf_token": "jeton-de-test"}
-    )
+    response = client.post("/reset/Application%20de%20test", data={"csrf_token": "jeton-de-test"})
 
     assert response.status_code == 403
 
@@ -254,7 +266,9 @@ def test_readonly_forbidden_on_reset_evaluation(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_reevaluate_all(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -269,7 +283,9 @@ def test_readonly_forbidden_on_reevaluate_all(tmp_path: Path) -> None:
 def test_readonly_can_view_index(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -281,7 +297,9 @@ def test_readonly_can_view_index(tmp_path: Path) -> None:
 def test_readonly_can_view_resume(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -293,7 +311,9 @@ def test_readonly_can_view_resume(tmp_path: Path) -> None:
 def test_readonly_can_view_synthese(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -305,7 +325,9 @@ def test_readonly_can_view_synthese(tmp_path: Path) -> None:
 def test_readonly_can_export_csv(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -317,7 +339,9 @@ def test_readonly_can_export_csv(tmp_path: Path) -> None:
 def test_readonly_can_export_all(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -332,7 +356,9 @@ def test_readonly_can_export_all(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_settings(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -344,7 +370,9 @@ def test_readonly_forbidden_on_settings(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_accounts_list(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
@@ -356,7 +384,9 @@ def test_readonly_forbidden_on_accounts_list(tmp_path: Path) -> None:
 def test_readonly_forbidden_on_import_data(tmp_path: Path) -> None:
     accounts_path = _seed_account(tmp_path, username="carole", role="readonly")
     catalogue_path = _seed_application(tmp_path)
-    application = _create_test_app(tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path)
+    application = _create_test_app(
+        tmp_path, accounts_path=accounts_path, catalogue_path=catalogue_path
+    )
     client = application.test_client()
     _readonly_session(client)
 
