@@ -1,4 +1,5 @@
-"""Tests de la restriction par rôle de la réimportation totale du catalogue (US6.1)."""
+"""Tests des exports du catalogue : restriction par rôle du réimport (US6.1) et
+encodage du CSV (Tâche 0.2)."""
 
 import io
 import json
@@ -8,6 +9,8 @@ from flask import Flask
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
 from ADM.accounts_service import create_account
+from ADM.database import Application
+from ADM.database_json import JsonSession, init_db
 
 
 def _config_path(tmp_path: Path) -> Path:
@@ -127,3 +130,50 @@ def test_import_data_allowed_for_admin(tmp_path: Path) -> None:
 
     assert response.status_code == 302
     assert "/import_data" not in response.headers["Location"]
+
+
+def test_export_csv_is_written_with_utf8_bom(tmp_path: Path) -> None:
+    """Tâche 0.2 : le CSV exporté commence par le BOM utf-8-sig et restitue
+    correctement les caractères accentués, pour une ouverture directe dans Excel
+    sous Windows sans étape d'import manuel."""
+    catalogue_path = tmp_path / "catalogue.json"
+    catalogue_session = JsonSession(init_db(str(catalogue_path)))
+    catalogue_session.add(
+        Application(
+            name="Application accentuée éàç",
+            rda="Responsable",
+            possession=None,
+            type_app="cloud",
+            hosting="cloud",
+            criticite=1,
+            disponibilite="1",
+            integrite="1",
+            confidentialite="1",
+            perennite="1",
+            score=None,
+            answered_questions=0,
+            last_evaluation=None,
+            responses={},
+            comments={},
+            evaluator_name=None,
+        )
+    )
+    catalogue_session.commit()
+    catalogue_session.close()
+
+    accounts_path = _seed_account(tmp_path, username="bob", role="user")
+    application = _create_test_app(tmp_path, accounts_path)
+    client = application.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["username"] = "bob"
+        sess["role"] = "user"
+        sess["auth_generation"] = 0
+
+    response = client.get("/export_csv")
+
+    assert response.status_code == 200
+    body = response.data
+    assert body.startswith(b"\xef\xbb\xbf")
+    decoded = body.decode("utf-8-sig")
+    assert "Application accentuée éàç" in decoded

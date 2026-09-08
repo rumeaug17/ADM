@@ -696,9 +696,13 @@ def export_csv() -> ResponseReturnValue:
             writer.writerow(row)
         output = si.getvalue()
         si.close()
+        # Tâche 0.2 : BOM UTF-8 (utf-8-sig) pour qu'Excel sous Windows détecte
+        # l'encodage et affiche correctement les caractères accentués à l'ouverture
+        # directe du fichier, sans étape d'import manuel.
         return Response(
-            output,
+            output.encode("utf-8-sig"),
             mimetype="text/csv",
+            content_type="text/csv; charset=utf-8",
             headers={"Content-Disposition": "attachment; filename=applications_export.csv"},
         )
     finally:
