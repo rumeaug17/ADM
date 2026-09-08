@@ -4,7 +4,7 @@ import argparse
 import getpass
 from collections.abc import Sequence
 
-from ADM.accounts_service import AccountError, create_account
+from ADM.accounts_service import ROLES, AccountError, create_account
 from ADM.app import create_app
 
 
@@ -34,7 +34,7 @@ def create_account_command(arguments: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Crée un compte local ADM.")
     parser.add_argument("--username", required=True, help="nom d'utilisateur du compte")
     parser.add_argument(
-        "--role", choices=("admin", "user"), default="admin", help="rôle du compte (US6.1)"
+        "--role", choices=sorted(ROLES), default="admin", help="rôle du compte (US6.1, US6.4)"
     )
     parsed = parser.parse_args(arguments)
 

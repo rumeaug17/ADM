@@ -52,13 +52,17 @@
 {% endwith %}
     <h2 class="text-center text-primary">📋 Catalogue des Applications</h2>
     <div class="d-flex justify-content-between my-3">
+        {% if session.role != 'readonly' %}
         <a href="/add" class="btn btn-primary">➕ Ajouter une application</a>
+        {% endif %}
         <a href="/synthese" class="btn btn-outline-primary">📊 Voir Synthèse</a>
 	<a href="/export_csv" class="btn btn-outline-info">📥 Exporter CSV</a>
 	<a href="/export_all" class="btn btn-outline-secondary">📥 Exporter tout</a>
+	{% if session.role != 'readonly' %}
 	<button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#reevaluateModal">
         	Tout réévaluer
     	</button>
+	{% endif %}
 	{% if session.role == 'admin' %}
 	<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#importModal">
          Réimporter les données
@@ -146,6 +150,7 @@
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
 					<div class="d-flex flex-nowrap gap-2">
+					{% if session.role != 'readonly' %}
                     <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
 					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" title="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
 						♻️
@@ -154,6 +159,7 @@
 					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" title="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
 						❌
 					</button>
+					{% endif %}
 					</div>
                 </td>
             </tr>

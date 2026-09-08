@@ -300,6 +300,41 @@ def role_required(
     return decorator
 
 
+def write_access_required(
+    function: Callable[ViewParameters, ResponseReturnValue],
+) -> Callable[ViewParameters, ResponseReturnValue]:
+    """Requiert une session authentifiée et refuse les comptes readonly (US6.4).
+
+    Comme ``login_required``, le compte est revalidé auprès du magasin de comptes
+    à chaque requête. À la différence de ``login_required``, les comptes de rôle
+    ``readonly`` sont refusés (403) : ce rôle ne peut consulter le catalogue et
+    les évaluations qu'en lecture seule, sans modifier ni les applications ni les
+    notations (la configuration et les comptes restent protégés séparément par
+    ``role_required("admin")``, qui exclut déjà ``readonly`` comme ``user``).
+    """
+
+    @wraps(function)
+    def decorated(
+        *args: ViewParameters.args, **kwargs: ViewParameters.kwargs
+    ) -> ResponseReturnValue:
+        if not session.get("logged_in"):
+            return redirect(url_for("auth.login"))
+        account = resolve_current_active_account()
+        if account is None:
+            session.clear()
+            flash("Votre session n'est plus valide. Merci de vous reconnecter.", "danger")
+            return redirect(url_for("auth.login"))
+        session["role"] = account.role
+        if account.role == "readonly":
+            abort(
+                403,
+                description="Votre compte est en lecture seule : cette action n'est pas autorisée.",
+            )
+        return function(*args, **kwargs)
+
+    return decorated
+
+
 @route(auth, "/login", methods=["GET", "POST"])
 def login() -> ResponseReturnValue:
     """Route de connexion, déléguée au fournisseur d'authentification configuré (US6.1).
@@ -392,7 +427,7 @@ def index() -> ResponseReturnValue:
 
 
 @route(applications, "/add", methods=["GET", "POST"])
-@login_required
+@write_access_required
 def add_application() -> ResponseReturnValue:
     if request.method == "POST":
         try:
@@ -426,7 +461,7 @@ def add_application() -> ResponseReturnValue:
 
 
 @route(applications, "/edit/<name>", methods=["GET", "POST"])
-@login_required
+@write_access_required
 def edit_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
@@ -448,7 +483,7 @@ def edit_application(name: str) -> ResponseReturnValue:
 
 
 @route(applications, "/delete/<name>", methods=["POST"])
-@login_required
+@write_access_required
 def delete_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
@@ -461,7 +496,7 @@ def delete_application(name: str) -> ResponseReturnValue:
 
 
 @route(evaluations, "/score/<name>", methods=["GET", "POST"])
-@login_required
+@write_access_required
 def score_application(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
@@ -533,7 +568,7 @@ def score_application(name: str) -> ResponseReturnValue:
 
 
 @route(evaluations, "/reset/<name>", methods=["POST"])
-@login_required
+@write_access_required
 def reset_evaluation(name: str) -> ResponseReturnValue:
     session_db = session_factory()()
     try:
@@ -551,7 +586,7 @@ def reset_evaluation(name: str) -> ResponseReturnValue:
 
 
 @route(evaluations, "/reevaluate_all", methods=["POST"])
-@login_required
+@write_access_required
 def reevaluate_all() -> ResponseReturnValue:
     session_db = session_factory()()
     try:

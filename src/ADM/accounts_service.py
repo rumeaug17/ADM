@@ -7,7 +7,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from ADM.database import Account
 
-ROLES: frozenset[str] = frozenset({"admin", "user"})
+ROLES: frozenset[str] = frozenset({"admin", "user", "readonly"})
+"""Rôles disponibles pour un compte local. ``readonly`` (US6.4) ne peut se
+connecter qu'en consultation : aucune modification (configuration, application,
+notation) ne lui est autorisée, contrairement à ``user``."""
 
 # --- Verrouillage temporaire après échecs de connexion répétés (US6.3) ---
 

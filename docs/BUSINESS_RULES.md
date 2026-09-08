@@ -64,10 +64,19 @@ Le fournisseur d'authentification est sélectionné par `auth_backend`
 implémentés — leur sélection échoue explicitement au démarrage plutôt que de
 retomber silencieusement sur l'authentification locale.
 
-Pour le fournisseur `local`, un compte a un rôle (`admin` ou `user`) et un
+Pour le fournisseur `local`, un compte a un rôle (`admin`, `user` ou `readonly`) et un
 état actif/inactif. **Il doit toujours exister au moins un compte admin
 actif** : la rétrogradation, la désactivation ou la suppression du dernier
 compte admin actif est refusée.
+
+Le rôle `readonly` (US6.4) permet une connexion en consultation uniquement :
+l'accès aux pages de lecture (catalogue, résumé d'application, synthèse, exports
+CSV/JSON) reste ouvert comme pour `user`, mais toute action de modification est
+refusée avec une erreur 403, qu'elle porte sur une application (ajout,
+modification, suppression), sur une notation (évaluation, réinitialisation,
+réévaluation globale) ou sur la configuration. Ce dernier point est déjà couvert
+par l'exigence du rôle `admin` ci-dessous, à laquelle `readonly` ne satisfait
+pas plus que `user`.
 
 Les comptes ne transitent jamais par l'import/export du catalogue
 (`ADM.catalogue_io`) : leur stockage est isolé, dans un fichier ou une table
