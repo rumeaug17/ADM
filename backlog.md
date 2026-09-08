@@ -54,8 +54,4 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   Voir l'invariant du dernier admin actif et le rôle requis pour `/settings`
   dans [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md).
   - [ ] Étendre la protection par rôle à la gestion des questions (US4.3)
-
-- **[Nouveau] US6.4** : *Utilisazteur readonly*  
-  Ajouter une typer d'utilisateur pouvant se connecter en readonly sur l'application et ne pouvant
-  faire aucune modification (ni config, ni application, ni notation)
 ---

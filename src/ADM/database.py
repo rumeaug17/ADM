@@ -234,9 +234,12 @@ def _required_string(value: object, field: str) -> str:
 
 
 def _required_role(value: object, field: str) -> str:
+    # Tenu en synchronisation manuelle avec ADM.accounts_service.ROLES : database.py
+    # ne peut pas importer accounts_service (import circulaire, celui-ci important
+    # Account depuis ce module).
     role = _required_string(value, field)
-    if role not in {"admin", "user"}:
-        raise ValueError(f"Le champ {field!r} doit valoir 'admin' ou 'user'.")
+    if role not in {"admin", "user", "readonly"}:
+        raise ValueError(f"Le champ {field!r} doit valoir 'admin', 'user' ou 'readonly'.")
     return role
 
 
