@@ -21,10 +21,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   `applications.index` (`/`) et `accounts.list_accounts` (`/accounts`) chargent l'intégralité des
   enregistrements en mémoire et les rendent sans pagination ni recherche. Sans impact aujourd'hui,
   mais à traiter avant que le catalogue ou la liste des comptes ne grossisse significativement.
-- **[Nouveau] Tâche 3.7** : *Génération du radar chart non mise en cache*  
-  `generate_radar_chart` (matplotlib) est recalculée à chaque affichage de `/synthese` et de
-  `/resume/<name>`, y compris lorsque les données n'ont pas changé depuis le dernier rendu. À évaluer
-  si cela devient un point de lenteur perçu.
 
 ## Epic 4 : Interface Utilisateur et Expérience (UI/UX)
 

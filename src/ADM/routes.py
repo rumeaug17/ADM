@@ -45,12 +45,12 @@ from ADM.persistence import TransactionSession, transactional_session
 from ADM.schemas import AppConfig, DisplayThresholds, Questions
 from ADM.scoring import filter_questions_by_type
 from ADM.services import (
+    RadarChartCache,
     application_to_dict,
     axis_scores,
     build_evaluation_submission,
     category_sums,
     evaluation_to_dict,
-    generate_radar_chart,
     summarize_catalogue,
     to_dicts_with_metrics,
     update_app_metrics,
@@ -118,6 +118,11 @@ def categories() -> dict[str, list[str]]:
 def display_thresholds() -> DisplayThresholds:
     """Retourne les seuils validés utilisés dans les affichages."""
     return cast(DisplayThresholds, current_app.extensions["adm_display_thresholds"])
+
+
+def radar_chart_cache() -> RadarChartCache:
+    """Retourne le cache de radar charts injecté au démarrage (Tâche 3.7)."""
+    return cast(RadarChartCache, current_app.extensions["adm_radar_chart_cache"])
 
 
 def app_config() -> AppConfig:
@@ -613,7 +618,7 @@ def radar_chart(name: str) -> ResponseReturnValue:
         # Pour générer le graphique radar, on utilise les réponses stockées.
         # On suppose que la fonction calculate_axis_scores attend un dictionnaire avec la clé "responses".
         avg_axis_scores = calculate_axis_scores([{"responses": app_obj.responses}])
-        chart_data = generate_radar_chart(avg_axis_scores)
+        chart_data = radar_chart_cache().get_or_generate(avg_axis_scores)
         return Response(base64.b64decode(chart_data), mimetype="image/png")
     finally:
         session_db.close()
@@ -647,7 +652,7 @@ def synthese() -> ResponseReturnValue:
             scored_apps = data.copy()
 
         avg_axis_scores = calculate_axis_scores(data)
-        chart_data = generate_radar_chart(avg_axis_scores)
+        chart_data = radar_chart_cache().get_or_generate(avg_axis_scores)
         scored_apps.sort(key=lambda app: numeric_value(app.get("score")), reverse=True)
 
         # Calcul des pires scores (ou meilleurs, selon la logique)
@@ -783,7 +788,7 @@ def resume(name: str) -> ResponseReturnValue:
             previous_category_sums = {}
 
         current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
-        radar_chart_data = generate_radar_chart(current_axis_scores)
+        radar_chart_data = radar_chart_cache().get_or_generate(current_axis_scores)
 
         return render_template(
             "resume.html",

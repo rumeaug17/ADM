@@ -16,6 +16,7 @@ from ADM.auth_providers import get_auth_provider
 from ADM.routes import accounts, applications, auth, evaluations, exports, settings, supervision
 from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
+from ADM.services import RadarChartCache
 
 PACKAGE_RESOURCES = Path(__file__).resolve().parent / "resources"
 
@@ -170,6 +171,10 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     app.extensions["adm_categories"] = compute_categories(questions)
     app.extensions["adm_display_thresholds"] = config.display_thresholds
     app.extensions["adm_app_config"] = config  # ajout US4.2
+    # Tâche 3.7 : cache borné des radar charts, propre à cette instance d'application
+    # (voir ADM.services.RadarChartCache pour la justification de l'absence
+    # d'invalidation explicite).
+    app.extensions["adm_radar_chart_cache"] = RadarChartCache()
 
     # --- US6.1 : fabrique de session pour les comptes + fournisseur d'authentification ---
     account_session_factory: Callable[[], AccountSession]
