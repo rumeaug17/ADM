@@ -7,6 +7,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from ADM.schemas import Thresholds
 from ADM.services import (
+    RadarChartCache,
     axis_scores,
     build_evaluation_submission,
     category_sums,
@@ -74,6 +75,50 @@ def test_generate_radar_chart_returns_a_png_without_pyplot() -> None:
     chart = base64.b64decode(encoded_chart, validate=True)
     assert chart.startswith(b"\x89PNG\r\n\x1a\n")
     assert len(chart) > 1_000
+
+
+def test_radar_chart_cache_reuses_the_png_for_identical_axis_scores() -> None:
+    cache = RadarChartCache()
+
+    with patch("ADM.services.FigureCanvasAgg", wraps=FigureCanvasAgg) as canvas_factory:
+        first = cache.get_or_generate({"Architecture": 2.5, "Exploitation": 1.0})
+        second = cache.get_or_generate({"Exploitation": 1.0, "Architecture": 2.5})
+
+    canvas_factory.assert_called_once()
+    assert first == second
+
+
+def test_radar_chart_cache_regenerates_when_axis_scores_change() -> None:
+    cache = RadarChartCache()
+
+    with patch("ADM.services.FigureCanvasAgg", wraps=FigureCanvasAgg) as canvas_factory:
+        first = cache.get_or_generate({"Architecture": 2.5, "Exploitation": 1.0})
+        second = cache.get_or_generate({"Architecture": 3.0, "Exploitation": 1.0})
+
+    assert canvas_factory.call_count == 2
+    assert first != second
+
+
+def test_radar_chart_cache_evicts_the_least_recently_used_entry() -> None:
+    cache = RadarChartCache(max_entries=1)
+
+    with patch("ADM.services.FigureCanvasAgg", wraps=FigureCanvasAgg) as canvas_factory:
+        cache.get_or_generate({"Architecture": 2.5})
+        cache.get_or_generate({"Architecture": 3.0})
+        cache.get_or_generate({"Architecture": 2.5})
+
+    assert canvas_factory.call_count == 3
+
+
+def test_radar_chart_cache_clear_forces_regeneration() -> None:
+    cache = RadarChartCache()
+
+    with patch("ADM.services.FigureCanvasAgg", wraps=FigureCanvasAgg) as canvas_factory:
+        cache.get_or_generate({"Architecture": 2.5})
+        cache.clear()
+        cache.get_or_generate({"Architecture": 2.5})
+
+    assert canvas_factory.call_count == 2
 
 
 def test_build_evaluation_submission_applies_weights() -> None:

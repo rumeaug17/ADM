@@ -36,6 +36,7 @@ def test_import_has_no_configuration_or_persistence_side_effect(
 
 def test_create_app_registers_blueprints_and_injects_session_factory(tmp_path: Path) -> None:
     from ADM.app import create_app
+    from ADM.services import RadarChartCache
 
     application = create_app(
         {
@@ -59,6 +60,7 @@ def test_create_app_registers_blueprints_and_injects_session_factory(tmp_path: P
     assert callable(application.extensions["adm_session_factory"])
     assert application.test_client().get("/login").status_code == 200
     assert application.extensions["adm_display_thresholds"].score.warning == 30
+    assert isinstance(application.extensions["adm_radar_chart_cache"], RadarChartCache)
 
 
 def test_create_app_uses_json_database_from_environment(

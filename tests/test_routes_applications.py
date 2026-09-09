@@ -2,9 +2,11 @@
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from flask import Flask
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
 from ADM.accounts_service import create_account
@@ -105,6 +107,26 @@ def test_radar_page_receives_the_name_parameter(tmp_path: Path) -> None:
 
     assert response.status_code == 200
     assert response.mimetype == "image/png"
+
+
+def test_resume_page_reuses_the_cached_radar_chart_across_displays(tmp_path: Path) -> None:
+    """Tâche 3.7 : deux affichages successifs sans changement de données ne doivent
+    pas relancer le rendu matplotlib du radar chart."""
+    application = _create_test_app(tmp_path)
+    client = application.test_client()
+    with client.session_transaction() as user_session:
+        user_session["logged_in"] = True
+        user_session["username"] = "utilisateur-test"
+        user_session["role"] = "user"
+        user_session["auth_generation"] = 0
+
+    with patch("ADM.services.FigureCanvasAgg", wraps=FigureCanvasAgg) as canvas_factory:
+        first_response = client.get("/resume/Application%20de%20test")
+        second_response = client.get("/resume/Application%20de%20test")
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+    canvas_factory.assert_called_once()
 
 
 def test_reset_receives_the_name_parameter(tmp_path: Path) -> None:

@@ -3,9 +3,11 @@
 import base64
 import io
 import math
+from collections import OrderedDict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from threading import Lock
 from typing import Final, Protocol, TypeAlias, cast
 
 import numpy as np
@@ -298,6 +300,57 @@ def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     buffer = io.BytesIO()
     figure.savefig(buffer, format="png", bbox_inches="tight")
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
+class RadarChartCache:
+    """Cache borné (LRU) des radar charts, indexés par leurs scores d'axes.
+
+    ``generate_radar_chart`` reconstruit systématiquement l'image PNG via matplotlib,
+    une opération coûteuse comparée à une simple lecture mémoire. Les pages
+    ``/synthese`` et ``/resume/<name>`` l'appelaient pourtant à chaque affichage, y
+    compris lorsque les scores d'axes n'avaient pas changé depuis le rendu précédent
+    (Tâche 3.7). Le résultat ne dépendant que des scores d'axes fournis (mêmes
+    catégories, mêmes valeurs arrondies produisent la même image), on peut le
+    mémoriser par contenu : nul besoin d'invalidation explicite lors d'une
+    évaluation, d'un import ou d'une suppression d'application, la clé change
+    d'elle-même dès que les scores changent.
+
+    Une instance est injectée par ``ADM.app.create_app`` dans les extensions Flask de
+    chaque application, comme les autres services partagés (voir ``adm_questions``,
+    ``adm_scoring_map``) : c'est un état mutable propre à l'instance, jamais un état
+    global au sens de ``CONTRIBUTING.md``, et il ne fuit donc pas d'une application ou
+    d'un test à l'autre.
+    """
+
+    def __init__(self, max_entries: int = 128) -> None:
+        self._max_entries = max_entries
+        self._entries: OrderedDict[tuple[tuple[str, float], ...], str] = OrderedDict()
+        self._lock = Lock()
+
+    @staticmethod
+    def _cache_key(scores_by_axis: Mapping[str, float]) -> tuple[tuple[str, float], ...]:
+        return tuple(sorted(scores_by_axis.items()))
+
+    def get_or_generate(self, scores_by_axis: Mapping[str, float]) -> str:
+        """Retourne le PNG en cache pour ces scores, ou le génère et le mémorise."""
+        key = self._cache_key(scores_by_axis)
+        with self._lock:
+            cached = self._entries.get(key)
+            if cached is not None:
+                self._entries.move_to_end(key)
+                return cached
+        chart = generate_radar_chart(dict(scores_by_axis))
+        with self._lock:
+            self._entries[key] = chart
+            self._entries.move_to_end(key)
+            while len(self._entries) > self._max_entries:
+                self._entries.popitem(last=False)
+        return chart
+
+    def clear(self) -> None:
+        """Vide le cache (utile en tests, ou après un changement global des données)."""
+        with self._lock:
+            self._entries.clear()
 
 
 def update_all_metrics(applications: list[JsonData]) -> None:
