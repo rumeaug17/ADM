@@ -3,7 +3,6 @@
 {% block title %}ADM - Modifier une application{% endblock %}
 
 {% block extra_head %}
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
     .card {
       border-radius: 10px;
@@ -145,58 +144,9 @@
       </form>
     </div>
   
-  <script>
-    $(document).ready(function() {
-		let infoTexts = {};
-
-        // Charger les textes des infobulles depuis un fichier JSON
-        $.getJSON("{{ url_for('static', filename='info_texts.json') }}", function(data) {
-			infoTexts = data;
-    
-			// Convertir les valeurs en chaînes de caractères si elles sont des tableaux
-			Object.keys(infoTexts).forEach(function(key) {
-				if (Array.isArray(infoTexts[key])) {
-					infoTexts[key] = infoTexts[key].join("");
-				}
-			});
-		});
-		
-	
-        $('.info-icon').click(function(event) {
-            event.stopPropagation();
-
-            // Supprime les infobulles existantes
-            $('.info-tooltip').remove();
-
-			// Récupération de la clé et du texte associé
-            var key = $(this).attr('data-key');
-            var infoText = infoTexts[key] || "Information non disponible.";
-			
-            // Création et ajout de l'infobulle
-            var tooltip = $('<div class="info-tooltip">' + infoText + '</div>');
-            $('body').append(tooltip);
-
-            // Positionnement dynamique sous l'icône
-            var iconPosition = $(this).offset();
-            tooltip.css({
-                top: iconPosition.top + 25,
-                left: iconPosition.left,
-                position: 'absolute'
-            }).fadeIn();
-        });
-
-        // Ferme l'infobulle si on clique ailleurs
-        $(document).click(function() {
-            $('.info-tooltip').fadeOut(function() {
-                $(this).remove();
-            });
-        });
-
-        // Empêche la fermeture immédiate si on clique sur l'infobulle
-        $(document).on('click', '.info-tooltip', function(event) {
-            event.stopPropagation();
-        });
-    });
+  <script src="{{ url_for('static', filename='info_tooltip.js') }}"></script>
+<script>
+  ADM.initInfoTooltips("{{ url_for('static', filename='info_texts.json') }}");
 </script>
 
 {% endblock %}
