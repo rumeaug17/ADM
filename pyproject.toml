@@ -29,6 +29,7 @@ Repository = "https://github.com/rumeaug17/ADM"
 dev = [
     "build>=1.2,<2",
     "mypy>=1.10,<2",
+    "pip-audit>=2.7,<3",
     "pytest>=8,<9",
     "ruff>=0.6,<1",
 ]

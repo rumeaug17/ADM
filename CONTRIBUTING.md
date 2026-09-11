@@ -66,6 +66,11 @@ mypy src main.py
 pytest
 ```
 
+Exécutez également `pip-audit` pour vérifier l'absence de vulnérabilités connues dans
+les dépendances (Tâche 3.9 du backlog) ; le job CI correspondant est pour l'instant
+non bloquant (`allow_failure`), le temps de trier les éventuels signalements, mais un
+signalement nouveau doit être examiné avant fusion.
+
 Ne présentez jamais un contrôle comme réussi s'il n'a pas été exécuté. Si
 l'environnement empêche un contrôle, indiquez précisément la commande, la limite et
 les vérifications alternatives dans la Pull Request.

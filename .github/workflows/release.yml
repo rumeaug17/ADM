@@ -34,6 +34,20 @@ jobs:
       - name: Run Ruff format check
         run: ruff format --check .
 
+      # Tâche 3.9 du backlog : analyse des vulnérabilités connues (base OSV) des
+      # dépendances. Installées séparément (dev extras, y compris pip-audit lui-même)
+      # pour ne pas changer l'environnement des étapes ruff/mypy ci-dessus, qui
+      # tournaient jusqu'ici sans les dépendances du projet installées.
+      # `continue-on-error` rend le résultat visible sans bloquer la publication
+      # de la release le temps de trier les éventuels signalements ; à retirer une
+      # fois ce premier triage effectué.
+      - name: Install project dependencies for pip-audit
+        run: python -m pip install -e '.[dev]'
+
+      - name: Run pip-audit
+        run: pip-audit
+        continue-on-error: true
+
       - name: Write version file
         run: |
           mkdir -p src/ADM/resources/static

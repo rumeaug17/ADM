@@ -42,12 +42,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   (`fcntl`/`msvcrt` selon la plateforme, ou une dépendance telle que `filelock`), ou à défaut à
   documenter explicitement comme limite du backend JSON (déploiement mono-worker uniquement) dans
   `INSTALL.md`.
-- **[Nouveau] Tâche 3.9** : *Absence d'analyse de vulnérabilités des dépendances en CI*  
-  `.gitlab-ci.yml` et `.github/workflows/release.yml` exécutent `ruff`, `mypy` et `pytest`, mais
-  aucun outil (`pip-audit`, `safety`, Dependabot/Renovate) ne vérifie que les dépendances déclarées
-  dans `pyproject.toml` (Flask, SQLAlchemy, matplotlib, mysql-connector-python...) sont exemptes de
-  vulnérabilités connues. À ajouter comme job `quality` supplémentaire, non bloquant dans un premier
-  temps si des faux positifs sont à trier.
 - **[Nouveau] Tâche 3.10** : *Couverture de tests non mesurée*  
   La suite de tests est déjà large et bien structurée, mais aucun rapport de couverture n'est
   produit ni suivi dans le temps (pas de `pytest-cov`, pas de seuil minimal en CI). Ajouter

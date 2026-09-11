@@ -58,6 +58,18 @@ typecheck:
   script:
     - mypy src main.py
 
+# Tâche 3.9 du backlog : analyse des vulnérabilités connues (base OSV) sur les
+# dépendances déclarées dans pyproject.toml (runtime et outillage dev, installées
+# ensemble par .python-3.11-base). `allow_failure: true` le rend visible sans
+# bloquer le pipeline le temps de trier les éventuels signalements ; à retirer
+# une fois cette première triage effectuée pour rendre le contrôle bloquant.
+dependency-audit:
+  extends: .python-3.11-base
+  stage: quality
+  script:
+    - pip-audit
+  allow_failure: true
+
 test:
   extends: .python-3.11-base
   stage: test
