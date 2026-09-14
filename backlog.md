@@ -75,12 +75,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   (évaluer/réinitialiser/modifier/supprimer) ne sont représentées que par des émoji, sans libellé
   visible — seule une infobulle au survol les explicite, absente au toucher sur mobile. À envelopper
   dans `table-responsive` et à accompagner les boutons d'un libellé (visible ou `aria-label`).
-- **[Nouveau] Tâche 4.7** : *Validation du formulaire d'évaluation via `alert()` natif*  
-  `score.html` bloque la soumission par un `window.alert()` JavaScript lorsqu'un commentaire est
-  vide, et surligne le champ en rose (`#ffc0cb`) directement en CSS inline. Ce message n'est pas
-  cohérent avec les alertes Bootstrap utilisées partout ailleurs (flash messages) et interrompt le
-  flux de façon abrupte. À remplacer par un retour inline (message sous le champ concerné,
-  classe Bootstrap `is-invalid`/`invalid-feedback`).
 - **[Nouveau] Tâche 4.8** : *Formulaire d'évaluation long sans repère de progression*  
   `score.html` empile toutes les catégories de questions verticalement, sans sommaire ni indicateur
   de progression (« X/Y questions répondues »), ni bouton « enregistrer » flottant pour un
