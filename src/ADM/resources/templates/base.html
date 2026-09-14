@@ -56,9 +56,14 @@ main.container {
     background-color: #0b5ed7;
   }
   /* Largeur réactive (jamais figée en pixels) : le popover ne dépasse ni la
-     largeur disponible sur mobile, ni une largeur confortable sur desktop. */
+     largeur disponible sur mobile, ni une largeur confortable sur desktop.
+     640px est volontairement généreux : l'aide de "Criticité" (add.html/
+     edit.html) est un texte long avec des listes imbriquées sur plusieurs
+     niveaux, illisible si on la contraint à une largeur étroite ; les autres
+     aides, plus courtes, restent naturellement plus compactes (un popover
+     Bootstrap épouse son contenu, cette valeur n'est qu'un plafond). */
   .popover {
-    max-width: min(90vw, 420px);
+    max-width: min(90vw, 640px);
   }
 </style>
 {% block extra_head %}{% endblock %}

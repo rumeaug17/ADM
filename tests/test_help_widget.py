@@ -18,6 +18,7 @@ dans ``base.html`` (elle était absente de ``resume.html`` et cassée sur
 bootstrap.bundle.min.js)."""
 
 import json
+import re
 from pathlib import Path
 
 from flask import Flask
@@ -169,6 +170,18 @@ def test_popover_width_is_responsive_not_fixed_per_page() -> None:
     base_html = (TEMPLATES / "base.html").read_text(encoding="utf-8")
     assert ".popover" in base_html
     assert "vw" in base_html
+
+
+def test_popover_desktop_width_is_wide_enough_for_the_longest_help_text() -> None:
+    """L'aide de "Criticité" (app-criticite) est un texte long avec des
+    listes imbriquées sur plusieurs niveaux : un plafond de largeur trop
+    étroit la rend illisible sur un écran d'ordinateur, même si le plafond
+    est par ailleurs responsive (borné par ``vw`` sur mobile)."""
+    base_html = (TEMPLATES / "base.html").read_text(encoding="utf-8")
+    match = re.search(r"\.popover\s*\{[^}]*max-width:\s*min\(\s*[\d.]+vw\s*,\s*(\d+)px", base_html)
+    assert match, "règle .popover introuvable ou de forme inattendue dans base.html"
+    desktop_max_width = int(match.group(1))
+    assert desktop_max_width >= 600
 
 
 def test_info_tooltip_script_uses_bootstrap_popover_not_a_hand_rolled_widget() -> None:
