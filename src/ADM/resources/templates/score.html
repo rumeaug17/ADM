@@ -97,8 +97,9 @@
 					{% endfor %}
 			</select>			
 			{% endif %}
-			<label class="comment">Commentaire :</label>
-			<textarea name="{{ key }}_comment" class="form-control">{{ application.comments.get(key ~ '_comment', '') }}</textarea>
+			<label class="comment" for="{{ key }}_comment">Commentaire :</label>
+			<textarea id="{{ key }}_comment" name="{{ key }}_comment" class="form-control" aria-describedby="{{ key }}_comment_feedback">{{ application.comments.get(key ~ '_comment', '') }}</textarea>
+			<div id="{{ key }}_comment_feedback" class="invalid-feedback">Ce commentaire est obligatoire.</div>
 			{% endfor %}
 		</div>		
 		{% endfor %}
@@ -110,31 +111,43 @@
 
 <script src="{{ url_for('static', filename='info_tooltip.js') }}"></script>
 <script>
-  // Empêche la soumission finale de l'évaluation tant qu'un commentaire est vide.
-  document.getElementById('submitEval').addEventListener('click', function (event) {
-      var emptyComment = null;
-      // Parcourt toutes les zones de commentaires dont le nom se termine par _comment
-      document.querySelectorAll('textarea[name$="_comment"]').forEach(function (textarea) {
-         var value = textarea.value.trim();
-         if (value === "") {
-             // Si c'est la première zone vide, la retenir
-             if (emptyComment === null) {
-                emptyComment = textarea;
-             }
-             // Met en évidence la zone en rose
-             textarea.style.backgroundColor = '#ffc0cb';
-         } else {
-             // Réinitialise la couleur si la zone est remplie
-             textarea.style.backgroundColor = '';
-         }
-      });
-      // Si au moins une zone est vide, empêcher la soumission et afficher un message
-      if (emptyComment !== null) {
-         alert("Tous les commentaires sont obligatoires pour l'évaluation.");
-         emptyComment.focus();
-         event.preventDefault();
+  // Empêche la soumission finale de l'évaluation tant qu'un commentaire est vide,
+  // avec un retour inline cohérent avec les alertes Bootstrap utilisées ailleurs
+  // dans l'application, plutôt qu'un window.alert() (Tâche 4.7 du backlog).
+  (function () {
+      var commentFields = document.querySelectorAll('textarea[name$="_comment"]');
+
+      function isEmpty(textarea) {
+          return textarea.value.trim() === '';
       }
-  });
+
+      // Efface l'état invalide dès que l'utilisateur corrige le champ, sans
+      // attendre une nouvelle tentative de soumission.
+      commentFields.forEach(function (textarea) {
+          textarea.addEventListener('input', function () {
+              if (!isEmpty(textarea)) {
+                  textarea.classList.remove('is-invalid');
+              }
+          });
+      });
+
+      document.getElementById('submitEval').addEventListener('click', function (event) {
+          var firstEmpty = null;
+          commentFields.forEach(function (textarea) {
+              var empty = isEmpty(textarea);
+              textarea.classList.toggle('is-invalid', empty);
+              if (empty && firstEmpty === null) {
+                  firstEmpty = textarea;
+              }
+          });
+          // Si au moins une zone est vide, empêcher la soumission ; le message
+          // d'erreur (.invalid-feedback) apparaît sous le champ concerné.
+          if (firstEmpty !== null) {
+              event.preventDefault();
+              firstEmpty.focus();
+          }
+      });
+  })();
 </script>
 
 <script>
