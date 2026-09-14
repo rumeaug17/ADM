@@ -48,7 +48,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
 ### User Stories
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage. Pistes identifiées lors de la revue UX (voir les tâches ci-dessous) :
-  - [ ] Harmoniser l'affichage des niveaux DICP/criticité (Tâche 4.4)
   - [ ] Unifier le composant d'aide contextuelle (Tâche 4.5)
   - [ ] Rendre le tableau du catalogue responsive (Tâche 4.6)
 - **US4.3** : *Gestion des questions*  
@@ -56,12 +55,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   L'aide en ligne de chaque question doit également être modifiable par ce moyen.
 
 ### Tâches Techniques
-- **[Nouveau] Tâche 4.4** : *Incohérence d'affichage des niveaux DICP et de criticité*  
-  Les formulaires (`add.html`, `edit.html`) proposent des libellés humains (« Faible », « Moyenne »,
-  « Élevée », « Critique ») pour la disponibilité/intégrité/confidentialité/pérennité, mais
-  `index.html` et `resume.html` affichent ensuite les codes bruts (`D1`–`D4`, `I1`–`I4`, etc.) dans
-  des badges colorés. L'utilisateur saisit un libellé et revoit un code qu'il doit réinterpréter. À
-  harmoniser (libellé en infobulle du badge, ou libellé affiché directement).
 - **[Nouveau] Tâche 4.5** : *Deux composants d'aide contextuelle différents*  
   Les boutons d'action de `index.html`/`resume.html` utilisent les tooltips Bootstrap natifs
   (`data-bs-toggle="tooltip"`), tandis que les icônes d'aide (`?`) de `score.html` et `add.html`

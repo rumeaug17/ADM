@@ -74,10 +74,14 @@
         {% endif %}
       </p>
       <p><strong>Classification (DICP) :</strong>
-        <span class="badge badge-{{ app.disponibilite|lower }}">{{ app.disponibilite }}</span>
-        <span class="badge badge-{{ app.integrite|lower }}">{{ app.integrite }}</span>
-        <span class="badge badge-{{ app.confidentialite|lower }}">{{ app.confidentialite }}</span>
-        <span class="badge badge-{{ app.perennite|lower }}">{{ app.perennite }}</span>
+        {% set disponibilite_label = app.disponibilite|dicp_label %}
+        <span class="badge badge-{{ app.disponibilite|lower }}"{% if disponibilite_label %} title="Disponibilité : {{ disponibilite_label }}"{% endif %}>{{ app.disponibilite }}</span>
+        {% set integrite_label = app.integrite|dicp_label %}
+        <span class="badge badge-{{ app.integrite|lower }}"{% if integrite_label %} title="Intégrité : {{ integrite_label }}"{% endif %}>{{ app.integrite }}</span>
+        {% set confidentialite_label = app.confidentialite|dicp_label %}
+        <span class="badge badge-{{ app.confidentialite|lower }}"{% if confidentialite_label %} title="Confidentialité : {{ confidentialite_label }}"{% endif %}>{{ app.confidentialite }}</span>
+        {% set perennite_label = app.perennite|dicp_label %}
+        <span class="badge badge-{{ app.perennite|lower }}"{% if perennite_label %} title="Pérennité : {{ perennite_label }}"{% endif %}>{{ app.perennite }}</span>
       </p>
       <p><strong>Risque :</strong>
         {% if app.risque is not defined or app.risque is none %}
