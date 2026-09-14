@@ -31,6 +31,9 @@ dev = [
     "mypy>=1.10,<2",
     "pip-audit>=2.7,<3",
     "pytest>=8,<9",
+    # Tâche 3.10 du backlog : mesure et suivi de la couverture de tests
+    # (voir [tool.coverage.*] plus bas et le job `test` de .gitlab-ci.yml).
+    "pytest-cov>=5,<8",
     "ruff>=0.6,<1",
 ]
 # Serveur WSGI de production utilisé par l'image conteneurisée (Tâche 0.3 du
@@ -63,6 +66,24 @@ ADM = ["resources/config.json", "resources/static/*", "resources/templates/*"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+# Tâche 3.10 du backlog : la suite de tests était déjà large et bien
+# structurée, mais aucun rapport de couverture n'était produit ni suivi dans
+# le temps. `source` restreint la mesure au code applicatif (`ADM`), à
+# l'exclusion des tests eux-mêmes. Le job `test` de la CI invoque
+# `pytest --cov=ADM --cov-report=term-missing` ; les options ci-dessous
+# s'appliquent alors automatiquement (single source of truth), sans changer
+# le comportement d'un `pytest` exécuté sans `--cov`.
+[tool.coverage.run]
+source = ["ADM"]
+
+[tool.coverage.report]
+show_missing = true
+# Seuil initial fixé au niveau de couverture mesuré au moment de
+# l'introduction du contrôle (86 %), pour interdire toute régression future
+# sans bloquer sur un objectif arbitraire non atteint aujourd'hui. À relever
+# progressivement à mesure que la couverture s'améliore.
+fail_under = 86
 
 [tool.ruff]
 line-length = 100

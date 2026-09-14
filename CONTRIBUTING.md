@@ -71,6 +71,12 @@ les dépendances (Tâche 3.9 du backlog) ; le job CI correspondant est pour l'in
 non bloquant (`allow_failure`), le temps de trier les éventuels signalements, mais un
 signalement nouveau doit être examiné avant fusion.
 
+Pour consulter la couverture de tests (Tâche 3.10 du backlog), exécutez
+`pytest --cov=ADM --cov-report=term-missing`. Le job `test` de la CI l'exécute
+systématiquement et échoue si la couverture repasse sous le seuil minimal déclaré
+dans `pyproject.toml` (`[tool.coverage.report].fail_under`) ; relevez ce seuil dans
+la même Pull Request si votre changement améliore durablement la couverture.
+
 Ne présentez jamais un contrôle comme réussi s'il n'a pas été exécuté. Si
 l'environnement empêche un contrôle, indiquez précisément la commande, la limite et
 les vérifications alternatives dans la Pull Request.

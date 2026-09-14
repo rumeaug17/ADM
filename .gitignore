@@ -17,3 +17,9 @@ k8s/secret.yaml
 
 # pip.ini local
 pip.ini
+
+# Rapports de couverture de tests (Tâche 3.10)
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
