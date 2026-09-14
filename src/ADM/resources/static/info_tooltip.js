@@ -11,6 +11,15 @@
  * plafonnée par la règle CSS ".popover" de base.html, positionnement
  * automatique géré par Popper pour rester dans la fenêtre visible).
  *
+ * Déclencheur volontairement limité à "focus" (et non "focus click") :
+ * combiner les deux sur un même bouton fait interférer le gestionnaire de
+ * clic (bascule affiché/masqué) avec l'événement focus déclenché par ce
+ * même clic, ce qui obligeait à cliquer deux fois pour refermer le
+ * popover. Comme l'icône est un vrai <button>, un clic dessus le
+ * focalise déjà (ouverture) et un clic ailleurs (ou Tab) lui fait perdre
+ * le focus (fermeture) : "focus" seul couvre donc la souris et le
+ * clavier en un seul geste dans chaque sens.
+ *
  * Utilisation : ADM.initInfoTooltips("/static/info_texts.json").
  */
 window.ADM = window.ADM || {};
@@ -35,7 +44,7 @@ ADM.initInfoTooltips = function initInfoTooltips(infoTextsUrl) {
         new bootstrap.Popover(icon, {
           content: content,
           html: true,
-          trigger: "focus click",
+          trigger: "focus",
           placement: "auto",
         });
       });

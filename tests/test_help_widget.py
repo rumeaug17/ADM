@@ -175,4 +175,8 @@ def test_info_tooltip_script_uses_bootstrap_popover_not_a_hand_rolled_widget() -
     source = (STATIC / "info_tooltip.js").read_text(encoding="utf-8")
     assert "bootstrap.Popover" in source
     assert "getBoundingClientRect" not in source
-    assert 'trigger: "focus click"' in source  # accessible au clavier (focus)
+    # "focus" seul : accessible au clavier, et ouvre/ferme en un clic. Un
+    # déclencheur combiné focus+click faisait interférer les deux
+    # gestionnaires et obligeait à cliquer deux fois pour fermer le popover.
+    assert 'trigger: "focus"' in source
+    assert 'trigger: "focus click"' not in source
