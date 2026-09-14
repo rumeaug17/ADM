@@ -34,16 +34,25 @@ jobs:
       - name: Run Ruff format check
         run: ruff format --check .
 
-      # Tâche 3.9 du backlog : analyse des vulnérabilités connues (base OSV) des
-      # dépendances. Installées séparément (dev extras, y compris pip-audit lui-même)
-      # pour ne pas changer l'environnement des étapes ruff/mypy ci-dessus, qui
-      # tournaient jusqu'ici sans les dépendances du projet installées.
-      # `continue-on-error` rend le résultat visible sans bloquer la publication
-      # de la release le temps de trier les éventuels signalements ; à retirer une
-      # fois ce premier triage effectué.
-      - name: Install project dependencies for pip-audit
+      - name: Install project dependencies (tests, pip-audit)
         run: python -m pip install -e '.[dev]'
 
+      # Tâche 3.10 du backlog : la release n'était jusqu'ici jamais bloquée par
+      # un échec des tests ni par une régression de couverture. Le seuil
+      # minimal (`fail_under`) est déclaré dans pyproject.toml
+      # (`[tool.coverage.report]`), seule source de vérité partagée avec le job
+      # `test` de la CI GitLab.
+      - name: Run tests with coverage
+        run: pytest --cov=ADM --cov-report=term-missing
+
+      # Tâche 3.9 du backlog : analyse des vulnérabilités connues (base OSV) des
+      # dépendances (dev extras, y compris pip-audit et pytest-cov, tous deux
+      # déclarés dans pyproject.toml). Installées séparément pour ne pas changer
+      # l'environnement des étapes ruff ci-dessus, qui tournaient jusqu'ici sans
+      # les dépendances du projet installées.
+      # `continue-on-error` rend le résultat de pip-audit visible sans bloquer
+      # la publication de la release le temps de trier les éventuels
+      # signalements ; à retirer une fois ce premier triage effectué.
       - name: Run pip-audit
         run: pip-audit
         continue-on-error: true
@@ -87,3 +96,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          

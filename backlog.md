@@ -42,11 +42,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   (`fcntl`/`msvcrt` selon la plateforme, ou une dépendance telle que `filelock`), ou à défaut à
   documenter explicitement comme limite du backend JSON (déploiement mono-worker uniquement) dans
   `INSTALL.md`.
-- **[Nouveau] Tâche 3.10** : *Couverture de tests non mesurée*  
-  La suite de tests est déjà large et bien structurée, mais aucun rapport de couverture n'est
-  produit ni suivi dans le temps (pas de `pytest-cov`, pas de seuil minimal en CI). Ajouter
-  `--cov=ADM --cov-report=term-missing` (ou équivalent) au job `test`, avec un seuil initial fixé au
-  niveau de couverture actuel pour éviter toute régression future.
 
 ## Epic 4 : Interface Utilisateur et Expérience (UI/UX)
 

@@ -237,6 +237,11 @@ mypy src main.py
 pytest
 ```
 
+Pour mesurer la couverture de tests, exécutez
+`pytest --cov=ADM --cov-report=term-missing` ; le job `test` de la CI l'exécute
+systématiquement et échoue en cas de régression sous le seuil minimal déclaré dans
+`pyproject.toml`.
+
 Le processus complet (branche, conventions, tests, migrations, documentation et
 checklist de Pull Request) est décrit dans [`CONTRIBUTING.md`](CONTRIBUTING.md).
 Les principes de style Python sont complétés par

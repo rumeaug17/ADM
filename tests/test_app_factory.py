@@ -179,6 +179,63 @@ def test_explicit_missing_config_is_rejected(tmp_path: Path) -> None:
         )
 
 
+def test_template_values_reads_version_file_when_present(tmp_path: Path) -> None:
+    """Cas nominal de `template_values` (context processor de
+    `_register_web_components`) : le contenu de `version.txt` est affiché tel
+    quel dans le pied de page (voir Tâche 0.3 du backlog, `INSTALL.md`,
+    section 4)."""
+    from ADM.app import create_app
+
+    application = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(tmp_path / "catalogue.json"),
+        }
+    )
+    static_dir = tmp_path / "static"
+    static_dir.mkdir()
+    (static_dir / "version.txt").write_text("v9.9.9-test\n", encoding="utf-8")
+    application.static_folder = str(static_dir)
+
+    response = application.test_client().get("/login")
+
+    assert response.status_code == 200
+    assert b"v9.9.9-test" in response.data
+
+
+def test_template_values_falls_back_to_placeholder_version_when_missing(
+    tmp_path: Path,
+) -> None:
+    """`template_values` doit retomber sur un identifiant de version par défaut
+    lorsque `version.txt` est absent du dossier statique -- cas normal sur un
+    poste de développement où ce fichier n'est généré que par le job `build`
+    de la CI (voir `.gitlab-ci.yml` et `.github/workflows/release.yml`).
+
+    Le dossier statique est ici un `tmp_path` vide plutôt que le dossier
+    empaqueté du dépôt : la couverture de cette branche ne doit pas dépendre
+    de la présence accidentelle d'un `version.txt` généré par un build local
+    antérieur (voir Tâche 3.10 du backlog).
+    """
+    from ADM.app import create_app
+
+    application = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(tmp_path / "catalogue.json"),
+        }
+    )
+    application.static_folder = str(tmp_path)
+
+    response = application.test_client().get("/login")
+
+    assert response.status_code == 200
+    assert b"v0.0.0" in response.data
+
+
 def test_create_app_seeds_config_from_env_when_absent(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
