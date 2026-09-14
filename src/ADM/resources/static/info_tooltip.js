@@ -1,69 +1,47 @@
 /**
- * Infobulle contextuelle pour les icônes ".info-icon" (aide en ligne des
- * questions et des champs de formulaire), sans dépendance à jQuery.
+ * Aide contextuelle des icônes ".info-icon" (aide en ligne des questions et
+ * des champs de formulaire).
  *
- * Utilisation : ADM.initInfoTooltips("/static/info_texts.json");
+ * Tâche 4.5 du backlog : ce composant s'appuie sur le popover Bootstrap
+ * natif (déjà utilisé par ailleurs dans l'application via
+ * data-bs-toggle="tooltip", cf. base.html) plutôt que sur une infobulle
+ * maison positionnée en absolu avec une largeur fixée en dur, différente
+ * selon la page. Le popover Bootstrap est accessible au clavier (il
+ * s'affiche aussi au focus, pas seulement au clic) et responsive (largeur
+ * plafonnée par la règle CSS ".popover" de base.html, positionnement
+ * automatique géré par Popper pour rester dans la fenêtre visible).
+ *
+ * Utilisation : ADM.initInfoTooltips("/static/info_texts.json").
  */
 window.ADM = window.ADM || {};
 
 ADM.initInfoTooltips = function initInfoTooltips(infoTextsUrl) {
   "use strict";
 
-  var infoTexts = {};
+  function resolveText(value) {
+    // Certains textes sont fournis sous forme de tableau de lignes HTML.
+    return Array.isArray(value) ? value.join("") : value;
+  }
 
   fetch(infoTextsUrl)
     .then(function (response) {
       return response.json();
     })
-    .then(function (data) {
-      infoTexts = data;
-      // Certains textes sont fournis sous forme de tableau de lignes.
-      Object.keys(infoTexts).forEach(function (key) {
-        if (Array.isArray(infoTexts[key])) {
-          infoTexts[key] = infoTexts[key].join("");
-        }
+    .then(function (infoTexts) {
+      var icons = document.querySelectorAll(".info-icon[data-key]");
+      icons.forEach(function (icon) {
+        var key = icon.getAttribute("data-key");
+        var content = resolveText(infoTexts[key]) || "Information non disponible.";
+        new bootstrap.Popover(icon, {
+          content: content,
+          html: true,
+          trigger: "focus click",
+          placement: "auto",
+        });
       });
     })
     .catch(function () {
-      // Les infobulles resteront indisponibles ; l'icône affichera le
-      // message par défaut défini plus bas.
+      // Les infobulles resteront indisponibles ; les icônes restent
+      // affichées mais n'ouvrent pas de popover.
     });
-
-  function removeTooltip() {
-    var existing = document.querySelector(".info-tooltip");
-    if (existing) {
-      existing.remove();
-    }
-  }
-
-  document.addEventListener("click", function (event) {
-    var icon = event.target.closest(".info-icon");
-    if (icon) {
-      event.stopPropagation();
-      removeTooltip();
-
-      var key = icon.getAttribute("data-key");
-      var infoText = infoTexts[key] || "Information non disponible.";
-
-      var tooltip = document.createElement("div");
-      tooltip.className = "info-tooltip";
-      tooltip.innerHTML = infoText;
-      document.body.appendChild(tooltip);
-
-      var iconRect = icon.getBoundingClientRect();
-      tooltip.style.position = "absolute";
-      tooltip.style.top = window.scrollY + iconRect.bottom + 8 + "px";
-      tooltip.style.left = window.scrollX + iconRect.left + "px";
-      tooltip.style.display = "block";
-      return;
-    }
-
-    // Un clic à l'intérieur de l'infobulle ne doit pas la fermer.
-    if (event.target.closest(".info-tooltip")) {
-      event.stopPropagation();
-      return;
-    }
-
-    removeTooltip();
-  });
 };

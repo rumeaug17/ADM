@@ -8,33 +8,6 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-		.info-icon {
-            color: white;
-            background-color: #0d6efd;
-            cursor: pointer;
-            margin-left: 5px;
-            font-weight: bold;
-            border-radius: 50%;
-            padding: 4px 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            font-size: 14px;
-            text-align: center;
-        }
-        .info-tooltip {
-            display: none;
-            background-color: white;
-            border: 1px solid #0d6efd;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            z-index: 1000;
-            width: 1050px;
-        }
     </style>
 {% endblock %}
 
@@ -87,7 +60,7 @@
 		</div>
 		<div class="mb-3">
 		  <label class="form-label">Criticité :
-			<span class="info-icon" data-key="app-criticite">?</span>
+			<button type="button" class="info-icon" data-key="app-criticite" aria-label="Aide pour Criticité">?</button>
 		  </label>
 		  <select name="criticite" class="form-select">
 			<option value="1" {% if application.criticite == 1 %} selected {% endif %}>Solution critique majeure (Criticité très élevée)</option>
@@ -98,7 +71,7 @@
 		</div>
         <div class="mb-3">
           <label class="form-label">Disponibilité :
-			<span class="info-icon" data-key="app-disponibilite">?</span>
+			<button type="button" class="info-icon" data-key="app-disponibilite" aria-label="Aide pour Disponibilité">?</button>
 		  </label>
           <select name="disponibilite" class="form-select">
             <option value="D1" {% if application.disponibilite == "D1" %} selected {% endif %}>Faible</option>
@@ -109,7 +82,7 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Intégrité :
-			<span class="info-icon" data-key="app-integrite">?</span>
+			<button type="button" class="info-icon" data-key="app-integrite" aria-label="Aide pour Intégrité">?</button>
 		  </label>
           <select name="integrite" class="form-select">
             <option value="I1" {% if application.integrite == "I1" %} selected {% endif %}>Faible</option>
@@ -120,7 +93,7 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Confidentialité :
-			<span class="info-icon" data-key="app-confidentialite">?</span>
+			<button type="button" class="info-icon" data-key="app-confidentialite" aria-label="Aide pour Confidentialité">?</button>
 		  </label>
           <select name="confidentialite" class="form-select">
             <option value="C1" {% if application.confidentialite == "C1" %} selected {% endif %}>Faible</option>
@@ -131,7 +104,7 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Pérennité :
-			<span class="info-icon" data-key="app-perennite">?</span>
+			<button type="button" class="info-icon" data-key="app-perennite" aria-label="Aide pour Pérennité">?</button>
 		  </label>
           <select name="perennite" class="form-select">
             <option value="P1" {% if application.perennite == "P1" %} selected {% endif %}>Faible</option>
@@ -144,9 +117,11 @@
       </form>
     </div>
   
-  <script src="{{ url_for('static', filename='info_tooltip.js') }}"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='info_tooltip.js') }}"></script>
 <script>
   ADM.initInfoTooltips("{{ url_for('static', filename='info_texts.json') }}");
 </script>
-
 {% endblock %}

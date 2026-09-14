@@ -48,20 +48,13 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
 ### User Stories
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage. Pistes identifiées lors de la revue UX (voir les tâches ci-dessous) :
-  - [ ] Unifier le composant d'aide contextuelle (Tâche 4.5)
+  - [x] Unifier le composant d'aide contextuelle (Tâche 4.5)
   - [ ] Rendre le tableau du catalogue responsive (Tâche 4.6)
 - **US4.3** : *Gestion des questions*  
   Ajouter une page de configuration des questions pour permettre des ajouts, des modifications, des suppressions.
   L'aide en ligne de chaque question doit également être modifiable par ce moyen.
 
 ### Tâches Techniques
-- **[Nouveau] Tâche 4.5** : *Deux composants d'aide contextuelle différents*  
-  Les boutons d'action de `index.html`/`resume.html` utilisent les tooltips Bootstrap natifs
-  (`data-bs-toggle="tooltip"`), tandis que les icônes d'aide (`?`) de `score.html` et `add.html`
-  réimplémentent en jQuery une infobulle positionnée en absolu, avec une largeur fixe différente
-  selon la page (450px sur `score.html`, 1050px sur `add.html`) qui peut déborder sur petit écran.
-  À unifier sur un seul composant (par exemple un popover Bootstrap natif), accessible au clavier et
-  responsive.
 - **[Nouveau] Tâche 4.6** : *Tableau du catalogue non responsive*  
   Le tableau de `/` (11 colonnes, `table-bordered` sans `table-responsive`) devient illisible sur
   mobile/tablette : pas de défilement horizontal contrôlé, colonnes tassées. Les actions
