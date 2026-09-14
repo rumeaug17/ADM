@@ -16,7 +16,7 @@ from ADM.auth_providers import get_auth_provider
 from ADM.routes import accounts, applications, auth, evaluations, exports, settings, supervision
 from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
-from ADM.services import RadarChartCache
+from ADM.services import RadarChartCache, dicp_level_label
 
 PACKAGE_RESOURCES = Path(__file__).resolve().parent / "resources"
 
@@ -208,6 +208,11 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
 def _register_web_components(app: Flask) -> None:
     for blueprint in (supervision, auth, applications, evaluations, exports, settings, accounts):
         app.register_blueprint(blueprint)
+
+    # Tâche 4.4 du backlog : un seul filtre Jinja traduit un indicateur DICP
+    # (ex. "D1") en libellé humain, réutilisé en infobulle par les templates
+    # qui affichent encore le code brut (`index.html`, `resume.html`).
+    app.jinja_env.filters["dicp_label"] = dicp_level_label
 
     def protect_posts() -> None:
         if request.method == "POST":

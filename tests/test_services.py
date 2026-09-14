@@ -11,6 +11,7 @@ from ADM.services import (
     axis_scores,
     build_evaluation_submission,
     category_sums,
+    dicp_level_label,
     generate_radar_chart,
     summarize_catalogue,
 )
@@ -170,3 +171,25 @@ def test_summarize_catalogue_uses_configured_score_thresholds() -> None:
 
     assert summary.applications_above_warning == 3
     assert summary.applications_above_critical == 1
+
+
+def test_dicp_level_label_translates_each_known_level() -> None:
+    """Cas nominal (Tâche 4.4) : chaque niveau connu a un libellé, identique
+    quel que soit l'axe DICP puisque les quatre partagent la même échelle."""
+    assert dicp_level_label("D1") == "Faible"
+    assert dicp_level_label("I2") == "Moyenne"
+    assert dicp_level_label("C3") == "Élevée"
+    assert dicp_level_label("P4") == "Critique"
+
+
+def test_dicp_level_label_returns_none_for_invalid_inputs() -> None:
+    """Entrées invalides (Tâche 4.4) : un libellé trompeur ne doit jamais être
+    renvoyé pour une valeur qui n'est pas un indicateur DICP à deux caractères
+    reconnu, y compris les données de test historiques mal formées comme
+    ``"1"`` (voir les fixtures existantes utilisant un code brut sans lettre)."""
+    assert dicp_level_label("1") is None
+    assert dicp_level_label("D12") is None
+    assert dicp_level_label("D5") is None
+    assert dicp_level_label("") is None
+    assert dicp_level_label(None) is None
+    assert dicp_level_label(4) is None

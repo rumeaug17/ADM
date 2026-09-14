@@ -29,6 +29,17 @@ MAX_OPTION_SCORE: Final = 3
 # confidentialité et pérennité avant le calcul du risque.
 _DICP_LEVELS: Final = frozenset({"1", "2", "3", "4"})
 
+# Libellés humains associés à chaque niveau DICP, identiques à ceux proposés par
+# les formulaires (`add.html`, `edit.html`) : seule source de vérité pour ce
+# mapping, réutilisée en infobulle par les badges de `index.html` et
+# `resume.html` (Tâche 4.4 du backlog).
+_DICP_LEVEL_LABELS: Final[Mapping[str, str]] = {
+    "1": "Faible",
+    "2": "Moyenne",
+    "3": "Élevée",
+    "4": "Critique",
+}
+
 
 @dataclass(frozen=True)
 class EvaluationSubmission:
@@ -139,6 +150,20 @@ def _dicp_factor(value: object, prefix: str) -> int | None:
         return None
     level = value[len(prefix) :]
     return int(level) if level in _DICP_LEVELS else None
+
+
+def dicp_level_label(value: object) -> str | None:
+    """Traduit un indicateur DICP (ex. ``"D1"``) en libellé humain identique à
+    celui proposé par les formulaires (`add.html`, `edit.html`), afin d'afficher
+    une infobulle cohérente sur les badges de code brut de `index.html` et
+    `resume.html` (Tâche 4.4 du backlog).
+
+    Retourne ``None`` pour une valeur qui n'est pas un indicateur DICP à deux
+    caractères valide, plutôt qu'un libellé trompeur.
+    """
+    if not isinstance(value, str) or len(value) != 2:
+        return None
+    return _DICP_LEVEL_LABELS.get(value[1:])
 
 
 def calculate_risk(application: JsonData) -> float | None:
