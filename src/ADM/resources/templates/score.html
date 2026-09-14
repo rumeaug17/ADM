@@ -25,33 +25,6 @@
         button {
             margin-top: 15px;
         }
-	.info-icon {
-            color: white;
-            background-color: #0d6efd;
-            cursor: pointer;
-            margin-left: 5px;
-            font-weight: bold;
-            border-radius: 50%;
-            padding: 4px 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            font-size: 14px;
-            text-align: center;
-        }
-        .info-tooltip {
-            display: none;
-            background-color: white;
-            border: 1px solid #0d6efd;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            z-index: 1000;
-            width: 450px;
-        }
     </style>
 {% endblock %}
 
@@ -85,7 +58,7 @@
 				<h3>{{ category }}</h3>	
 			{% for key, question in questions_list.items() %}
 			<label class="label">{{ question.label }} :
-					<span class="info-icon" data-key="{{ key }}">?</span>
+					<button type="button" class="info-icon" data-key="{{ key }}" aria-label="Aide pour {{ question.label }}">?</button>
 			</label>
 			{% if question.type == "select" %}
 			<select name="{{ key }}" class="form-select">
@@ -109,7 +82,6 @@
 		<button type="submit" name="save_draft" value="true" class="btn btn-secondary w-100 mt-2">📝 Enregistrer brouillon</button>
     </form>
 
-<script src="{{ url_for('static', filename='info_tooltip.js') }}"></script>
 <script>
   // Empêche la soumission finale de l'évaluation tant qu'un commentaire est vide,
   // avec un retour inline cohérent avec les alertes Bootstrap utilisées ailleurs
@@ -150,8 +122,11 @@
   })();
 </script>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='info_tooltip.js') }}"></script>
 <script>
   ADM.initInfoTooltips("{{ url_for('static', filename='info_texts.json') }}");
 </script>
-
 {% endblock %}

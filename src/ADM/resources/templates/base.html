@@ -30,6 +30,41 @@ main.container {
   color: #fff;
   text-decoration: underline;
   }
+  /* Composant d'aide contextuelle unique (Tâche 4.5) : icône "?" déclenchant
+     un popover Bootstrap natif, utilisée à l'identique sur toutes les pages
+     (score.html, add.html, edit.html) au lieu d'une infobulle maison avec une
+     largeur fixe différente par page. */
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin-left: 5px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .info-icon:hover,
+  .info-icon:focus {
+    background-color: #0b5ed7;
+  }
+  /* Largeur réactive (jamais figée en pixels) : le popover ne dépasse ni la
+     largeur disponible sur mobile, ni une largeur confortable sur desktop.
+     640px est volontairement généreux : l'aide de "Criticité" (add.html/
+     edit.html) est un texte long avec des listes imbriquées sur plusieurs
+     niveaux, illisible si on la contraint à une largeur étroite ; les autres
+     aides, plus courtes, restent naturellement plus compactes (un popover
+     Bootstrap épouse son contenu, cette valeur n'est qu'un plafond). */
+  .popover {
+    max-width: min(90vw, 640px);
+  }
 </style>
 {% block extra_head %}{% endblock %}
 </head>
@@ -76,6 +111,21 @@ main.container {
   </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Initialisation unique des tooltips Bootstrap natifs (Tâche 4.5) : ce
+  // script est le seul endroit qui instancie [data-bs-toggle="tooltip"],
+  // pour toutes les pages qui étendent ce gabarit. Avant cette correction,
+  // index.html instanciait ses tooltips depuis un <script> placé dans le
+  // bloc "content", donc avant le chargement de ce fichier
+  // bootstrap.bundle.min.js : "bootstrap" n'était pas encore défini et
+  // l'initialisation échouait silencieusement (ReferenceError). resume.html
+  // n'avait quant à lui aucune initialisation du tout : ses boutons d'action
+  // affichaient donc l'infobulle par défaut du navigateur, pas un tooltip
+  // Bootstrap.
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+    new bootstrap.Tooltip(el);
+  });
+</script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

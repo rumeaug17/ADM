@@ -298,11 +298,12 @@ var resetModal = document.getElementById('confirmResetModal');
     form.action = "/reset/" + encodeURIComponent(appName);
   });
 
-  // Initialisation des tooltips Bootstrap
-  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
-  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl)
-  });
+  // Les tooltips Bootstrap ([data-bs-toggle="tooltip"], ici sur les boutons
+  // "Évaluer" et "Modifier") sont désormais initialisés une seule fois pour
+  // toutes les pages par base.html (Tâche 4.5). Le faire ici, dans un
+  // <script> exécuté avant le chargement de bootstrap.bundle.min.js,
+  // provoquait une ReferenceError silencieuse et empêchait ces tooltips de
+  // fonctionner.
 </script>
 
 {% endblock %}
