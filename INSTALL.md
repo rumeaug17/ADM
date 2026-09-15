@@ -504,10 +504,29 @@ pas une sauvegarde complète et testée de MySQL.
 
 ## 12. Mises à jour et retour arrière
 
-Avant toute mise à jour : sauvegardez MySQL, lisez les migrations et testez le tag
-sur un environnement distinct. Construisez le nouveau wheel une seule fois avec la
-procédure de la section 4, publiez-le, puis vérifiez et installez exactement ce même
-artefact dans chaque environnement promu.
+Avant toute mise à jour : sauvegardez MySQL, **sauvegardez aussi les fichiers de
+configuration persistants** (`config.json`, `questions.json`, `info_texts.json`,
+désignés par `ADM_CONFIG_PATH`, `ADM_QUESTIONS_PATH` et `ADM_INFO_TEXTS_PATH`),
+lisez les migrations et testez le tag sur un environnement distinct. Cette
+sauvegarde reste nécessaire même si ces trois variables sont définies (ce qui
+protège déjà des seuils, du questionnaire et de l'aide en ligne contre un
+écrasement par le gabarit empaqueté, voir section 5) : elle permet de revenir en
+arrière si la nouvelle version modifie malencontreusement ces fichiers, ou si
+l'un d'eux est corrompu pendant la mise à jour.
+
+```bash
+# Adaptez les chemins si vous n'utilisez pas ADM_CONFIG_PATH/ADM_QUESTIONS_PATH/ADM_INFO_TEXTS_PATH
+horodatage=$(date +%Y%m%d%H%M%S)
+cp "$ADM_CONFIG_PATH" "$ADM_CONFIG_PATH.$horodatage.bak"
+cp "$ADM_QUESTIONS_PATH" "$ADM_QUESTIONS_PATH.$horodatage.bak"
+cp "$ADM_INFO_TEXTS_PATH" "$ADM_INFO_TEXTS_PATH.$horodatage.bak"
+```
+
+Conservez ces copies au même titre que la sauvegarde MySQL (section 11) : hors du
+checkout Git, avec un accès restreint, et jusqu'à ce que la mise à jour soit
+validée. Construisez le nouveau wheel une seule fois avec la procédure de la
+section 4, publiez-le, puis vérifiez et installez exactement ce même artefact
+dans chaque environnement promu.
 
 Avec le virtualenv :
 
@@ -540,7 +559,10 @@ python3.11 -m alembic upgrade head
 Rechargez ensuite le processus WSGI et refaites la validation fonctionnelle. Un
 retour à un ancien tag peut être incompatible avec une migration déjà appliquée :
 restaurez alors la sauvegarde correspondante selon une procédure testée, plutôt
-que de lancer une migration descendante sans validation.
+que de lancer une migration descendante sans validation. Si `config.json`,
+`questions.json` ou `info_texts.json` sont perdus ou altérés par la mise à jour,
+restaurez-les de la même façon depuis les copies `.bak` réalisées en début de
+section, plutôt que de les recréer manuellement.
 
 Si `ADM_CONFIG_PATH` n'est pas défini, la réinstallation du wheel ci-dessus
 remplace `config.json` par le gabarit empaqueté : les seuils d'affichage
