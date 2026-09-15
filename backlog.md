@@ -55,11 +55,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   L'aide en ligne de chaque question doit également être modifiable par ce moyen.
 
 ### Tâches Techniques
-- **[Nouveau] Tâche 4.8** : *Formulaire d'évaluation long sans repère de progression*  
-  `score.html` empile toutes les catégories de questions verticalement, sans sommaire ni indicateur
-  de progression (« X/Y questions répondues »), ni bouton « enregistrer » flottant pour un
-  formulaire potentiellement très long. À étudier : sommaire d'ancres par catégorie, barre de
-  progression, bouton de soumission persistant en bas d'écran.
 - **[Nouveau] Tâche 4.10** : *Grille des indicateurs de `/synthese` mal alignée*  
   Les cinq cartes de KPI utilisent chacune `col-md-3` dans une grille Bootstrap à 12 colonnes
   (5 × 3 = 15 > 12), ce qui provoque un retour à la ligne asymétrique de la dernière carte. Des
