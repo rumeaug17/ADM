@@ -11,6 +11,28 @@
 - Les filtres `app_types` et `hosting_types`, lorsqu'ils existent, sont des listes
   non vides. Leur comparaison ignore la casse et les espaces périphériques.
 
+## Gestion des questions (US4.3)
+
+La page `/settings/questions` (rôle `admin`) permet d'ajouter, modifier et
+supprimer une question au sein d'une catégorie déjà existante : libellé, poids,
+options et leurs scores, filtres `app_types`/`hosting_types`, et aide en ligne.
+Dans un premier temps, les catégories elles-mêmes ne sont pas gérées par cette
+page : ni création, ni renommage, ni suppression de catégorie.
+
+La clé technique d'une question (ex. `api`) est fixée à sa création et n'est
+plus modifiable ensuite : elle identifie les réponses déjà enregistrées dans
+l'historique des évaluations existantes. Supprimer une question ne supprime
+pas ces réponses historiques ; elles cessent seulement d'être affichées et
+scorées. Toute modification revalide l'intégralité du questionnaire résultant
+(pas seulement la question modifiée), afin qu'une même valeur de réponse
+conserve le même score partout.
+
+`questions.json` et l'aide en ligne (`info_texts.json`) sont réécrits à chaud
+par cette page, sans redémarrage : comme `config.json` (US4.2), ils peuvent
+être stockés hors du paquet installé via `ADM_QUESTIONS_PATH` et
+`ADM_INFO_TEXTS_PATH`, pour qu'une mise à jour du paquet n'efface pas les
+modifications apportées en production.
+
 ## Calcul des scores
 
 Le score brut d'une évaluation est la somme `score de l'option × poids` des
@@ -84,7 +106,8 @@ dédiés.
 
 Le rôle `admin` est requis pour accéder à la configuration (`/settings`), pour
 la réimportation totale du catalogue (`/import_data`, voir la section Import
-ci-dessus), et le sera pour la gestion des questions (US4.3) une fois livrée.
+ci-dessus), et pour la gestion des questions (`/settings/questions`, voir
+« Gestion des questions (US4.3) » ci-dessus).
 Aucun compte n'existe par défaut à l'installation : le premier compte
 administrateur doit être créé explicitement via `scripts/create_account.py`
 avant la première connexion.

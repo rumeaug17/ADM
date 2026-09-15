@@ -1,17 +1,30 @@
 """Validation des données reçues par l'interface ADM."""
 
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import date
 from typing import Final
+
+from werkzeug.datastructures import MultiDict
 
 from ADM.accounts_service import ROLES
 from ADM.database import Application
 from ADM.schemas import DisplayThresholds, parse_display_thresholds
 
+# Valeurs de type d'application et d'hébergement, utilisées à la fois pour
+# valider une application (APPLICATION_CHOICES ci-dessous) et pour restreindre
+# les filtres app_types/hosting_types d'une question (US4.3) au même
+# vocabulaire, dans un ordre d'affichage stable pour les cases à cocher.
+QUESTION_APP_TYPES: Final[tuple[str, ...]] = ("Interne", "Editeur", "Open source")
+QUESTION_HOSTING_TYPES: Final[tuple[str, ...]] = ("On prem", "Hybride", "Cloud", "SaaS")
+
+QUESTION_KEY_MAX_LENGTH: Final = 100
+QUESTION_LABEL_MAX_LENGTH: Final = 500
+QUESTION_HELP_TEXT_MAX_LENGTH: Final = 10_000
+
 APPLICATION_CHOICES: Final[tuple[tuple[str, frozenset[str]], ...]] = (
-    ("type_app", frozenset({"Interne", "Editeur", "Open source"})),
-    ("hosting", frozenset({"On prem", "Hybride", "Cloud", "SaaS"})),
+    ("type_app", frozenset(QUESTION_APP_TYPES)),
+    ("hosting", frozenset(QUESTION_HOSTING_TYPES)),
     ("criticite", frozenset({"1", "2", "3", "4"})),
     ("disponibilite", frozenset({"D1", "D2", "D3", "D4"})),
     ("integrite", frozenset({"I1", "I2", "I3", "I4"})),
@@ -186,3 +199,140 @@ def validate_display_thresholds_form(form: Mapping[str, str]) -> DisplayThreshol
         return parse_display_thresholds(raw)
     except ValueError as error:
         raise InputValidationError(str(error)) from error
+
+
+def _required_category(form: Mapping[str, str], categories: Sequence[str]) -> str:
+    category = form.get("category", "")
+    if category not in categories:
+        raise InputValidationError("La catégorie sélectionnée est invalide.")
+    return category
+
+
+def _parse_question_key(form: Mapping[str, str]) -> str:
+    key = form.get("key", "").strip()
+    if not key:
+        raise InputValidationError("La clé technique de la question est obligatoire.")
+    if len(key) > QUESTION_KEY_MAX_LENGTH:
+        raise InputValidationError("La clé technique de la question est trop longue.")
+    if key.startswith("_"):
+        raise InputValidationError("La clé technique de la question ne peut pas commencer par '_'.")
+    return key
+
+
+def _question_options_from_form(form: MultiDict[str, str]) -> list[dict[str, object]]:
+    """Reconstitue la liste ordonnée d'options depuis les champs répétés du formulaire.
+
+    ``option_value`` et ``option_score`` sont soumis en parallèle (mêmes index),
+    une ligne dont la valeur est vide étant ignorée (suppression d'une option
+    côté client, voir question_form.html). Un score vide signifie « Non
+    applicable » (``null``, voir docs/BUSINESS_RULES.md).
+    """
+    values = form.getlist("option_value")
+    scores = form.getlist("option_score")
+    if len(values) != len(scores):
+        raise InputValidationError("Les options de la question sont incohérentes.")
+    options: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for raw_value, raw_score in zip(values, scores, strict=True):
+        value = raw_value.strip()
+        if not value:
+            continue
+        if value in seen:
+            raise InputValidationError(f"L'option {value!r} est dupliquée.")
+        seen.add(value)
+        stripped_score = raw_score.strip()
+        score: int | None
+        if not stripped_score:
+            score = None
+        else:
+            try:
+                score = int(stripped_score)
+            except ValueError as error:
+                raise InputValidationError(
+                    f"Le score de l'option {value!r} doit être un entier ou vide."
+                ) from error
+        options.append({"value": value, "score": score})
+    if not options:
+        raise InputValidationError("La question doit avoir au moins une option.")
+    return options
+
+
+def _question_filter_from_form(
+    form: MultiDict[str, str], field: str, allowed_values: Sequence[str]
+) -> list[str]:
+    """Valide un filtre à cases à cocher (``app_types``/``hosting_types``).
+
+    Au moins une valeur doit être cochée (voir docs/BUSINESS_RULES.md : « lorsqu'ils
+    existent, [ces filtres] sont des listes non vides ») ; l'ordre de référence
+    (``allowed_values``) est conservé plutôt que l'ordre de soumission du formulaire.
+    """
+    selected = {value for value in form.getlist(field) if value in allowed_values}
+    if not selected:
+        raise InputValidationError(f"Sélectionnez au moins une valeur pour le filtre {field!r}.")
+    return [value for value in allowed_values if value in selected]
+
+
+def _question_definition_from_form(form: MultiDict[str, str]) -> dict[str, object]:
+    label = form.get("label", "").strip()
+    if not label:
+        raise InputValidationError("Le libellé de la question est obligatoire.")
+    if len(label) > QUESTION_LABEL_MAX_LENGTH:
+        raise InputValidationError("Le libellé de la question est trop long.")
+    weight_raw = form.get("weight", "").strip()
+    if not weight_raw:
+        raise InputValidationError("Le poids de la question est obligatoire.")
+    try:
+        weight = int(weight_raw)
+    except ValueError as error:
+        raise InputValidationError("Le poids de la question doit être un entier.") from error
+    if weight <= 0:
+        raise InputValidationError(
+            "Le poids de la question doit être un entier strictement positif."
+        )
+    return {
+        "label": label,
+        "type": "select",
+        "weight": weight,
+        "options": _question_options_from_form(form),
+        "app_types": _question_filter_from_form(form, "app_types", QUESTION_APP_TYPES),
+        "hosting_types": _question_filter_from_form(form, "hosting_types", QUESTION_HOSTING_TYPES),
+    }
+
+
+def _question_help_text_from_form(form: Mapping[str, str]) -> str:
+    help_text = form.get("help_text", "").strip()
+    if len(help_text) > QUESTION_HELP_TEXT_MAX_LENGTH:
+        raise InputValidationError("L'aide en ligne de la question est trop longue.")
+    return help_text
+
+
+def validate_question_create_form(
+    form: MultiDict[str, str], *, categories: Sequence[str]
+) -> tuple[str, str, dict[str, object], str]:
+    """Valide le formulaire d'ajout d'une question (US4.3).
+
+    Retourne ``(catégorie, clé, définition brute, aide en ligne)``. ``categories``
+    restreint le choix à celles déjà existantes dans le questionnaire : ce
+    formulaire ne permet ni de créer, ni de renommer, ni de supprimer une
+    catégorie (portée volontairement réduite de l'US4.3, voir backlog.md).
+    """
+    category = _required_category(form, categories)
+    key = _parse_question_key(form)
+    definition = _question_definition_from_form(form)
+    help_text = _question_help_text_from_form(form)
+    return category, key, definition, help_text
+
+
+def validate_question_edit_form(
+    form: MultiDict[str, str], *, categories: Sequence[str]
+) -> tuple[str, dict[str, object], str]:
+    """Valide le formulaire de modification d'une question (US4.3).
+
+    La clé technique n'est volontairement pas reprise ici : elle est immuable
+    après création (voir docs/BUSINESS_RULES.md) et provient de l'URL, pas du
+    formulaire. Retourne ``(nouvelle catégorie, définition brute, aide en ligne)``.
+    """
+    category = _required_category(form, categories)
+    definition = _question_definition_from_form(form)
+    help_text = _question_help_text_from_form(form)
+    return category, definition, help_text

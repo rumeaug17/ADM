@@ -4,6 +4,7 @@ import io
 import json
 
 import pytest
+from werkzeug.datastructures import MultiDict
 
 from ADM.validation import (
     InputValidationError,
@@ -12,6 +13,8 @@ from ADM.validation import (
     validate_import,
     validate_password_change_form,
     validate_password_reset_form,
+    validate_question_create_form,
+    validate_question_edit_form,
 )
 
 
@@ -108,6 +111,145 @@ def test_password_change_form_returns_both_passwords_on_success() -> None:
     )
 
     assert (current, new) == ("ancien-secret", "nouveau-secret")
+
+
+def valid_question_form() -> MultiDict[str, str]:
+    return MultiDict(
+        [
+            ("category", "Architecture"),
+            ("key", "api"),
+            ("label", "Utilise-t-on des API standardisées ?"),
+            ("weight", "2"),
+            ("option_value", "Oui"),
+            ("option_score", "0"),
+            ("option_value", "Non applicable"),
+            ("option_score", ""),
+            ("app_types", "Interne"),
+            ("hosting_types", "Cloud"),
+            ("help_text", "Un peu d'aide."),
+        ]
+    )
+
+
+def test_question_create_form_accepts_a_valid_submission() -> None:
+    category, key, definition, help_text = validate_question_create_form(
+        valid_question_form(), categories=["Architecture", "Sécurité"]
+    )
+
+    assert (category, key) == ("Architecture", "api")
+    assert definition["label"] == "Utilise-t-on des API standardisées ?"
+    assert definition["weight"] == 2
+    assert definition["options"] == [
+        {"value": "Oui", "score": 0},
+        {"value": "Non applicable", "score": None},
+    ]
+    assert definition["app_types"] == ["Interne"]
+    assert definition["hosting_types"] == ["Cloud"]
+    assert help_text == "Un peu d'aide."
+
+
+def test_question_create_form_rejects_unknown_category() -> None:
+    form = valid_question_form()
+    form["category"] = "Inexistante"
+
+    with pytest.raises(InputValidationError, match="catégorie"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_requires_a_key() -> None:
+    form = valid_question_form()
+    del form["key"]
+
+    with pytest.raises(InputValidationError, match="clé technique"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_rejects_a_key_starting_with_underscore() -> None:
+    form = valid_question_form()
+    form["key"] = "_commentaire"
+
+    with pytest.raises(InputValidationError, match="'_'"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_rejects_zero_weight() -> None:
+    form = valid_question_form()
+    form["weight"] = "0"
+
+    with pytest.raises(InputValidationError, match="strictement positif"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_rejects_non_numeric_weight() -> None:
+    form = valid_question_form()
+    form["weight"] = "abc"
+
+    with pytest.raises(InputValidationError, match="entier"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_rejects_empty_option_list() -> None:
+    form = MultiDict(
+        [
+            ("category", "Architecture"),
+            ("key", "api"),
+            ("label", "Question ?"),
+            ("weight", "1"),
+            ("option_value", ""),
+            ("option_score", ""),
+            ("app_types", "Interne"),
+            ("hosting_types", "Cloud"),
+        ]
+    )
+
+    with pytest.raises(InputValidationError, match="au moins une option"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_rejects_duplicate_option_values() -> None:
+    form = valid_question_form()
+    form.setlist("option_value", ["Oui", "Oui"])
+    form.setlist("option_score", ["0", "1"])
+
+    with pytest.raises(InputValidationError, match="dupliquée"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_rejects_non_numeric_option_score() -> None:
+    form = valid_question_form()
+    form.setlist("option_score", ["abc", ""])
+
+    with pytest.raises(InputValidationError, match="score de l'option"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_rejects_no_app_type_selected() -> None:
+    form = valid_question_form()
+    del form["app_types"]
+
+    with pytest.raises(InputValidationError, match="app_types"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_create_form_rejects_help_text_too_long() -> None:
+    form = valid_question_form()
+    form["help_text"] = "x" * 10_001
+
+    with pytest.raises(InputValidationError, match="aide en ligne"):
+        validate_question_create_form(form, categories=["Architecture"])
+
+
+def test_question_edit_form_does_not_require_a_key() -> None:
+    form = valid_question_form()
+    del form["key"]
+
+    category, definition, help_text = validate_question_edit_form(
+        form, categories=["Architecture", "Sécurité"]
+    )
+
+    assert category == "Architecture"
+    assert definition["label"] == "Utilise-t-on des API standardisées ?"
+    assert help_text == "Un peu d'aide."
 
 
 def test_all_post_routes_require_csrf_token(monkeypatch: pytest.MonkeyPatch) -> None:

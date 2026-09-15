@@ -118,6 +118,8 @@ variables d'environnement :
 | `ADM_DATABASE_URL` | Avec SQLite/MySQL | URL SQLAlchemy (ou chemin de fichier avec JSON). |
 | `ADM_ACCOUNTS_URL` | Non | Chemin du fichier de comptes (backend JSON), remplace `accounts_connection_url`. |
 | `ADM_CONFIG_PATH` | Non (recommandé en production) | Chemin persistant de `config.json`, hors du paquet installé ; créé automatiquement au premier démarrage s'il est absent. |
+| `ADM_QUESTIONS_PATH` | Non (recommandé en production) | Chemin persistant de `questions.json` (questionnaire), hors du paquet installé ; créé automatiquement au premier démarrage s'il est absent. |
+| `ADM_INFO_TEXTS_PATH` | Non (recommandé en production) | Chemin persistant de `info_texts.json` (aide en ligne des questions), hors du paquet installé ; créé automatiquement au premier démarrage s'il est absent. |
 
 Les seuils de couleur et de filtrage des affichages sont définis dans
 `src/ADM/resources/config.json` (ou dans le fichier pointé par `ADM_CONFIG_PATH`
@@ -129,6 +131,12 @@ Ces seuils sont également modifiables depuis l'interface, à l'adresse `/settin
 ces modifications réécrivent le fichier, définissez `ADM_CONFIG_PATH` vers un emplacement
 persistant en production : sans cela, une réinstallation du paquet (mise à jour)
 écrase le fichier et réinitialise les seuils personnalisés (voir INSTALL.md, section 12).
+
+Le questionnaire (`questions.json`) et son aide en ligne (`info_texts.json`) sont, de la
+même manière, modifiables depuis l'interface à l'adresse `/settings/questions` (ajout,
+modification et suppression d'une question au sein d'une catégorie existante — voir
+`docs/BUSINESS_RULES.md`). Définissez `ADM_QUESTIONS_PATH` et `ADM_INFO_TEXTS_PATH` vers
+des emplacements persistants en production, pour la même raison que `ADM_CONFIG_PATH`.
 
 Avec le backend JSON, le chemin du fichier est défini par `json_connection_url` dans
 `config.json` et peut être remplacé par `ADM_DATABASE_URL`.

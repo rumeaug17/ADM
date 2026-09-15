@@ -30,6 +30,9 @@ backends exposent le sous-ensemble de session consommé par les routes.
 | `ADM.persistence` | Cycle commit, rollback et fermeture d'une transaction. |
 | `ADM.database` / `ADM.database_json` | Adaptateurs SQLAlchemy (SQLite/MySQL) et JSON. |
 | `ADM.config_io` | Lecture/écriture atomique de la configuration non sensible (`config.json`). |
+| `ADM.persistent_paths` | Résolution d'un chemin persistant hors du paquet installé pour un fichier réécrit à chaud (`config.json`, `questions.json`, `info_texts.json`). |
+| `ADM.questions_admin` | Ajout, modification et suppression d'une question au sein d'une catégorie existante (US4.3), avec revalidation complète du questionnaire résultant. |
+| `ADM.questions_io` | Lecture/écriture atomique de `questions.json` et de l'aide en ligne (`info_texts.json`). |
 | `ADM.accounts_service` | Opérations métier sur les comptes (création, rôle, invariant du dernier admin). |
 | `ADM.accounts_json` | Persistance JSON dédiée aux comptes, isolée du catalogue. |
 | `ADM.auth_providers` | Sélection et exécution du fournisseur d'authentification (`local`, extensible). |

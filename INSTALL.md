@@ -186,6 +186,8 @@ ADM reconnaît les variables suivantes :
 | `ADM_DATABASE_URL` | obligatoire | URL SQLAlchemy de la base. |
 | `ADM_ACCOUNTS_URL` | non utilisée | Réservée au chemin du fichier de comptes avec le backend JSON. |
 | `ADM_CONFIG_PATH` | recommandée | Chemin persistant de `config.json` (seuils d'affichage, modifiables depuis `/settings`). Voir l'avertissement ci-dessous. |
+| `ADM_QUESTIONS_PATH` | recommandée | Chemin persistant de `questions.json` (questionnaire, modifiable depuis `/settings/questions`, US4.3). Même avertissement. |
+| `ADM_INFO_TEXTS_PATH` | recommandée | Chemin persistant de `info_texts.json` (aide en ligne des questions, modifiable depuis `/settings/questions`). Même avertissement. |
 | `ADM_SESSION_COOKIE_SECURE` | optionnelle (défaut `true`) | Désactive (`false`) l'attribut `Secure` du cookie de session pour un accès HTTP local (développement/démo, voir `scripts/setup_demo.sh`) ; laissez la valeur par défaut dès que le service est exposé, l'accès HTTPS étant requis (section 2). |
 | `ADM_SESSION_LIFETIME_MINUTES` | optionnelle (défaut `480`) | Durée de vie de la session authentifiée, en minutes. |
 
@@ -199,6 +201,13 @@ chemin persistant, hors de l'arborescence du code (par exemple à côté de
 `ADM_DATABASE_URL` en JSON/SQLite, ou dans un répertoire de données dédié pour
 MySQL) : le fichier y est créé automatiquement à partir du gabarit empaqueté au
 premier démarrage si nécessaire.
+
+Le même raisonnement s'applique à `questions.json` (questionnaire) et à
+`info_texts.json` (aide en ligne des questions) : réécrits à chaud depuis
+`/settings/questions` (US4.3), ils sont eux aussi remplacés par le gabarit
+empaqueté à chaque mise à jour du wheel si `ADM_QUESTIONS_PATH` et
+`ADM_INFO_TEXTS_PATH` ne sont pas définis. Définissez les trois variables
+ensemble en production.
 
 Générez la clé de session sans l'afficher ni la copier dans l'historique du shell,
 par exemple directement dans le gestionnaire de secrets de l'hébergeur. Elle doit
@@ -229,6 +238,8 @@ os.environ["ADM_DB_BACKEND"] = "mysql"
 os.environ["ADM_DATABASE_URL"] = "<url-sqlalchemy-fournie-comme-secret>"
 os.environ["ADM_SECRET_KEY"] = "<cle-aleatoire-fournie-comme-secret>"
 os.environ["ADM_CONFIG_PATH"] = "/home/<utilisateur>/adm-data/config.json"
+os.environ["ADM_QUESTIONS_PATH"] = "/home/<utilisateur>/adm-data/questions.json"
+os.environ["ADM_INFO_TEXTS_PATH"] = "/home/<utilisateur>/adm-data/info_texts.json"
 ```
 
 Ce fichier est une configuration sensible : ne le placez pas dans Git, limitez-en
@@ -245,6 +256,8 @@ ADM_DB_BACKEND=mysql
 ADM_DATABASE_URL=mysql+mysqlconnector://<utilisateur>:<mot-de-passe-encode>@<hote>/<base>
 ADM_SECRET_KEY=<cle-de-session-longue-et-aleatoire>
 ADM_CONFIG_PATH=/var/lib/adm/config.json
+ADM_QUESTIONS_PATH=/var/lib/adm/questions.json
+ADM_INFO_TEXTS_PATH=/var/lib/adm/info_texts.json
 ```
 
 ```bash
@@ -491,10 +504,29 @@ pas une sauvegarde complète et testée de MySQL.
 
 ## 12. Mises à jour et retour arrière
 
-Avant toute mise à jour : sauvegardez MySQL, lisez les migrations et testez le tag
-sur un environnement distinct. Construisez le nouveau wheel une seule fois avec la
-procédure de la section 4, publiez-le, puis vérifiez et installez exactement ce même
-artefact dans chaque environnement promu.
+Avant toute mise à jour : sauvegardez MySQL, **sauvegardez aussi les fichiers de
+configuration persistants** (`config.json`, `questions.json`, `info_texts.json`,
+désignés par `ADM_CONFIG_PATH`, `ADM_QUESTIONS_PATH` et `ADM_INFO_TEXTS_PATH`),
+lisez les migrations et testez le tag sur un environnement distinct. Cette
+sauvegarde reste nécessaire même si ces trois variables sont définies (ce qui
+protège déjà des seuils, du questionnaire et de l'aide en ligne contre un
+écrasement par le gabarit empaqueté, voir section 5) : elle permet de revenir en
+arrière si la nouvelle version modifie malencontreusement ces fichiers, ou si
+l'un d'eux est corrompu pendant la mise à jour.
+
+```bash
+# Adaptez les chemins si vous n'utilisez pas ADM_CONFIG_PATH/ADM_QUESTIONS_PATH/ADM_INFO_TEXTS_PATH
+horodatage=$(date +%Y%m%d%H%M%S)
+cp "$ADM_CONFIG_PATH" "$ADM_CONFIG_PATH.$horodatage.bak"
+cp "$ADM_QUESTIONS_PATH" "$ADM_QUESTIONS_PATH.$horodatage.bak"
+cp "$ADM_INFO_TEXTS_PATH" "$ADM_INFO_TEXTS_PATH.$horodatage.bak"
+```
+
+Conservez ces copies au même titre que la sauvegarde MySQL (section 11) : hors du
+checkout Git, avec un accès restreint, et jusqu'à ce que la mise à jour soit
+validée. Construisez le nouveau wheel une seule fois avec la procédure de la
+section 4, publiez-le, puis vérifiez et installez exactement ce même artefact
+dans chaque environnement promu.
 
 Avec le virtualenv :
 
@@ -527,13 +559,18 @@ python3.11 -m alembic upgrade head
 Rechargez ensuite le processus WSGI et refaites la validation fonctionnelle. Un
 retour à un ancien tag peut être incompatible avec une migration déjà appliquée :
 restaurez alors la sauvegarde correspondante selon une procédure testée, plutôt
-que de lancer une migration descendante sans validation.
+que de lancer une migration descendante sans validation. Si `config.json`,
+`questions.json` ou `info_texts.json` sont perdus ou altérés par la mise à jour,
+restaurez-les de la même façon depuis les copies `.bak` réalisées en début de
+section, plutôt que de les recréer manuellement.
 
 Si `ADM_CONFIG_PATH` n'est pas défini, la réinstallation du wheel ci-dessus
 remplace `config.json` par le gabarit empaqueté : les seuils d'affichage
 personnalisés depuis `/settings` sont alors réinitialisés à leurs valeurs par
-défaut. Définissez `ADM_CONFIG_PATH` (section 5) avant la première mise en
-production pour éviter cette perte silencieuse.
+défaut. De même, sans `ADM_QUESTIONS_PATH` ni `ADM_INFO_TEXTS_PATH`, les
+questions ajoutées, modifiées ou supprimées depuis `/settings/questions`
+(US4.3) sont silencieusement perdues. Définissez ces trois variables
+(section 5) avant la première mise en production pour éviter cette perte.
 
 ## 13. Exploitation et sécurité minimales
 

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}ADM - {{ 'Modifier une question' if mode == 'edit' else 'Ajouter une question' }}{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .option-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .option-row input[type="text"] {
+      flex: 2;
+    }
+    .option-row input[type="number"] {
+      flex: 1;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mt-2">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<h2 class="text-center text-primary mb-4">
+  {{ '✏️ Modifier la question' if mode == 'edit' else '➕ Ajouter une question' }}
+</h2>
+
+<div class="card p-4">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <div class="mb-3">
+      <label class="form-label">Catégorie :</label>
+      <select name="category" class="form-select" required>
+        {% for name in categories %}
+          <option value="{{ name }}" {% if (question is defined and category == name) or (question is not defined and loop.first) %}selected{% endif %}>
+            {{ name }}
+          </option>
+        {% endfor %}
+      </select>
+      <div class="form-text">
+        La catégorie peut être changée vers une autre catégorie existante ; la création,
+        le renommage et la suppression de catégorie ne sont pas gérés par cette page.
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Clé technique :</label>
+      {% if mode == 'edit' %}
+        <input type="text" class="form-control" value="{{ key }}" disabled>
+        <div class="form-text">
+          Non modifiable : elle identifie les réponses déjà enregistrées dans l'historique
+          des évaluations.
+        </div>
+      {% else %}
+        <input type="text" name="key" class="form-control" required maxlength="100">
+        <div class="form-text">
+          Identifiant technique unique au sein de la catégorie (ex. "api"), non modifiable
+          après la création.
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Libellé :</label>
+      <textarea name="label" class="form-control" rows="2" required maxlength="500">{{ question.label if question is defined else '' }}</textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Poids :</label>
+      <input type="number" name="weight" class="form-control" min="1" step="1" required
+             value="{{ question.weight if question is defined else 1 }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Options et scores :</label>
+      <div id="optionRows">
+        {% if question is defined %}
+          {% for option in question.options %}
+          <div class="option-row">
+            <input type="text" name="option_value" class="form-control" value="{{ option.value }}" placeholder="Valeur de l'option">
+            <input type="number" name="option_score" class="form-control" value="{{ option.score if option.score is not none else '' }}" placeholder="Score (vide = Non applicable)">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-option" aria-label="Retirer cette option">✕</button>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="option-row">
+            <input type="text" name="option_value" class="form-control" placeholder="Valeur de l'option">
+            <input type="number" name="option_score" class="form-control" placeholder="Score (vide = Non applicable)">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-option" aria-label="Retirer cette option">✕</button>
+          </div>
+        {% endif %}
+      </div>
+      <button type="button" id="addOption" class="btn btn-sm btn-outline-secondary mt-2">➕ Ajouter une option</button>
+      <div class="form-text">Laissez le score vide pour une option « Non applicable ».</div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Types d'application concernés :</label><br>
+      {% for value in app_types %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="app_types" value="{{ value }}" id="app_type_{{ loop.index }}"
+                 {% if question is not defined or (question.app_types and value in question.app_types) %}checked{% endif %}>
+          <label class="form-check-label" for="app_type_{{ loop.index }}">{{ value }}</label>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Hébergements concernés :</label><br>
+      {% for value in hosting_types %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="hosting_types" value="{{ value }}" id="hosting_type_{{ loop.index }}"
+                 {% if question is not defined or (question.hosting_types and value in question.hosting_types) %}checked{% endif %}>
+          <label class="form-check-label" for="hosting_type_{{ loop.index }}">{{ value }}</label>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Aide en ligne :</label>
+      <textarea name="help_text" class="form-control" rows="5" maxlength="10000">{{ help_text if help_text is defined else '' }}</textarea>
+      <div class="form-text">Un minimum de HTML (gras, listes, liens) est accepté, comme pour l'aide existante.</div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+      <a href="{{ url_for('settings.list_questions') }}" class="btn btn-secondary">Annuler</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  (function () {
+    var container = document.getElementById('optionRows');
+    var template = container.querySelector('.option-row');
+
+    function bindRemove(row) {
+      var button = row.querySelector('.remove-option');
+      button.addEventListener('click', function () {
+        if (container.querySelectorAll('.option-row').length > 1) {
+          row.remove();
+        } else {
+          // Toujours garder au moins une ligne visible : on la vide plutôt que
+          // de la retirer, le serveur ignore de toute façon une ligne vide.
+          row.querySelectorAll('input').forEach(function (input) { input.value = ''; });
+        }
+      });
+    }
+
+    container.querySelectorAll('.option-row').forEach(bindRemove);
+
+    document.getElementById('addOption').addEventListener('click', function () {
+      var row = template.cloneNode(true);
+      row.querySelectorAll('input').forEach(function (input) { input.value = ''; });
+      container.appendChild(row);
+      bindRemove(row);
+    });
+  })();
+</script>
+
+{% endblock %}

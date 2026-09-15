@@ -13,6 +13,7 @@ from werkzeug.exceptions import HTTPException
 
 from ADM.accounts_service import AccountSession
 from ADM.auth_providers import get_auth_provider
+from ADM.persistent_paths import resolve_persistent_path
 from ADM.routes import accounts, applications, auth, evaluations, exports, settings, supervision
 from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
@@ -56,21 +57,32 @@ def _resolve_config_path(configured: str) -> Path:
     """Retourne le chemin de ``config.json`` à utiliser pour cette instance.
 
     ``config.json`` n'est pas une simple ressource statique : les seuils
-    d'affichage y sont réécrits à chaud depuis ``/settings`` (US4.2). Le laisser
-    par défaut sous ``PACKAGE_RESOURCES`` fonctionne, mais ce chemin se trouve
-    à l'intérieur du paquet installé (site-packages ou virtualenv) : une mise à
-    jour du wheel (voir INSTALL.md, section 12) le remplace intégralement et
-    efface silencieusement toute personnalisation. ``ADM_CONFIG_PATH`` permet
-    de pointer vers un emplacement persistant, à l'image d'``ADM_DATABASE_URL``
-    ou ``ADM_ACCOUNTS_URL``. S'il désigne un fichier qui n'existe pas encore,
-    il est initialisé à partir du gabarit empaqueté.
+    d'affichage y sont réécrits à chaud depuis ``/settings`` (US4.2).
+    ``ADM_CONFIG_PATH`` permet de pointer vers un emplacement persistant, à
+    l'image d'``ADM_DATABASE_URL`` ou ``ADM_ACCOUNTS_URL`` (voir
+    ``ADM.persistent_paths`` pour la justification complète).
     """
-    path = Path(configured)
-    if not path.exists():
-        default_content = (PACKAGE_RESOURCES / "config.json").read_text(encoding="utf-8")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(default_content, encoding="utf-8")
-    return path
+    return resolve_persistent_path(configured, PACKAGE_RESOURCES / "config.json")
+
+
+def _resolve_questions_path(configured: str) -> Path:
+    """Retourne le chemin de ``questions.json`` à utiliser pour cette instance.
+
+    Même raisonnement que ``_resolve_config_path`` : depuis la page de gestion
+    des questions (US4.3), le questionnaire est réécrit à chaud et doit donc
+    pouvoir être stocké hors du paquet installé via ``ADM_QUESTIONS_PATH``.
+    """
+    return resolve_persistent_path(configured, PACKAGE_RESOURCES / "static" / "questions.json")
+
+
+def _resolve_info_texts_path(configured: str) -> Path:
+    """Retourne le chemin d'``info_texts.json`` à utiliser pour cette instance.
+
+    Même raisonnement que ``_resolve_config_path`` : l'aide en ligne de chaque
+    question (US4.3) est réécrite à chaud et doit donc pouvoir être stockée
+    hors du paquet installé via ``ADM_INFO_TEXTS_PATH``.
+    """
+    return resolve_persistent_path(configured, PACKAGE_RESOURCES / "static" / "info_texts.json")
 
 
 def _env_flag(name: str, *, default: bool) -> bool:
@@ -118,7 +130,10 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     )
     app.config.from_mapping(
         CONFIG=os.environ.get("ADM_CONFIG_PATH") or str(PACKAGE_RESOURCES / "config.json"),
-        QUESTIONS_FILE="questions.json",
+        QUESTIONS_PATH=os.environ.get("ADM_QUESTIONS_PATH")
+        or str(PACKAGE_RESOURCES / "static" / "questions.json"),
+        INFO_TEXTS_PATH=os.environ.get("ADM_INFO_TEXTS_PATH")
+        or str(PACKAGE_RESOURCES / "static" / "info_texts.json"),
         MAX_CONTENT_LENGTH=5 * 1024 * 1024,
         # --- US6.3 : attributs de cookie de session explicites, plutôt que de
         # s'appuyer sur les valeurs par défaut de Flask. ADM_SESSION_COOKIE_SECURE
@@ -137,9 +152,11 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
     config_path = _resolve_config_path(str(app.config["CONFIG"]))
     app.config["CONFIG"] = str(config_path)
     config = AppConfig.from_object(_load_json(config_path))
-    questions = parse_questions(
-        _load_json(Path(app.static_folder or "") / str(app.config["QUESTIONS_FILE"]))
-    )
+    questions_path = _resolve_questions_path(str(app.config["QUESTIONS_PATH"]))
+    app.config["QUESTIONS_PATH"] = str(questions_path)
+    questions = parse_questions(_load_json(questions_path))
+    info_texts_path = _resolve_info_texts_path(str(app.config["INFO_TEXTS_PATH"]))
+    app.config["INFO_TEXTS_PATH"] = str(info_texts_path)
     secret_key = app.config.get("SECRET_KEY") or os.environ.get("ADM_SECRET_KEY")
     if not secret_key:
         raise RuntimeError("La variable d'environnement ADM_SECRET_KEY est obligatoire.")

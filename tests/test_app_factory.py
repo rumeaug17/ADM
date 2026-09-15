@@ -260,3 +260,35 @@ def test_create_app_seeds_config_from_env_when_absent(
     assert config_path.exists()
     assert Path(application.config["CONFIG"]) == config_path
     assert application.extensions["adm_display_thresholds"].score.warning == 30
+
+
+def test_create_app_seeds_questions_and_info_texts_from_env_when_absent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """ADM_QUESTIONS_PATH/ADM_INFO_TEXTS_PATH doivent permettre de stocker le
+    questionnaire et son aide en ligne hors du paquet installé, afin qu'une
+    réinstallation du wheel n'efface pas les questions ajoutées ou modifiées
+    depuis /settings/questions (US4.3, même raisonnement que ADM_CONFIG_PATH,
+    voir INSTALL.md section 12)."""
+    from ADM.app import create_app
+
+    questions_path = tmp_path / "persistent" / "questions.json"
+    info_texts_path = tmp_path / "persistent" / "info_texts.json"
+    monkeypatch.setenv("ADM_QUESTIONS_PATH", str(questions_path))
+    monkeypatch.setenv("ADM_INFO_TEXTS_PATH", str(info_texts_path))
+
+    application = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(tmp_path / "catalogue.json"),
+            "ACCOUNTS_CONNECTION": str(tmp_path / "accounts.json"),
+        }
+    )
+
+    assert questions_path.exists()
+    assert info_texts_path.exists()
+    assert Path(application.config["QUESTIONS_PATH"]) == questions_path
+    assert Path(application.config["INFO_TEXTS_PATH"]) == info_texts_path
+    assert application.extensions["adm_questions"]
