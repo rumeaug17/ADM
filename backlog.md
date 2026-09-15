@@ -49,18 +49,12 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage. Pistes identifiées lors de la revue UX (voir les tâches ci-dessous) :
   - [x] Unifier le composant d'aide contextuelle (Tâche 4.5)
-  - [ ] Rendre le tableau du catalogue responsive (Tâche 4.6)
+  - [x] Rendre le tableau du catalogue responsive (Tâche 4.6)
 - **US4.3** : *Gestion des questions*  
   Ajouter une page de configuration des questions pour permettre des ajouts, des modifications, des suppressions.
   L'aide en ligne de chaque question doit également être modifiable par ce moyen.
 
 ### Tâches Techniques
-- **[Nouveau] Tâche 4.6** : *Tableau du catalogue non responsive*  
-  Le tableau de `/` (11 colonnes, `table-bordered` sans `table-responsive`) devient illisible sur
-  mobile/tablette : pas de défilement horizontal contrôlé, colonnes tassées. Les actions
-  (évaluer/réinitialiser/modifier/supprimer) ne sont représentées que par des émoji, sans libellé
-  visible — seule une infobulle au survol les explicite, absente au toucher sur mobile. À envelopper
-  dans `table-responsive` et à accompagner les boutons d'un libellé (visible ou `aria-label`).
 - **[Nouveau] Tâche 4.8** : *Formulaire d'évaluation long sans repère de progression*  
   `score.html` empile toutes les catégories de questions verticalement, sans sommaire ni indicateur
   de progression (« X/Y questions répondues »), ni bouton « enregistrer » flottant pour un

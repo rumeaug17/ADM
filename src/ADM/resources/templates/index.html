@@ -70,6 +70,7 @@
 	{% endif %}
     </div>
 
+    <div class="table-responsive">
     <table class="table table-bordered text-center">
         <thead>
             <tr>
@@ -155,12 +156,12 @@
                 <td>
 					<div class="d-flex flex-nowrap gap-2">
 					{% if session.role != 'readonly' %}
-                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application">✅</a>
-					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" title="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
+                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application" aria-label="Évaluer l'application">✅</a>
+					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" title="Réinitialiser l'évaluation" aria-label="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
 						♻️
 					</button>
-					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application">✏️</a>
-					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" title="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
+					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application" aria-label="Modifier l'application">✏️</a>
+					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" title="Supprimer l'application" aria-label="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
 						❌
 					</button>
 					{% endif %}
@@ -170,6 +171,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 
 
 <!-- Modale de confirmation pour l'import (réservée aux administrateurs) -->
