@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}ADM - Questions{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    table {
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th {
+      background-color: #0d6efd;
+      color: white;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mt-2">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="text-primary mb-0">❓ Questions</h2>
+  <a href="{{ url_for('settings.add_question_route') }}" class="btn btn-primary">➕ Ajouter une question</a>
+</div>
+
+<p class="text-muted">
+  Les catégories ne sont pas modifiables depuis cette page : une question ne peut
+  être ajoutée ou déplacée que vers une catégorie déjà existante dans le questionnaire.
+</p>
+
+{% for category, questions_list in questions.items() %}
+<div class="card p-4 my-3">
+  <h5 class="mb-3">{{ category }}</h5>
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Libellé</th>
+          <th>Poids</th>
+          <th>Options / scores</th>
+          <th>Filtres</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, question in questions_list.items() %}
+        <tr>
+          <td>
+            {{ question.label }}
+            <br><span class="text-muted small">clé : {{ key }}</span>
+          </td>
+          <td>{{ question.weight }}</td>
+          <td>
+            {% for option in question.options %}
+              <span class="badge bg-secondary">{{ option.value }} : {{ option.score if option.score is not none else "N/A" }}</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if question.app_types %}
+              <div><small><strong>Types :</strong> {{ question.app_types|join(', ') }}</small></div>
+            {% endif %}
+            {% if question.hosting_types %}
+              <div><small><strong>Hébergement :</strong> {{ question.hosting_types|join(', ') }}</small></div>
+            {% endif %}
+          </td>
+          <td class="text-nowrap">
+            <a href="{{ url_for('settings.edit_question_route', category=category, key=key) }}"
+               class="btn btn-sm btn-outline-primary">✏️ Modifier</a>
+            <form method="post" action="{{ url_for('settings.delete_question_route', category=category, key=key) }}"
+                  class="d-inline" onsubmit="return confirm('Supprimer définitivement cette question ?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="btn btn-sm btn-danger">🗑️ Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

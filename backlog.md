@@ -46,9 +46,13 @@ Les tâches réalisées sont retirées du fichier.
 ### User Stories
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage. 
-- **US4.3** : *Gestion des questions*  
-  Ajouter une page de configuration des questions pour permettre des ajouts, des modifications, des suppressions.
-  L'aide en ligne de chaque question doit également être modifiable par ce moyen.
+
+### Tâches Techniques
+- **Tâche 4.9** : *Gestion des catégories de questions*  
+  La page de configuration des questions (US4.3, livrée) ne permet d'ajouter, modifier et
+  supprimer une question qu'au sein d'une catégorie déjà existante ; la création, le
+  renommage et la suppression d'une catégorie restent réservés au fichier `questions.json`
+  (portée volontairement réduite dans un premier temps). À traiter si le besoin se confirme.
 
 ## Epic 5 : Gestion des composants
 

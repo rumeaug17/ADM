@@ -42,8 +42,15 @@ from ADM.catalogue_io import replace_catalogue, serialize_catalogue
 from ADM.config_io import save_display_thresholds
 from ADM.database import Account, Application, Evaluation
 from ADM.persistence import TransactionSession, transactional_session
+from ADM.questions_admin import add_question, delete_question, update_question
+from ADM.questions_io import (
+    delete_question_help_text,
+    get_question_help_text,
+    save_questions,
+    set_question_help_text,
+)
 from ADM.schemas import AppConfig, DisplayThresholds, Questions
-from ADM.scoring import filter_questions_by_type
+from ADM.scoring import compute_categories, compute_scoring_map, filter_questions_by_type
 from ADM.services import (
     RadarChartCache,
     application_to_dict,
@@ -56,6 +63,8 @@ from ADM.services import (
     update_app_metrics,
 )
 from ADM.validation import (
+    QUESTION_APP_TYPES,
+    QUESTION_HOSTING_TYPES,
     InputValidationError,
     validate_account_creation_form,
     validate_application_form,
@@ -65,6 +74,8 @@ from ADM.validation import (
     validate_login_form,
     validate_password_change_form,
     validate_password_reset_form,
+    validate_question_create_form,
+    validate_question_edit_form,
 )
 
 accounts = Blueprint("accounts", __name__)
@@ -133,6 +144,28 @@ def app_config() -> AppConfig:
 def auth_provider() -> AuthProvider:
     """Retourne le fournisseur d'authentification injecté au démarrage."""
     return cast(AuthProvider, current_app.extensions["adm_auth_provider"])
+
+
+def questions_path() -> Path:
+    """Retourne le chemin persistant de questions.json (US4.3)."""
+    return Path(str(current_app.config["QUESTIONS_PATH"]))
+
+
+def info_texts_path() -> Path:
+    """Retourne le chemin persistant d'info_texts.json (US4.3)."""
+    return Path(str(current_app.config["INFO_TEXTS_PATH"]))
+
+
+def reload_questions(updated: Questions) -> None:
+    """Recharge à chaud le questionnaire, la carte des scores et les catégories.
+
+    Après un ajout, une modification ou une suppression de question (US4.3),
+    sur le modèle du rechargement de ``adm_display_thresholds`` par
+    ``show_settings`` (US4.2) : aucun redémarrage n'est nécessaire.
+    """
+    current_app.extensions["adm_questions"] = updated
+    current_app.extensions["adm_scoring_map"] = compute_scoring_map(updated)
+    current_app.extensions["adm_categories"] = compute_categories(updated)
 
 
 def log_audit_event(action: str, *, target: str | None = None) -> None:
@@ -417,6 +450,29 @@ def change_own_password() -> ResponseReturnValue:
         flash("Votre mot de passe a été mis à jour.", "success")
         return redirect(url_for("applications.index"))
     return render_template("change_password.html")
+
+
+@route(applications, "/info_texts.json", methods=["GET"])
+@login_required
+def info_texts() -> ResponseReturnValue:
+    """Sert l'aide en ligne des questions (US4.3, US4.5 pour le composant client).
+
+    Contrairement à un fichier statique servi directement par Flask depuis
+    ``static_folder``, cette route lit l'aide depuis son chemin persistant
+    résolu au démarrage (``INFO_TEXTS_PATH``, potentiellement hors du dossier
+    statique du paquet via ``ADM_INFO_TEXTS_PATH``) : la page de gestion des
+    questions le réécrit à chaud, et le contenu servi ici doit donc toujours
+    refléter la dernière version enregistrée, jamais une copie packagée figée.
+    """
+    path = info_texts_path()
+    try:
+        raw_text = path.read_text(encoding="utf-8")
+    except OSError:
+        current_app.logger.warning("Fichier d'aide en ligne introuvable (%s).", path)
+        raw_text = "{}"
+    response = current_app.response_class(raw_text, mimetype="application/json")
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @route(applications, "/")
@@ -887,6 +943,135 @@ def show_settings() -> ResponseReturnValue:
         return redirect(url_for("settings.show_settings"))
 
     return render_template("settings.html", **context)
+
+
+@route(settings, "/settings/questions", methods=["GET"])
+@role_required("admin")
+def list_questions() -> ResponseReturnValue:
+    """Liste le questionnaire par catégorie (US4.3).
+
+    Les catégories elles-mêmes ne sont pas gérées par cette page : seules des
+    questions au sein d'une catégorie déjà existante peuvent être ajoutées,
+    modifiées ou supprimées (portée volontairement réduite dans un premier
+    temps, voir backlog.md).
+    """
+    return render_template("questions_settings.html", questions=questions())
+
+
+@route(settings, "/settings/questions/add", methods=["GET", "POST"])
+@role_required("admin")
+def add_question_route() -> ResponseReturnValue:
+    """Ajoute une question à une catégorie existante (US4.3)."""
+    category_names = sorted(questions())
+    context: dict[str, object] = {
+        "categories": category_names,
+        "app_types": QUESTION_APP_TYPES,
+        "hosting_types": QUESTION_HOSTING_TYPES,
+        "mode": "add",
+    }
+    if request.method == "POST":
+        try:
+            category, key, definition, help_text = validate_question_create_form(
+                request.form, categories=category_names
+            )
+        except InputValidationError as error:
+            flash(str(error), "danger")
+            return render_template("question_form.html", **context), 400
+        try:
+            updated = add_question(questions(), category, key, definition)
+        except ValueError as error:
+            flash(str(error), "danger")
+            return render_template("question_form.html", **context), 400
+        try:
+            save_questions(questions_path(), updated)
+            set_question_help_text(info_texts_path(), key, help_text)
+        except ValueError:
+            current_app.logger.warning("Echec d'enregistrement du questionnaire.")
+            flash("La question n'a pas pu être enregistrée.", "danger")
+            return render_template("question_form.html", **context), 409
+        reload_questions(updated)
+        log_audit_event("ajout d'une question", target=key)
+        flash(f"Question {key!r} ajoutée.", "success")
+        return redirect(url_for("settings.list_questions"))
+    return render_template("question_form.html", **context)
+
+
+@route(settings, "/settings/questions/edit/<category>/<key>", methods=["GET", "POST"])
+@role_required("admin")
+def edit_question_route(category: str, key: str) -> ResponseReturnValue:
+    """Modifie le libellé, le poids, les options, les filtres et l'aide d'une question (US4.3).
+
+    La catégorie peut être changée vers une autre catégorie existante ; la clé
+    technique, elle, est immuable après création (voir docs/BUSINESS_RULES.md)
+    et provient donc de l'URL, jamais du formulaire.
+    """
+    current_questions = questions()
+    if category not in current_questions or key not in current_questions[category]:
+        abort(404, description="Question introuvable.")
+    category_names = sorted(current_questions)
+    context: dict[str, object] = {
+        "categories": category_names,
+        "app_types": QUESTION_APP_TYPES,
+        "hosting_types": QUESTION_HOSTING_TYPES,
+        "mode": "edit",
+        "category": category,
+        "key": key,
+        "question": current_questions[category][key],
+        "help_text": get_question_help_text(info_texts_path(), key),
+    }
+    if request.method == "POST":
+        try:
+            new_category, definition, help_text = validate_question_edit_form(
+                request.form, categories=category_names
+            )
+        except InputValidationError as error:
+            flash(str(error), "danger")
+            return render_template("question_form.html", **context), 400
+        try:
+            updated = update_question(current_questions, category, key, new_category, definition)
+        except ValueError as error:
+            flash(str(error), "danger")
+            return render_template("question_form.html", **context), 400
+        try:
+            save_questions(questions_path(), updated)
+            set_question_help_text(info_texts_path(), key, help_text)
+        except ValueError:
+            current_app.logger.warning("Echec d'enregistrement du questionnaire.")
+            flash("La question n'a pas pu être enregistrée.", "danger")
+            return render_template("question_form.html", **context), 409
+        reload_questions(updated)
+        log_audit_event("modification d'une question", target=key)
+        flash(f"Question {key!r} mise à jour.", "success")
+        return redirect(url_for("settings.list_questions"))
+    return render_template("question_form.html", **context)
+
+
+@route(settings, "/settings/questions/delete/<category>/<key>", methods=["POST"])
+@role_required("admin")
+def delete_question_route(category: str, key: str) -> ResponseReturnValue:
+    """Supprime une question (US4.3).
+
+    Les réponses déjà enregistrées pour cette question dans l'historique des
+    évaluations existantes ne sont pas supprimées : elles cessent seulement
+    d'être affichées et scorées (voir docs/BUSINESS_RULES.md).
+    """
+    current_questions = questions()
+    try:
+        updated = delete_question(current_questions, category, key)
+    except ValueError as error:
+        flash(str(error), "danger")
+        return redirect(url_for("settings.list_questions"))
+    try:
+        save_questions(questions_path(), updated)
+        delete_question_help_text(info_texts_path(), key)
+    except ValueError:
+        current_app.logger.warning("Echec d'enregistrement du questionnaire.")
+        flash("La question n'a pas pu être supprimée.", "danger")
+        return redirect(url_for("settings.list_questions"))
+    reload_questions(updated)
+    log_audit_event("suppression d'une question", target=key)
+    flash(f"Question {key!r} supprimée.", "success")
+    return redirect(url_for("settings.list_questions"))
 
 
 @route(accounts, "/accounts", methods=["GET"])

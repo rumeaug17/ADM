@@ -2,7 +2,13 @@
 
 import pytest
 
-from ADM.schemas import AppConfig, DisplayThresholds, Thresholds, parse_questions
+from ADM.schemas import (
+    AppConfig,
+    DisplayThresholds,
+    Thresholds,
+    parse_question_definition,
+    parse_questions,
+)
 
 
 def test_configuration_uses_explicit_typed_defaults() -> None:
@@ -86,3 +92,32 @@ def test_questions_are_normalized_into_the_typed_shape() -> None:
 
     assert parsed["Architecture"]["api"]["weight"] == 1
     assert parsed["Architecture"]["api"]["options"][0]["score"] is None
+
+
+def test_parse_question_definition_accepts_a_valid_definition() -> None:
+    definition = parse_question_definition(
+        "api",
+        {
+            "label": "Question fictive ?",
+            "type": "select",
+            "weight": 2,
+            "options": [{"value": "Oui", "score": 0}],
+            "app_types": ["Interne"],
+            "hosting_types": ["Cloud"],
+        },
+    )
+
+    assert definition["weight"] == 2
+    assert definition["app_types"] == ["Interne"]
+
+
+def test_parse_question_definition_rejects_a_missing_label() -> None:
+    with pytest.raises(ValueError, match="label"):
+        parse_question_definition(
+            "api", {"type": "select", "options": [{"value": "Oui", "score": 0}]}
+        )
+
+
+def test_parse_question_definition_rejects_an_empty_options_list() -> None:
+    with pytest.raises(ValueError, match="options"):
+        parse_question_definition("api", {"label": "Question ?", "type": "select", "options": []})

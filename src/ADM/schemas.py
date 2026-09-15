@@ -160,6 +160,18 @@ def parse_questions(value: object) -> Questions:
     return questions
 
 
+def parse_question_definition(key: str, value: object) -> QuestionDefinition:
+    """Valide une définition de question isolée (US4.3, gestion des questions).
+
+    Réutilisée par ``ADM.questions_admin`` pour valider l'ajout ou la
+    modification d'une question avant de la fusionner dans le questionnaire
+    complet, qui est lui-même revalidé dans son ensemble (une même valeur de
+    réponse doit conserver le même score partout, voir
+    ``ADM.scoring.compute_scoring_map``).
+    """
+    return _parse_question(key, value)
+
+
 def _parse_question(key: object, value: object) -> QuestionDefinition:
     if not isinstance(key, str) or not key.strip() or not isinstance(value, dict):
         raise ValueError("Chaque question doit être un objet JSON nommé.")

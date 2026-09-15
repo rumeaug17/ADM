@@ -195,6 +195,6 @@
 {% block extra_scripts %}
 <script src="{{ url_for('static', filename='info_tooltip.js') }}"></script>
 <script>
-  ADM.initInfoTooltips("{{ url_for('static', filename='info_texts.json') }}");
+  ADM.initInfoTooltips("{{ url_for('applications.info_texts') }}");
 </script>
 {% endblock %}

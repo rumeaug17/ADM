@@ -87,6 +87,7 @@ main.container {
          {% endif %}
         {% if session.role == 'admin' %}
           <a href="{{ url_for('settings.show_settings') }}" class="btn btn-outline-light">⚙️ Configuration</a>
+          <a href="{{ url_for('settings.list_questions') }}" class="btn btn-outline-light">❓ Questions</a>
            <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-outline-light">👤 Comptes</a>
          {% endif %}
          {% if local_auth %}
