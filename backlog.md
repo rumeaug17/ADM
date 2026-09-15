@@ -54,14 +54,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   Ajouter une page de configuration des questions pour permettre des ajouts, des modifications, des suppressions.
   L'aide en ligne de chaque question doit également être modifiable par ce moyen.
 
-### Tâches Techniques
-- **[Nouveau] Tâche 4.10** : *Grille des indicateurs de `/synthese` mal alignée*  
-  Les cinq cartes de KPI utilisent chacune `col-md-3` dans une grille Bootstrap à 12 colonnes
-  (5 × 3 = 15 > 12), ce qui provoque un retour à la ligne asymétrique de la dernière carte. Des
-  balises `<p></p>`/`<p/>` isolées servent d'espacement à la place des classes utilitaires Bootstrap
-  (`my-3`, `g-3`). À revoir avec une grille à 4 cartes par ligne (`col-md-3` × 4) ou `row-cols-*`,
-  et des espacements via classes utilitaires.
-
 ## Epic 5 : Gestion des composants
 
 ### User Stories
