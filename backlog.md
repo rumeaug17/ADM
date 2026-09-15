@@ -60,9 +60,6 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
   de progression (« X/Y questions répondues »), ni bouton « enregistrer » flottant pour un
   formulaire potentiellement très long. À étudier : sommaire d'ancres par catégorie, barre de
   progression, bouton de soumission persistant en bas d'écran.
-- **[Nouveau] Tâche 4.9** : *Image du radar chart non responsive dans `resume.html`*  
-  L'image du graphique radar est affichée avec la classe `img-fluid` dans `index.html` et
-  `synthese.html`, mais pas dans `resume.html` : elle peut déborder de sa carte sur petit écran.
 - **[Nouveau] Tâche 4.10** : *Grille des indicateurs de `/synthese` mal alignée*  
   Les cinq cartes de KPI utilisent chacune `col-md-3` dans une grille Bootstrap à 12 colonnes
   (5 × 3 = 15 > 12), ce qui provoque un retour à la ligne asymétrique de la dernière carte. Des
