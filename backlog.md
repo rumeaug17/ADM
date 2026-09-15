@@ -49,32 +49,10 @@ nouvelles améliorations/évolutions ont été identifiées (marquées **[Nouvea
 - **US4.1** : *Améliorer le design*  
   Moderniser l'affichage. Pistes identifiées lors de la revue UX (voir les tâches ci-dessous) :
   - [x] Unifier le composant d'aide contextuelle (Tâche 4.5)
-  - [ ] Rendre le tableau du catalogue responsive (Tâche 4.6)
+  - [x] Rendre le tableau du catalogue responsive (Tâche 4.6)
 - **US4.3** : *Gestion des questions*  
   Ajouter une page de configuration des questions pour permettre des ajouts, des modifications, des suppressions.
   L'aide en ligne de chaque question doit également être modifiable par ce moyen.
-
-### Tâches Techniques
-- **[Nouveau] Tâche 4.6** : *Tableau du catalogue non responsive*  
-  Le tableau de `/` (11 colonnes, `table-bordered` sans `table-responsive`) devient illisible sur
-  mobile/tablette : pas de défilement horizontal contrôlé, colonnes tassées. Les actions
-  (évaluer/réinitialiser/modifier/supprimer) ne sont représentées que par des émoji, sans libellé
-  visible — seule une infobulle au survol les explicite, absente au toucher sur mobile. À envelopper
-  dans `table-responsive` et à accompagner les boutons d'un libellé (visible ou `aria-label`).
-- **[Nouveau] Tâche 4.8** : *Formulaire d'évaluation long sans repère de progression*  
-  `score.html` empile toutes les catégories de questions verticalement, sans sommaire ni indicateur
-  de progression (« X/Y questions répondues »), ni bouton « enregistrer » flottant pour un
-  formulaire potentiellement très long. À étudier : sommaire d'ancres par catégorie, barre de
-  progression, bouton de soumission persistant en bas d'écran.
-- **[Nouveau] Tâche 4.9** : *Image du radar chart non responsive dans `resume.html`*  
-  L'image du graphique radar est affichée avec la classe `img-fluid` dans `index.html` et
-  `synthese.html`, mais pas dans `resume.html` : elle peut déborder de sa carte sur petit écran.
-- **[Nouveau] Tâche 4.10** : *Grille des indicateurs de `/synthese` mal alignée*  
-  Les cinq cartes de KPI utilisent chacune `col-md-3` dans une grille Bootstrap à 12 colonnes
-  (5 × 3 = 15 > 12), ce qui provoque un retour à la ligne asymétrique de la dernière carte. Des
-  balises `<p></p>`/`<p/>` isolées servent d'espacement à la place des classes utilitaires Bootstrap
-  (`my-3`, `g-3`). À revoir avec une grille à 4 cartes par ligne (`col-md-3` × 4) ou `row-cols-*`,
-  et des espacements via classes utilitaires.
 
 ## Epic 5 : Gestion des composants
 

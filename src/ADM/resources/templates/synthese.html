@@ -37,21 +37,27 @@
     <h2 class="text-center text-primary">📊 Synthèse des Applications</h2>
     
     <!-- Section des KPI -->
-    <div class="row my-4 text-center">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary p-3">
+    <!-- Tâche 4.10 : 5 cartes ne se divisent pas proprement en colonnes
+         Bootstrap fixes (col-md-3 × 5 = 15 > 12 colonnes) et provoquaient un
+         retour à la ligne asymétrique de la dernière carte. `row-cols-*`
+         calcule des colonnes de largeur égale adaptées au nombre de cartes
+         par ligne à chaque taille d'écran, et `g-3`/`my-4` remplacent les
+         balises "p" vides utilisées jusqu'ici comme espaceurs. -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 my-4 text-center">
+      <div class="col">
+        <div class="card text-white bg-primary p-3 h-100">
             <h4>📌 Nombre total d'applications</h4>
             <h2>{{ total_apps }}</h2>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success p-3">
+      </div>
+      <div class="col">
+        <div class="card text-white bg-success p-3 h-100">
             <h4>⭐ Score moyen</h4>
             <h2>{{ avg_score }}</h2>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-primary p-3">
+      </div>
+      <div class="col">
+        <div class="card text-white bg-primary p-3 h-100">
             <h4>Risque global</h4>
 		{% if global_risk is not none %}
 		    {% if global_risk > display_thresholds.risk.critical %}
@@ -65,21 +71,21 @@
 		    <span>Non évalué</span>
 		{% endif %}
         </div>
-    </div>
-<p></p>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning p-3">
+      </div>
+      <div class="col">
+        <div class="card text-white bg-warning p-3 h-100">
             <h4>✅ Applications &gt; {{ display_thresholds.score.warning|int }}%</h4>
             <h2>{{ apps_above_warning }}</h2>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-score-high p-3">
+      </div>
+      <div class="col">
+        <div class="card text-white bg-score-high p-3 h-100">
             <h4>🔥 Applications &gt; {{ display_thresholds.score.critical|int }}%</h4>
             <h2>{{ apps_above_critical }}</h2>
         </div>
+      </div>
     </div>
-	
+
 <!-- Affichage côte à côte du graphique radar et du tableau des meilleurs scores par catégorie -->
 <div class="row my-4">
   <!-- Colonne du graphique radar -->
@@ -112,13 +118,10 @@
       </tbody>
     </table>
   </div>
-</div>	
-	
-</div>	
+</div>
 
-<p/>
     <!-- Tableau des applications -->
-	<div class="btn-group" role="group">
+	<div class="btn-group mb-3" role="group">
     <a href="?filter_score=all" class="btn btn-secondary {% if filter_score == 'all' %}active{% endif %}">Tous</a>
     <a href="?filter_score=warning" class="btn btn-warning {% if filter_score == 'warning' %}active{% endif %}">&gt; {{ display_thresholds.score.warning|int }}%</a>
     <a href="?filter_score=critical" class="btn btn-danger {% if filter_score == 'critical' %}active{% endif %}">&gt; {{ display_thresholds.score.critical|int }}%</a>
