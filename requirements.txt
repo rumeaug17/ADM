@@ -1,8 +1,0 @@
-# Ce fichier est obsolète : pyproject.toml est l'unique source de vérité des
-# dépendances (Phase 6 du backlog). Il ne doit plus être installé avec
-# `pip install -r requirements.txt` ; utilisez `pip install -e '.[dev]'`.
-#
-# Le contenu a été vidé pour éviter toute divergence de version avec
-# pyproject.toml. Supprimez ce fichier (`git rm requirements.txt`) dès que les
-# outils historiques qui en dépendaient encore ont été migrés.
-
