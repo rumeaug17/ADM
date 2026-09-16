@@ -1,0 +1,381 @@
+/* =========================================================================
+   ADM — Maquette Phase 0 (US4.1, modernisation de l'interface)
+   Ce fichier n'est PAS le futur static/css/app.css de l'application : c'est
+   une démonstration statique et déconnectée de Flask, destinée uniquement à
+   valider une direction visuelle avant tout développement (voir
+   docs/UI_MODERNIZATION_PROPOSAL.md, Phase 0). Sa structure (tokens +
+   classes .card-adm/.table-adm/.badge-*) est volontairement pensée pour
+   pouvoir être reprise telle quelle comme point de départ de la Phase 1.
+   ========================================================================= */
+
+:root {
+  /* Marque : vert forêt légèrement foncé (remplace le bleu Bootstrap par
+     défaut). Volontairement distinct du vert sémantique "succès" ci-dessous
+     (undertone plus teinté bleu/pétrole) pour ne pas confondre couleur de
+     marque et code couleur DICP/criticité. */
+  --adm-primary: #0e6b5c;
+  --adm-primary-strong: #0a4d42;
+  --adm-primary-light: #3ddbb4;
+
+  /* Palette sémantique (criticité, DICP, seuils de score/risque) : inchangée
+     dans son principe (vert = bon, jaune/orange = attention, rouge =
+     critique), c'est un code couleur fonctionnel, pas une couleur de marque. */
+  --adm-success: #198754;
+  --adm-warning: #ffc107;
+  --adm-orange: #fd7e14;
+  --adm-danger: #dc3545;
+
+  --adm-bg: #f4f6fb;
+  --adm-surface: #ffffff;
+  --adm-surface-2: #f8f9fc;
+  --adm-border: rgba(15, 23, 42, 0.08);
+  --adm-text: #1c2430;
+  --adm-text-muted: #6b7583;
+
+  --adm-radius-lg: 16px;
+  --adm-radius: 12px;
+  --adm-radius-sm: 8px;
+  --adm-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+  --adm-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.05);
+
+  /* Retint des variables Bootstrap natives (liens, .text-primary, etc. sont
+     pilotés par ces variables CSS dans Bootstrap 5.3 : les redéfinir suffit à
+     retinter tout ce qui en dépend, sans recompiler Bootstrap). */
+  --bs-primary: #0e6b5c;
+  --bs-primary-rgb: 14, 107, 92;
+  --bs-link-color: #0e6b5c;
+  --bs-link-color-rgb: 14, 107, 92;
+  --bs-link-hover-color: #0a4d42;
+  --bs-link-hover-color-rgb: 10, 77, 66;
+}
+
+[data-bs-theme="dark"] {
+  --adm-bg: #10141b;
+  --adm-surface: #1a2029;
+  --adm-surface-2: #151a22;
+  --adm-border: rgba(255, 255, 255, 0.08);
+  --adm-text: #e7eaf0;
+  --adm-text-muted: #99a3b3;
+  --adm-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --adm-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.35);
+
+  /* Vert de marque éclairci en thème sombre pour rester lisible sur fond
+     foncé (texte/liens/icônes .text-primary), sans changer les fonds pleins
+     (navbar, badges) qui restent lisibles avec du texte blanc quel que soit
+     le thème. */
+  --bs-primary: #3ddbb4;
+  --bs-primary-rgb: 61, 219, 180;
+  --bs-link-color: #3ddbb4;
+  --bs-link-color-rgb: 61, 219, 180;
+  --bs-link-hover-color: #6ee6c6;
+  --bs-link-hover-color-rgb: 110, 230, 198;
+}
+
+/* ---------- Retint des composants Bootstrap non pilotés par --bs-primary ---
+   .btn-primary et .btn-outline-primary figent leurs couleurs dans des
+   variables locales à la classe (pas --bs-primary) : il faut les redéfinir
+   explicitement pour rester homogène avec le reste de la palette. */
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #0e6b5c;
+  --bs-btn-border-color: #0e6b5c;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #0b5548;
+  --bs-btn-hover-border-color: #0a4d42;
+  --bs-btn-focus-shadow-rgb: 45, 138, 122;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #0a4d42;
+  --bs-btn-active-border-color: #09453b;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #0e6b5c;
+  --bs-btn-disabled-border-color: #0e6b5c;
+}
+.btn-outline-primary {
+  --bs-btn-color: #0e6b5c;
+  --bs-btn-border-color: #0e6b5c;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #0e6b5c;
+  --bs-btn-hover-border-color: #0e6b5c;
+  --bs-btn-focus-shadow-rgb: 14, 107, 92;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #0e6b5c;
+  --bs-btn-active-border-color: #0e6b5c;
+  --bs-btn-disabled-color: #0e6b5c;
+  --bs-btn-disabled-border-color: #0e6b5c;
+}
+[data-bs-theme="dark"] .btn-outline-primary {
+  --bs-btn-color: #3ddbb4;
+  --bs-btn-border-color: #3ddbb4;
+  --bs-btn-hover-color: #0a2420;
+  --bs-btn-hover-bg: #3ddbb4;
+  --bs-btn-hover-border-color: #3ddbb4;
+  --bs-btn-active-color: #0a2420;
+  --bs-btn-active-bg: #3ddbb4;
+  --bs-btn-active-border-color: #3ddbb4;
+  --bs-btn-disabled-color: #3ddbb4;
+  --bs-btn-disabled-border-color: #3ddbb4;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #6fc4b0;
+  box-shadow: 0 0 0 .25rem rgba(14, 107, 92, .25);
+}
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus {
+  border-color: #3ddbb4;
+  box-shadow: 0 0 0 .25rem rgba(61, 219, 180, .3);
+}
+
+html, body {
+  background: var(--adm-bg);
+  color: var(--adm-text);
+}
+
+body {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+main.container {
+  min-height: 70vh;
+}
+
+/* ---------- Bandeau "maquette" ---------- */
+.mockup-banner {
+  background: repeating-linear-gradient(135deg, #fff3cd, #fff3cd 10px, #ffe69c 10px, #ffe69c 20px);
+  color: #664d03;
+  font-size: .85rem;
+  text-align: center;
+  padding: 6px 12px;
+  font-weight: 600;
+}
+[data-bs-theme="dark"] .mockup-banner {
+  background: repeating-linear-gradient(135deg, #3a2f10, #3a2f10 10px, #4a3a12 10px, #4a3a12 20px);
+  color: #ffda6a;
+}
+
+/* ---------- Navigation ---------- */
+.navbar-adm {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: linear-gradient(120deg, var(--adm-primary), var(--adm-primary-strong) 130%);
+  box-shadow: var(--adm-shadow-sm);
+}
+.navbar-adm .logo-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.3rem;
+}
+.navbar-adm .brand-title {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.navbar-adm .brand-sub {
+  color: rgba(255, 255, 255, .75);
+  font-size: .78rem;
+}
+.btn-nav-ghost {
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .06);
+}
+.btn-nav-ghost:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, .18);
+  border-color: rgba(255, 255, 255, .5);
+}
+.theme-toggle {
+  border: 1px solid rgba(255, 255, 255, .4);
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.theme-toggle:hover { background: rgba(255, 255, 255, .22); }
+
+/* ---------- Cartes ---------- */
+.card-adm {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow-sm);
+}
+.card-adm .card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--adm-border);
+  font-weight: 600;
+}
+
+/* ---------- KPI ---------- */
+.kpi-card {
+  border-radius: var(--adm-radius-lg);
+  padding: 1.25rem;
+  color: #fff;
+  box-shadow: var(--adm-shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card .kpi-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: .75rem;
+}
+.kpi-card h2 { font-weight: 700; letter-spacing: -.02em; margin: 0; }
+.kpi-card .kpi-label { font-size: .82rem; opacity: .92; }
+.kpi-primary { background: linear-gradient(135deg, #17907a, #0a4d42); }
+.kpi-success { background: linear-gradient(135deg, #2fb872, #17663f); }
+.kpi-warning { background: linear-gradient(135deg, #ffcd45, #d98c00); color: #3a2a00; }
+.kpi-danger  { background: linear-gradient(135deg, #ff6b6b, #b5202f); }
+
+/* ---------- Tableaux ---------- */
+.table-adm {
+  background: var(--adm-surface);
+  border-radius: var(--adm-radius);
+  overflow: hidden;
+  box-shadow: var(--adm-shadow-sm);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.table-adm thead th {
+  background: var(--adm-surface-2);
+  color: var(--adm-text-muted);
+  border: 0;
+  border-bottom: 1px solid var(--adm-border);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: .7rem;
+  letter-spacing: .05em;
+  padding: .85rem .75rem;
+}
+.table-adm tbody td {
+  border-top: 1px solid var(--adm-border);
+  vertical-align: middle;
+  padding: .7rem .75rem;
+}
+.table-adm tbody tr {
+  transition: background-color .12s ease;
+}
+.table-adm tbody tr:hover {
+  background: rgba(14, 107, 92, .06);
+}
+[data-bs-theme="dark"] .table-adm tbody tr:hover {
+  background: rgba(255, 255, 255, .04);
+}
+
+/* ---------- Badges ---------- */
+.badge-pill-adm {
+  border-radius: 999px;
+  padding: .35em .7em;
+  font-weight: 600;
+  font-size: .74rem;
+}
+.badge-dicp-1 { background: var(--adm-success); color: #fff; }
+.badge-dicp-2 { background: var(--adm-warning); color: #3a2a00; }
+.badge-dicp-3 { background: var(--adm-orange); color: #fff; }
+.badge-dicp-4 { background: var(--adm-danger); color: #fff; }
+.badge-crit-1 { background: var(--adm-danger); color: #fff; }
+.badge-crit-2 { background: var(--adm-orange); color: #fff; }
+.badge-crit-3 { background: var(--adm-warning); color: #3a2a00; }
+.badge-crit-4 { background: var(--adm-success); color: #fff; }
+
+/* ---------- Actions icônes ---------- */
+.btn-icon-adm {
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px;
+  padding: 0;
+}
+.dropdown-toggle-no-caret::after {
+  display: none;
+}
+.table-adm .dropdown-menu {
+  border-radius: 10px;
+  border-color: var(--adm-border);
+  min-width: 11rem;
+}
+.table-adm .dropdown-item {
+  padding: .45rem .9rem;
+  font-size: .9rem;
+}
+
+/* ---------- Formulaire d'évaluation ---------- */
+.eval-progress-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow-sm);
+}
+.progress-adm {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--adm-surface-2);
+  overflow: hidden;
+}
+.progress-adm .bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--adm-primary), var(--adm-primary-light));
+}
+.chip-anchor {
+  border-radius: 999px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-surface-2);
+  color: var(--adm-text);
+  font-size: .82rem;
+  padding: .35rem .85rem;
+  text-decoration: none;
+  display: inline-block;
+}
+.chip-anchor:hover { background: var(--adm-primary); color: #fff; }
+
+.eval-actions-adm {
+  position: sticky;
+  bottom: 0;
+  padding: 14px 0;
+  background: color-mix(in srgb, var(--adm-bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--adm-border);
+  z-index: 20;
+}
+
+.info-icon-adm {
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--adm-primary);
+  color: #fff;
+  font-size: .78rem;
+  border: 0;
+}
+
+/* ---------- Radar (SVG statique de démonstration) ---------- */
+.radar-wrap svg { max-width: 100%; height: auto; }
+.radar-grid { stroke: var(--adm-border); fill: none; }
+.radar-axis { stroke: var(--adm-border); }
+.radar-shape-current { fill: rgba(14,107,92,.22); stroke: var(--adm-primary); stroke-width: 2; }
+.radar-shape-previous { fill: rgba(107,117,131,.12); stroke: var(--adm-text-muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.radar-label { fill: var(--adm-text-muted); font-size: 11px; }
+
+footer.footer-adm {
+  background: var(--adm-surface);
+  border-top: 1px solid var(--adm-border);
+  color: var(--adm-text-muted);
+  padding: 14px 20px;
+  text-align: center;
+  font-size: .85rem;
+}

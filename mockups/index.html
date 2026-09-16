@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADM — Maquettes Phase 0 (US4.1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="assets/mockup.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="mockup-banner">
+  <i class="bi bi-easel2"></i> Maquette statique — Phase 0 de US4.1 — non connectée à Flask, à valider avant développement
+</div>
+
+<header>
+<nav class="navbar navbar-expand-lg navbar-adm px-3 py-3">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center gap-3">
+      <span class="logo-badge"><i class="bi bi-diagram-3-fill"></i></span>
+      <div>
+        <div class="brand-title h5 mb-0">ADM</div>
+        <div class="brand-sub">Gestion de la dette applicative</div>
+      </div>
+    </div>
+    <button class="theme-toggle ms-auto" id="themeToggle" type="button" aria-label="Basculer le thème clair/sombre">
+      <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+    </button>
+  </div>
+</nav>
+</header>
+
+<main class="container my-5">
+
+  <div class="text-center mb-5">
+    <h1 class="fw-bold mb-2">Direction visuelle proposée</h1>
+    <p class="text-muted fs-5">
+      Trois écrans clés, avant / après, pour valider l'orientation avant d'ouvrir<br>
+      le premier ticket de développement (voir <code>docs/UI_MODERNIZATION_PROPOSAL.md</code>).
+    </p>
+    <p class="text-muted small">
+      Basculez le thème clair/sombre en haut à droite : le réglage est mémorisé sur chaque page.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-4">
+      <a href="catalogue.html" class="text-decoration-none">
+        <div class="card-adm p-4 h-100">
+          <div class="kpi-icon mb-3" style="background:rgba(14,107,92,.12); color:var(--adm-primary); width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+            <i class="bi bi-table"></i>
+          </div>
+          <h5 class="fw-bold" style="color:var(--adm-text);">Catalogue des applications</h5>
+          <p class="text-muted mb-3">Liste, filtres, badges de criticité et de classification DICP, actions groupées.</p>
+          <span class="chip-anchor"><i class="bi bi-arrow-right"></i> Voir la maquette</span>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="evaluation.html" class="text-decoration-none">
+        <div class="card-adm p-4 h-100">
+          <div class="kpi-icon mb-3" style="background:rgba(25,135,84,.12); color:var(--adm-success); width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+            <i class="bi bi-clipboard2-check"></i>
+          </div>
+          <h5 class="fw-bold" style="color:var(--adm-text);">Formulaire d'évaluation</h5>
+          <p class="text-muted mb-3">Progression, sommaire d'ancres et aide contextuelle conservés, seulement réhabillés.</p>
+          <span class="chip-anchor"><i class="bi bi-arrow-right"></i> Voir la maquette</span>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="synthese.html" class="text-decoration-none">
+        <div class="card-adm p-4 h-100">
+          <div class="kpi-icon mb-3" style="background:rgba(253,126,20,.12); color:var(--adm-orange); width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+            <i class="bi bi-bar-chart-line"></i>
+          </div>
+          <h5 class="fw-bold" style="color:var(--adm-text);">Synthèse</h5>
+          <p class="text-muted mb-3">KPI, radar et tableau des scores, avec les nouveaux tons sémantiques.</p>
+          <span class="chip-anchor"><i class="bi bi-arrow-right"></i> Voir la maquette</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="card-adm p-4 mt-5">
+    <h5 class="fw-bold mb-3"><i class="bi bi-info-circle text-primary"></i> Ce que ces maquettes montrent — et ce qu'elles ne montrent pas</h5>
+    <p class="mb-2">
+      Elles illustrent le design system proposé (section 5 du document) : palette et ombres
+      unifiées, icônes Bootstrap Icons à la place des émojis, mode sombre natif Bootstrap 5.3,
+      cartes et tableaux restylés. Les données affichées sont fictives.
+    </p>
+    <p class="mb-0 text-muted">
+      Elles ne sont pas branchées à Flask ni à Jinja2 : ce sont de simples fichiers HTML statiques
+      pour juger du rendu. Aucune route, aucun gabarit de l'application n'a été modifié. Bootstrap et
+      les icônes sont chargés depuis un CDN uniquement pour cette maquette ; l'implémentation réelle
+      (Phase 1) les auto-hébergera dans <code>static/vendor/</code> comme prévu dans le document de
+      cadrage.
+    </p>
+  </div>
+
+</main>
+
+<footer class="footer-adm">
+  Maquette de démonstration — Phase 0, US4.1 — ADM
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var toggle = document.getElementById('themeToggle');
+    var icon = document.getElementById('themeIcon');
+    function apply(theme) {
+      root.setAttribute('data-bs-theme', theme);
+      icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+      try { localStorage.setItem('adm-mockup-theme', theme); } catch (e) {}
+    }
+    var saved = 'light';
+    try { saved = localStorage.getItem('adm-mockup-theme') || 'light'; } catch (e) {}
+    apply(saved);
+    toggle.addEventListener('click', function () {
+      apply(root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>

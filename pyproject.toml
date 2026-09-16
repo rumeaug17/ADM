@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adm-catalogue"
-version = "1.7.0"
+version = "2.0.0-pre1"
 description = "Catalogue d'applications et évaluation de leur dette technique"
 authors = [
     { name = "Guillaume Rumeau" }
@@ -61,7 +61,11 @@ script-files = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-ADM = ["resources/config.json", "resources/static/*", "resources/templates/*"]
+# "resources/static/**" (récursif) est nécessaire depuis la Phase 1 de US4.1
+# (voir docs/UI_MODERNIZATION_PROPOSAL.md) : les assets statiques ne sont plus
+# tous à plat dans resources/static/, on y trouve désormais des
+# sous-répertoires (resources/static/css/, resources/static/vendor/...).
+ADM = ["resources/config.json", "resources/static/**", "resources/templates/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

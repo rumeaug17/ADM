@@ -1,0 +1,555 @@
+/* =========================================================================
+   ADM — static/css/app.css
+   Feuille de style unique de l'application, introduite par la Phase 1 (US4.1,
+   voir docs/UI_MODERNIZATION_PROPOSAL.md) : elle consolide les blocs
+   <style> précédemment dupliqués dans chaque gabarit Jinja2 (base.html,
+   index.html, resume.html, synthese.html, score.html, add.html, edit.html,
+   accounts.html, questions_settings.html, question_form.html) en un point
+   unique, et introduit les tokens de couleur/rayon/ombre du design system.
+
+   Palette de marque validée le 2026-09-16 (voir mockups/README.md et
+   mockups/assets/mockup.css, dont ce fichier reprend les tokens) : vert
+   forêt légèrement foncé (#0e6b5c / #0a4d42), volontairement distinct du
+   vert sémantique "succès" (#198754) utilisé par les badges DICP/criticité,
+   pour ne pas confondre couleur de marque et code couleur fonctionnel.
+
+   La Phase 1 n'a pas changé la structure des gabarits ni leurs classes
+   testées (voir tests/test_*_responsive.py, test_help_widget.py,
+   test_score_progress_indicator.py, test_synthese_kpi_grid.py) : elle a
+   déplacé du CSS existant vers ce fichier et l'a retinté avec les tokens
+   ci-dessous.
+
+   La Phase 2 (refonte visuelle du catalogue, de la fiche résumé et de la
+   synthèse — voir docs/UI_MODERNIZATION_PROPOSAL.md section 6) ajoute les
+   sections « Bandeau de navigation », « Cartes KPI » et « Tri/recherche du
+   catalogue » ci-dessous, et redessine le menu d'actions du catalogue en
+   menu contextuel (`⋯`) inspiré de mockups/catalogue.html — toujours sans
+   changer les classes protégées par les tests cités plus haut (le tableau
+   du catalogue garde exactement `class="table table-bordered text-center"`
+   dans une carte englobante, plutôt que d'adopter le nom de classe
+   `.table-adm` de la maquette).
+
+   La Phase 3 (formulaires et pages secondaires — score.html, add.html,
+   edit.html, login.html, accounts.html, questions_settings.html,
+   settings.html, change_password.html, import_data.html, error.html)
+   ajoute la section « Commentaire du formulaire d'évaluation » ci-dessous ;
+   le reste du réhabillage de cette phase s'appuie sur les composants
+   Bootstrap déjà en place (cartes, `.form-floating`, `rounded-pill`) sans
+   nouvelle classe utilitaire, toujours sans changer les attributs de nom de
+   champ (`name="..."`) ni le bouton d'aide `<button type="button"
+   class="info-icon" ...>` vérifié par tests/test_help_widget.py.
+   ========================================================================= */
+
+:root {
+  --adm-primary: #0e6b5c;
+  --adm-primary-strong: #0a4d42;
+  --adm-primary-light: #3ddbb4;
+
+  /* Palette sémantique (criticité, DICP, seuils de score/risque) : un code
+     couleur fonctionnel (vert = bon, jaune/orange = attention, rouge =
+     critique), indépendant de la couleur de marque ci-dessus. */
+  --adm-success: #198754;
+  --adm-warning: #ffc107;
+  --adm-orange: #fd7e14;
+  --adm-danger: #dc3545;
+  /* Texte sombre pour le contenu affiché sur --adm-warning/--adm-orange
+     (badges, cartes KPI) : le blanc n'y offre pas un contraste suffisant
+     (voir Phase 5, section « Badges DICP / Criticité » plus bas). Fixe,
+     indépendant du thème clair/sombre : ces deux fonds ne changent pas non
+     plus entre les thèmes. */
+  --adm-badge-text-dark: #3a2a00;
+
+  --adm-bg: #f4f6fb;
+  --adm-surface: #ffffff;
+  --adm-surface-2: #f8f9fc;
+  --adm-border: rgba(15, 23, 42, 0.08);
+  --adm-text: #1c2430;
+  --adm-text-muted: #6b7583;
+
+  --adm-radius-lg: 16px;
+  --adm-radius: 12px;
+  --adm-radius-sm: 8px;
+  --adm-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+  --adm-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.05);
+
+  /* Retint des variables Bootstrap natives : les liens, .text-primary,
+     .bg-primary (donc le bandeau de navigation) sont pilotés par ces
+     variables CSS dans Bootstrap 5.3, les redéfinir suffit à retinter tout
+     ce qui en dépend, sans recompiler Bootstrap. */
+  --bs-primary: #0e6b5c;
+  --bs-primary-rgb: 14, 107, 92;
+  --bs-link-color: #0e6b5c;
+  --bs-link-color-rgb: 14, 107, 92;
+  --bs-link-hover-color: #0a4d42;
+  --bs-link-hover-color-rgb: 10, 77, 66;
+}
+
+[data-bs-theme="dark"] {
+  --adm-bg: #10141b;
+  --adm-surface: #1a2029;
+  --adm-surface-2: #151a22;
+  --adm-border: rgba(255, 255, 255, 0.08);
+  --adm-text: #e7eaf0;
+  --adm-text-muted: #99a3b3;
+  --adm-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --adm-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.35);
+
+  /* Vert de marque éclairci en thème sombre pour rester lisible sur fond
+     foncé (texte/liens/icônes .text-primary), sans changer les fonds pleins
+     (navbar, badges) qui restent lisibles avec du texte blanc quel que soit
+     le thème. */
+  --bs-primary: #3ddbb4;
+  --bs-primary-rgb: 61, 219, 180;
+  --bs-link-color: #3ddbb4;
+  --bs-link-color-rgb: 61, 219, 180;
+  --bs-link-hover-color: #6ee6c6;
+  --bs-link-hover-color-rgb: 110, 230, 198;
+}
+
+/* ---------- Boutons primaires ------------------------------------------
+   .btn-primary et .btn-outline-primary figent leurs couleurs dans des
+   variables locales à la classe (--bs-btn-*), pas dans --bs-primary : il
+   faut les redéfinir explicitement pour rester homogène avec le reste de
+   la palette. */
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #0e6b5c;
+  --bs-btn-border-color: #0e6b5c;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #0b5548;
+  --bs-btn-hover-border-color: #0a4d42;
+  --bs-btn-focus-shadow-rgb: 45, 138, 122;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #0a4d42;
+  --bs-btn-active-border-color: #09453b;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #0e6b5c;
+  --bs-btn-disabled-border-color: #0e6b5c;
+}
+.btn-outline-primary {
+  --bs-btn-color: #0e6b5c;
+  --bs-btn-border-color: #0e6b5c;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #0e6b5c;
+  --bs-btn-hover-border-color: #0e6b5c;
+  --bs-btn-focus-shadow-rgb: 14, 107, 92;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #0e6b5c;
+  --bs-btn-active-border-color: #0e6b5c;
+  --bs-btn-disabled-color: #0e6b5c;
+  --bs-btn-disabled-border-color: #0e6b5c;
+}
+[data-bs-theme="dark"] .btn-outline-primary {
+  --bs-btn-color: #3ddbb4;
+  --bs-btn-border-color: #3ddbb4;
+  --bs-btn-hover-color: #0a2420;
+  --bs-btn-hover-bg: #3ddbb4;
+  --bs-btn-hover-border-color: #3ddbb4;
+  --bs-btn-active-color: #0a2420;
+  --bs-btn-active-bg: #3ddbb4;
+  --bs-btn-active-border-color: #3ddbb4;
+  --bs-btn-disabled-color: #3ddbb4;
+  --bs-btn-disabled-border-color: #3ddbb4;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #6fc4b0;
+  box-shadow: 0 0 0 0.25rem rgba(14, 107, 92, 0.25);
+}
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus {
+  border-color: #3ddbb4;
+  box-shadow: 0 0 0 0.25rem rgba(61, 219, 180, 0.3);
+}
+
+/* ---------- Mise en page globale (ex <style> inline de base.html) ------ */
+body {
+  background-color: var(--adm-bg);
+  color: var(--adm-text);
+  margin: 0;
+  padding: 0;
+}
+.logo {
+  height: 42px;
+  margin-right: 15px;
+  padding: 4px;
+  border-radius: var(--adm-radius-sm);
+  background: rgba(255, 255, 255, 0.16);
+}
+main.container {
+  margin-top: 30px;
+  min-height: 70vh;
+}
+
+/* ---------- Bandeau de navigation (Phase 2) -----------------------------
+   `.navbar.bg-primary` (base.html) suit déjà --bs-primary/--bs-primary-rgb
+   (retintés plus haut) ; on ajoute ici un dégradé, un collage en haut de
+   page et des boutons plus compacts, inspirés de .navbar-adm dans
+   mockups/assets/mockup.css, sans renommer la classe Bootstrap utilisée
+   dans base.html. */
+.navbar.bg-primary {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: linear-gradient(120deg, var(--adm-primary), var(--adm-primary-strong) 130%) !important;
+  box-shadow: var(--adm-shadow-sm);
+}
+.navbar.bg-primary .btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+}
+.navbar.bg-primary .btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.65);
+}
+footer {
+  background-color: var(--adm-primary);
+  padding: 10px 20px;
+  color: #fff;
+  text-align: center;
+}
+footer a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* ---------- Aide contextuelle (Tâche 4.5) -------------------------------
+   Icône "?" déclenchant un popover Bootstrap natif, utilisée à l'identique
+   sur toutes les pages (score.html, add.html, edit.html). */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--adm-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+}
+.info-icon:hover,
+.info-icon:focus {
+  background-color: var(--adm-primary-strong);
+}
+/* Largeur réactive (jamais figée en pixels) : le popover ne dépasse ni la
+   largeur disponible sur mobile, ni une largeur confortable sur desktop.
+   640px est volontairement généreux : l'aide de "Criticité" (add.html/
+   edit.html) est un texte long avec des listes imbriquées sur plusieurs
+   niveaux, illisible si on la contraint à une largeur étroite ; les autres
+   aides, plus courtes, restent naturellement plus compactes (un popover
+   Bootstrap épouse son contenu, cette valeur n'est qu'un plafond). */
+.popover {
+  max-width: min(90vw, 640px);
+}
+
+/* ---------- Cartes -------------------------------------------------------
+   Règle commune à toutes les pages (add.html, edit.html, accounts.html,
+   questions_settings.html, settings.html, question_form.html, score.html,
+   resume.html, synthese.html). */
+.card {
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow-sm);
+  margin-bottom: 1rem;
+}
+/* Titres de section à l'intérieur d'une carte (score.html : "Progression",
+   "Évaluateur", nom de catégorie ; réutilisé par le tableau de comparaison
+   d'évaluations inclus dans resume.html). */
+.card h3 {
+  background-color: var(--adm-primary);
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+/* ---------- Tableaux ------------------------------------------------------
+   Règle commune (index.html, synthese.html, accounts.html,
+   questions_settings.html). */
+table,
+.table {
+  background-color: var(--adm-surface);
+  border-radius: var(--adm-radius);
+  overflow: hidden;
+  box-shadow: var(--adm-shadow-sm);
+}
+th {
+  background-color: var(--adm-primary);
+  color: #fff;
+}
+tr:hover {
+  background-color: var(--adm-surface-2);
+}
+
+/* ---------- Badges DICP / Criticité (index.html, resume.html) ----------
+   Phase 5 (US4.1, audit de contraste) : le texte de `.badge` est blanc par
+   défaut (`--bs-badge-color` de Bootstrap), ce qui passe très bien sur les
+   fonds vert/rouge (`--adm-success`/`--adm-danger`, ratio ≈ 4,5:1) mais tombe
+   largement sous le minimum WCAG AA de 4,5:1 sur les fonds jaune/orange
+   (`--adm-warning` ≈ 1,6:1, `--adm-orange` ≈ 2,6:1 avec du texte blanc). Un
+   texte sombre (`--adm-badge-text-dark`, la même teinte que le texte des
+   cartes KPI jaunes) restaure un contraste confortable sur ces deux fonds
+   (≈ 8,5:1 sur le jaune, ≈ 5,4:1 sur l'orange) sans changer les couleurs de
+   fond elles-mêmes ni les libellés. */
+.badge-d1,
+.badge-i1,
+.badge-c1,
+.badge-p1 {
+  background-color: var(--adm-success);
+}
+.badge-d2,
+.badge-i2,
+.badge-c2,
+.badge-p2,
+.badge-criticite3 {
+  background-color: var(--adm-warning);
+  color: var(--adm-badge-text-dark);
+}
+.badge-d3,
+.badge-i3,
+.badge-c3,
+.badge-p3,
+.badge-criticite2 {
+  background-color: var(--adm-orange);
+  color: var(--adm-badge-text-dark);
+}
+.badge-d4,
+.badge-i4,
+.badge-c4,
+.badge-p4 {
+  background-color: var(--adm-danger);
+}
+.badge-criticite1 {
+  background-color: var(--adm-danger);
+}
+.badge-criticite4 {
+  background-color: var(--adm-success);
+}
+.badge {
+  font-size: 1rem;
+  padding: 8px 12px;
+}
+.bg-score-high {
+  background-color: var(--adm-danger) !important;
+  color: #fff !important;
+}
+/* Phase 2 : badges arrondis en pilule (inspiré de .badge-pill-adm de la
+   maquette), appliqué à tous les badges existants sans renommer de classe. */
+.badge {
+  border-radius: 999px;
+}
+
+/* ---------- Flèches de tendance (resume.html) --------------------------- */
+.arrow {
+  font-size: 1.5rem;
+  font-weight: 1000;
+  display: inline-block;
+  margin-left: 5px;
+  background: transparent !important;
+  border: none !important;
+  line-height: 1;
+  font-family: Arial, sans-serif;
+}
+.arrow-down {
+  color: var(--adm-success);
+}
+.arrow-up {
+  color: var(--adm-orange);
+}
+.arrow-right {
+  color: var(--adm-primary);
+}
+
+/* ---------- Formulaire d'évaluation (score.html) ------------------------ */
+.form-select {
+  width: 100%;
+}
+.label {
+  font-weight: bold;
+  margin-top: 15px;
+}
+/* Tâche 4.8 : bouton de soumission persistant en bas d'écran pour un
+   formulaire potentiellement très long. */
+.eval-actions {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--adm-surface);
+  padding-top: 10px;
+  padding-bottom: 10px;
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+}
+
+/* ---------- Commentaire du formulaire d'évaluation (score.html, Phase 3) -
+   Le libellé "Commentaire :" n'avait jusqu'ici aucun style propre ; un texte
+   discret (comme le libellé de commentaire de mockups/evaluation.html)
+   distingue mieux la question elle-même (`.label`, en gras) du champ de
+   commentaire qui la suit. */
+.comment {
+  display: block;
+  margin-top: 6px;
+}
+
+/* ---------- Formulaire de question (question_form.html) ----------------- */
+.option-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.option-row input[type="text"] {
+  flex: 2;
+}
+.option-row input[type="number"] {
+  flex: 1;
+}
+
+/* ---------- Cartes KPI (synthese.html, Phase 2) -------------------------
+   Inspiré de .kpi-card/.kpi-icon dans mockups/assets/mockup.css : les 5
+   cartes de la grille `row-cols-*` (Tâche 4.10, structure inchangée)
+   passent d'un simple `bg-primary`/`bg-success`/... plat à une carte
+   dégradée avec pastille d'icône, sans changer les libellés ni le nombre de
+   colonnes vérifiés par tests/test_synthese_kpi_grid.py. */
+.kpi-card {
+  border-radius: var(--adm-radius-lg);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--adm-shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card .kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--adm-radius-sm);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  margin: 0 auto 0.6rem;
+}
+.kpi-card .kpi-label {
+  font-size: 0.82rem;
+  opacity: 0.92;
+}
+.kpi-card h2,
+.kpi-card h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.kpi-primary {
+  background: linear-gradient(135deg, #17907a, var(--adm-primary-strong));
+  color: #fff;
+}
+.kpi-success {
+  background: linear-gradient(135deg, #2fb872, #17663f);
+  color: #fff;
+}
+.kpi-warning {
+  background: linear-gradient(135deg, #ffcd45, #d98c00);
+  color: var(--adm-badge-text-dark);
+}
+.kpi-warning .kpi-icon {
+  background: rgba(0, 0, 0, 0.1);
+}
+.kpi-danger {
+  background: linear-gradient(135deg, #ff6b6b, #b5202f);
+  color: #fff;
+}
+
+/* ---------- Tri et recherche instantanés du catalogue (Phase 2) --------
+   JavaScript pur côté client (voir index.html), sur les lignes déjà
+   rendues par Jinja : aucune route n'est modifiée. */
+.table-sort-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.table-sort-th:hover {
+  background-color: var(--adm-primary-strong);
+}
+.table-sort-th .bi {
+  font-size: 0.75em;
+  opacity: 0.6;
+  margin-left: 4px;
+}
+.table-sort-th.table-sort-active .bi {
+  opacity: 1;
+}
+
+/* ---------- Fiche résumé (resume.html, Phase 2) -------------------------
+   Sections plus aérées : en-têtes de carte plus marqués, sans changer la
+   structure (mêmes `.card`/`.card-header`/`.card-body` Bootstrap). */
+.card-header {
+  background-color: var(--adm-surface-2);
+  font-weight: 600;
+  padding: 0.85rem 1.1rem;
+}
+.card-body {
+  padding: 1.1rem 1.25rem;
+}
+
+/* ---------- Interactivité htmx (Phase 4, US4.1) --------------------------
+   htmx ajoute temporairement ces classes pendant l'échange d'une ligne du
+   catalogue (réinitialisation ou suppression, `hx-swap="outerHTML
+   swap:0.3s"`) : une transition discrète signale la ligne concernée sans
+   JavaScript supplémentaire. */
+tr.htmx-swapping {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+tr.htmx-settling {
+  background-color: var(--adm-surface-2);
+  transition: background-color 1s ease-out;
+}
+
+/* ---------- Finitions mode sombre (Phase 5, US4.1) ----------------------
+   Les graphiques radar (resume.html, synthese.html) sont des images PNG
+   rendues côté serveur par matplotlib (voir ADM.services), toujours sur
+   fond blanc : conservé tel quel (le fond dynamique est du ressort de la
+   Phase 6 optionnelle, graphiques interactifs). En thème sombre, sans
+   traitement, ces images flottaient en rectangle blanc brut sur la carte
+   sombre qui les contient. `.chart-surface` les encadre d'une plaque
+   blanche avec un léger espacement, pour que le contraste avec le thème
+   sombre paraisse voulu plutôt que subi. */
+.chart-surface {
+  display: inline-block;
+  max-width: 100%;
+  background: #ffffff;
+  padding: 0.75rem;
+  border-radius: var(--adm-radius);
+}
+
+/* Correctif (US4.1, post-Phase 6) : le <canvas> du graphique radar
+   interactif (voir static/radar_charts.js) hérite de `.chart-surface`
+   ci-dessus, mais Chart.js (mode `responsive`) dimensionne le canvas
+   d'après la largeur de son *parent direct*, pas d'après le `max-width` du
+   canvas lui-même. Sans conteneur dédié, un radar placé dans une carte
+   pleine largeur (`resume.html`) s'agrandissait démesurément par rapport au
+   PNG qu'il remplace. `.radar-chart-wrapper` fixe une largeur maximale
+   raisonnable pour que les deux représentations restent visuellement
+   comparables quel que soit l'endroit où le radar est affiché.
+   Correctif (US4.1, signalé le 2026-09-16 par Guillaume Rumeau) : ce
+   plafond avait été fixé à 480px, sensiblement plus petit que la taille
+   naturelle du PNG avec les 7 catégories réellement configurées dans cette
+   instance (Architecture & Intégration, Documentation & Gouvernance, etc.,
+   voir static/questions.json) — environ 620-630px de large une fois
+   recadré par matplotlib (`bbox_inches="tight"`), les libellés longs
+   agrandissant ce recadrage. Résultat : le radar interactif (resume.html et
+   modale de synthese.html, tous deux recadrés sur une colonne/un modal de
+   taille comparable par le correctif précédent) restait visiblement plus
+   petit, avec plus de blanc autour, que le radar moyenne quand celui-ci
+   s'affichait en PNG. Remonté à 640px, une valeur qui n'est plus la
+   limite active dans les conteneurs actuels (colonne `col-md-6`, modal de
+   taille par défaut) : le radar interactif utilise désormais toute la
+   largeur disponible, comme le fait déjà le PNG (`img-fluid`, sans plafond
+   propre). */
+.radar-chart-wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+}

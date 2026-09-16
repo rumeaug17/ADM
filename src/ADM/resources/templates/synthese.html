@@ -2,39 +2,9 @@
 
 {% block title %}ADM - Synthèse{% endblock %}
 
-{% block extra_head %}
-  <style>
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .badge {
-            font-size: 1rem;
-            padding: 8px 12px;
-        }
-		.bg-score-high {
-			background-color: red !important;
-			color: white !important;
-		}
-        .table {
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        th {
-            background-color: #0d6efd;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-  </style>
-{% endblock %}
-
 {% block content %}
 
-    <h2 class="text-center text-primary">📊 Synthèse des Applications</h2>
+    <h2 class="text-center text-primary"><i class="bi bi-bar-chart" aria-hidden="true"></i> Synthèse des Applications</h2>
     
     <!-- Section des KPI -->
     <!-- Tâche 4.10 : 5 cartes ne se divisent pas proprement en colonnes
@@ -45,42 +15,47 @@
          balises "p" vides utilisées jusqu'ici comme espaceurs. -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 my-4 text-center">
       <div class="col">
-        <div class="card text-white bg-primary p-3 h-100">
-            <h4>📌 Nombre total d'applications</h4>
+        <div class="kpi-card kpi-primary p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-collection" aria-hidden="true"></i></div>
+            <div class="kpi-label">Nombre total d'applications</div>
             <h2>{{ total_apps }}</h2>
         </div>
       </div>
       <div class="col">
-        <div class="card text-white bg-success p-3 h-100">
-            <h4>⭐ Score moyen</h4>
+        <div class="kpi-card kpi-success p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-star" aria-hidden="true"></i></div>
+            <div class="kpi-label">Score moyen</div>
             <h2>{{ avg_score }}</h2>
         </div>
       </div>
       <div class="col">
-        <div class="card text-white bg-primary p-3 h-100">
-            <h4>Risque global</h4>
+        <div class="kpi-card kpi-primary p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-shield-exclamation" aria-hidden="true"></i></div>
+            <div class="kpi-label">Risque global</div>
 		{% if global_risk is not none %}
 		    {% if global_risk > display_thresholds.risk.critical %}
-		        <span class="badge bg-danger">{{ global_risk }}</span>
+		        <h2><span class="badge text-bg-danger">{{ global_risk }}</span></h2>
 		    {% elif global_risk > display_thresholds.risk.warning %}
-		        <span class="badge bg-warning">{{ global_risk }}</span>
+		        <h2><span class="badge text-bg-warning">{{ global_risk }}</span></h2>
 		    {% else %}
-		        <span class="badge bg-success">{{ global_risk }}</span>
+		        <h2><span class="badge text-bg-success">{{ global_risk }}</span></h2>
 		    {% endif %}
 		{% else %}
-		    <span>Non évalué</span>
+		    <h2><span>Non évalué</span></h2>
 		{% endif %}
         </div>
       </div>
       <div class="col">
-        <div class="card text-white bg-warning p-3 h-100">
-            <h4>✅ Applications &gt; {{ display_thresholds.score.warning|int }}%</h4>
+        <div class="kpi-card kpi-warning p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+            <div class="kpi-label">Applications &gt; {{ display_thresholds.score.warning|int }}%</div>
             <h2>{{ apps_above_warning }}</h2>
         </div>
       </div>
       <div class="col">
-        <div class="card text-white bg-score-high p-3 h-100">
-            <h4>🔥 Applications &gt; {{ display_thresholds.score.critical|int }}%</h4>
+        <div class="kpi-card kpi-danger p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-fire" aria-hidden="true"></i></div>
+            <div class="kpi-label">Applications &gt; {{ display_thresholds.score.critical|int }}%</div>
             <h2>{{ apps_above_critical }}</h2>
         </div>
       </div>
@@ -89,135 +64,218 @@
 <!-- Affichage côte à côte du graphique radar et du tableau des meilleurs scores par catégorie -->
 <div class="row my-4">
   <!-- Colonne du graphique radar -->
+  <!-- Phase 6 (US4.1) : PNG matplotlib affiché par défaut (repli sans
+       JavaScript, ou si Chart.js échoue à se charger), remplacé par un
+       graphique interactif Chart.js dès que possible (mêmes scores, voir
+       static/radar_charts.js et le bloc extra_scripts en bas de page). -->
   <div class="col-md-6 text-center">
-    <img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes" class="img-fluid">
+    <div class="card p-2 p-md-3 h-100" id="syntheseRadarCard">
+      <!-- Correctif (US4.1, post-Phase 6) : voir la même remarque dans
+           resume.html — .radar-chart-wrapper plafonne la largeur disponible
+           pour Chart.js (app.css). -->
+      <div class="radar-chart-wrapper">
+        <canvas id="syntheseRadarChart" class="d-none chart-surface" role="img"
+                aria-label="Graphique radar des scores moyens par dimension, toutes applications confondues"
+                width="400" height="400"></canvas>
+      </div>
+      <img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes" class="img-fluid chart-surface">
+    </div>
   </div>
   <!-- Colonne du tableau des meilleurs scores par catégorie -->
   <div class="col-md-6">
-    <h3 class="text-center">Pires scores par catégorie</h3>
-    <table class="table table-bordered text-center">
-      <thead>
-        <tr>
-          <th>Application</th>
-          <th>Catégorie</th>
-          <th>Score</th>
-        </tr>
-      </thead>
-	  <tbody>
-        {% for app, entries in best_grouped.items() %}
-          {% for entry in entries %}
+    <div class="card p-2 p-md-3 h-100">
+      <h3 class="text-center"><i class="bi bi-graph-down" aria-hidden="true"></i> Pires scores par catégorie</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered text-center mb-0">
+          <thead>
             <tr>
-              {% if loop.first %}
-                <td rowspan="{{ entries|length }}"><strong><a href="/resume/{{ app }}">{{ app }}</a></strong></td>
-              {% endif %}
-              <td>{{ entry[0] }}</td>
-              <td>{{ entry[1] }}</td>
+              <th>Application</th>
+              <th>Catégorie</th>
+              <th>Score</th>
             </tr>
-          {% endfor %}
-        {% endfor %}
-      </tbody>
-    </table>
+          </thead>
+          <tbody>
+            {% for app, entries in best_grouped.items() %}
+              {% for entry in entries %}
+                <tr>
+                  {% if loop.first %}
+                    <td rowspan="{{ entries|length }}"><strong><a href="/resume/{{ app }}">{{ app }}</a></strong></td>
+                  {% endif %}
+                  <td>{{ entry[0] }}</td>
+                  <td>{{ entry[1] }}</td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
     <!-- Tableau des applications -->
-	<div class="btn-group mb-3" role="group">
-    <a href="?filter_score=all" class="btn btn-secondary {% if filter_score == 'all' %}active{% endif %}">Tous</a>
-    <a href="?filter_score=warning" class="btn btn-warning {% if filter_score == 'warning' %}active{% endif %}">&gt; {{ display_thresholds.score.warning|int }}%</a>
-    <a href="?filter_score=critical" class="btn btn-danger {% if filter_score == 'critical' %}active{% endif %}">&gt; {{ display_thresholds.score.critical|int }}%</a>
-</div>
-    <table class="table table-bordered text-center">
-        <thead>
-            <tr>
-                <th>Nom</th>
-                <th>Score</th>
-                <th>Score max</th>
-                <th>%</th>
-				<th>Risque</th>
-                <th>Dernière évaluation</th>
-		<th>&nbsp;</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for app in applications %}
-            <tr>
-                <td><strong><a href="/resume/{{ app.name }}">{{ app.name }}</a></strong></td>
-                <td>
-					{% if app.score is none %}
-						Non évaluée
-					{% else %}
-						{{ app.score }}
-					{% endif %}
-				</td>
-                <td>{{ app.max_score or "N/A" }}</td>
-                <td>
-                    {% if app.percentage is not none %}
-                        <span class="badge {% if app.percentage > display_thresholds.score.critical %} bg-danger {% elif app.percentage > display_thresholds.score.warning %} bg-warning {% else %} bg-success {% endif %}">
-                            {{ app.percentage }}%
-                        </span>
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-				<td>
-					{% if app.risque is none %}
-						Non évaluée
-					{% else %}
-						{% set risk = app.risque|round(0)|int %}
-						{% if risk > display_thresholds.risk.critical %}
-							<span class="badge bg-danger">{{ risk }}</span>
-						{% elif risk > display_thresholds.risk.warning %}
-							<span class="badge bg-warning">{{ risk }}</span>
-						{% else %}
-							<span class="badge bg-success">{{ risk }}</span>
-						{% endif %}
-					{% endif %}
-				</td>				
-                <td>{{ app.last_evaluation or "Non évaluée" }}</td>
-		<td>
-			<button type="button"
-                  class="btn btn-sm btn-info"
-                  data-bs-toggle="modal"
-                  data-bs-target="#radarModal"
-                  data-appname="{{ app.name }}">
-            Radar...
-          </button>
-		</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Phase 4 (US4.1) : le groupe de filtres et le tableau sont factorisés
+         dans _synthese_results.html, rafraîchis seuls par htmx quand on
+         change de filtre (voir ce fichier pour le détail et pourquoi les
+         cartes KPI ci-dessus n'en font volontairement pas partie). -->
+    <div id="syntheseResults">
+      {% include "_synthese_results.html" %}
+    </div>
 
 	<!-- Modal pour afficher le graphique radar d'une application -->
+<!-- Correctif (US4.1, signalé le 2026-09-16 par Guillaume Rumeau, vidéo à
+     l'appui) : contrairement à resume.html et au radar moyenne de cette
+     page (de vraies pages, utilisables sans JavaScript), cette modale ne
+     s'ouvre que via le composant Modal de Bootstrap, qui exige déjà
+     JavaScript pour fonctionner — y poser le PNG immédiatement (avant même
+     de savoir si le graphique interactif va réussir à se charger), comme le
+     faisait la Phase 6, ne sert donc aucun usage réel sans JavaScript. Ce
+     n'était qu'un habillage "PNG puis remplacement" qui, une fois le fetch
+     résolu (quelques centaines de ms sur un réseau normal), faisait
+     apparaître un second radar par-dessus le premier — visuellement un
+     "doublon" plutôt qu'un simple chargement, confirmé image par image sur
+     la vidéo fournie. La modale n'affiche donc plus qu'un indicateur de
+     chargement neutre le temps de la requête JSON (/radar/<name>/data),
+     puis directement la représentation finale : le graphique interactif en
+     cas de succès, ou le PNG (/radar/<name>, inchangé) seulement si ce
+     dernier échoue pour une raison quelconque (réseau, Chart.js non
+     chargé...) — un seul radar visible à la fois, jamais deux. -->
 <div class="modal fade" id="radarModal" tabindex="-1" aria-labelledby="radarModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <!-- Correctif (US4.1, post-Phase 6) : modal de taille par défaut (~500px)
+       plutôt que "modal-lg" (~800px) — le radar lui-même est plafonné par
+       .radar-chart-wrapper (voir plus bas et app.css, dont le commentaire
+       détaille le choix de cette limite), un modal bien plus large que ça
+       ne faisait qu'ajouter du blanc superflu autour, plus visible que sur
+       le radar moyenne de cette même page (dont la carte col-md-6 est déjà
+       proche de cette largeur). -->
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="radarModalLabel">Radar de l'application : <span id="modalAppName"></span></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body text-center">
-        <img id="radarChartImg" src="" alt="Radar Chart" class="img-fluid">
+        <!-- Correctif (US4.1, post-Phase 6) : voir la même remarque dans
+             resume.html — .radar-chart-wrapper plafonne la largeur
+             disponible pour Chart.js (app.css). -->
+        <div class="radar-chart-wrapper">
+          <canvas id="radarChartCanvas" class="d-none chart-surface" role="img"
+                  aria-label="Graphique radar de l'application sélectionnée"
+                  width="400" height="400"></canvas>
+        </div>
+        <img id="radarChartImg" src="" alt="Radar Chart" class="d-none img-fluid chart-surface">
+        <!-- Correctif (US4.1, signalé le 2026-09-16) : seul élément visible
+             pendant la requête /radar/<name>/data, à la place du PNG posé
+             immédiatement auparavant (voir commentaire au-dessus du modal). -->
+        <div id="radarChartLoading" class="chart-surface d-inline-block">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement du radar…</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-	<!-- Inclusion des scripts Bootstrap -->
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Phase 6 (US4.1) : Chart.js vendorisé (pas de CDN, comme
+     Bootstrap/htmx/Alpine.js), suivi de la logique de rendu partagée avec
+     resume.html (voir static/radar_charts.js). -->
+<script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='radar_charts.js') }}"></script>
+<script>
+  admShowRadarChart('syntheseRadarChart', '#syntheseRadarCard img[alt="Graphique en étoile des notes moyennes"]', function () {
+    return admRenderRadarChartFromElement('syntheseRadarChart', 'syntheseRadarData');
+  });
+</script>
+<script type="application/json" id="syntheseRadarData">{{ radar_chart_json|tojson }}</script>
 <script>
   // Lorsque le modal de radar est sur le point d'être affiché,
   // mettre à jour son contenu en fonction de l'application sélectionnée.
   var radarModal = document.getElementById('radarModal');
-  radarModal.addEventListener('show.bs.modal', function(event) {
+  var radarModalChart = null;
+  var pendingRadarData = null;
+  var pendingRadarAppName = null;
+
+  // Correctif (US4.1, signalé le 2026-09-16) : état de départ — indicateur
+  // de chargement seul, canvas et PNG masqués tous les deux — utilisé à
+  // l'ouverture de la modale (avant de savoir laquelle des deux
+  // représentations sera finalement affichée) et à sa fermeture.
+  function showRadarModalLoading() {
+    if (radarModalChart) {
+      radarModalChart.destroy();
+      radarModalChart = null;
+    }
+    document.getElementById('radarChartCanvas').classList.add('d-none');
+    document.getElementById('radarChartImg').classList.add('d-none');
+    document.getElementById('radarChartLoading').classList.remove('d-none');
+  }
+
+  // Repli PNG : appelé uniquement si le graphique interactif ne peut pas
+  // être affiché (requête /data en échec, réponse invalide, ou Chart.js
+  // indisponible), jamais de façon systématique — c'est ce qui élimine le
+  // "doublon" (PNG posé puis remplacé) signalé par Guillaume Rumeau.
+  function showRadarModalPngFallback(appName) {
+    document.getElementById('radarChartLoading').classList.add('d-none');
+    document.getElementById('radarChartCanvas').classList.add('d-none');
+    var image = document.getElementById('radarChartImg');
+    image.src = "/radar/" + encodeURIComponent(appName);
+    image.classList.remove('d-none');
+  }
+
+  radarModal.addEventListener('show.bs.modal', function (event) {
     // Bouton qui a déclenché l'ouverture du modal
     var button = event.relatedTarget;
     var appName = button.getAttribute('data-appname');
     // Mettre à jour le titre du modal
     document.getElementById('modalAppName').textContent = appName;
-    // Définir la source de l'image avec l'endpoint qui génère le graphique radar pour l'application
-    // Par exemple, si vous avez créé une route /radar/<app_name> qui renvoie l'image en PNG.
-    document.getElementById('radarChartImg').src = "/radar/" + encodeURIComponent(appName);
+    pendingRadarAppName = appName;
+    showRadarModalLoading();
+    // La requête démarre dès maintenant (pas besoin d'attendre pour ça),
+    // mais son résultat n'est exploité qu'après "shown.bs.modal".
+    pendingRadarData = fetch("/radar/" + encodeURIComponent(appName) + "/data")
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("radar data request failed");
+        }
+        return response.json();
+      });
+  });
+
+  // Correctif (US4.1, post-Phase 6) : "show.bs.modal" se déclenche AVANT que
+  // Bootstrap ne rende le modal visible (le fondu d'ouverture ne démarre
+  // qu'ensuite) — créer le graphique Chart.js à ce moment-là mesurait un
+  // conteneur de largeur nulle (le modal n'a pas encore de dimensions
+  // affichées) et produisait un canvas quasi invisible (juste le contour
+  // blanc de `.chart-surface`). "shown.bs.modal", déclenché une fois le
+  // modal effectivement affiché, garantit que le graphique se dimensionne
+  // correctement.
+  radarModal.addEventListener('shown.bs.modal', function () {
+    if (!pendingRadarData) {
+      return;
+    }
+    var appName = pendingRadarAppName;
+    pendingRadarData
+      .then(function (radarData) {
+        var canvas = document.getElementById('radarChartCanvas');
+        document.getElementById('radarChartLoading').classList.add('d-none');
+        canvas.classList.remove('d-none');
+        radarModalChart = admRenderRadarChart(canvas, radarData);
+        if (!radarModalChart) {
+          showRadarModalPngFallback(appName);
+        }
+      })
+      .catch(function () {
+        showRadarModalPngFallback(appName);
+      });
+  });
+
+  radarModal.addEventListener('hidden.bs.modal', function () {
+    pendingRadarData = null;
+    pendingRadarAppName = null;
+    showRadarModalLoading();
   });
 </script>
-
-{% endblock %}	
+{% endblock %}

@@ -1,0 +1,95 @@
+{#
+  Groupe de filtres + tableau des applications de synthese.html, factorisés
+  en Phase 4 (US4.1, interactivité progressive htmx) pour être rafraîchis
+  seuls quand on change de filtre (`?filter_score=...`), sans recharger toute
+  la page ni régénérer le graphique radar (coûteux, inchangé par le filtre).
+
+  Les 5 cartes KPI ne sont volontairement PAS incluses ici : leurs valeurs
+  sont calculées sur l'ensemble du catalogue (ADM.routes.synthese, variable
+  `data`), pas sur `scored_apps` filtré — elles ne varient donc jamais avec
+  `filter_score`, et les réinclure dans le fragment échangé par htmx n'aurait
+  fait que retransmettre le même HTML à chaque clic.
+
+  Variables attendues : `applications` (liste déjà filtrée et triée),
+  `filter_score` (valeur courante : "all"/"warning"/"critical").
+  `display_thresholds` vient du contexte global (context processor).
+#}
+<div class="btn-group mb-3" role="group">
+  <a href="?filter_score=all"
+     hx-get="{{ url_for('evaluations.synthese', filter_score='all') }}"
+     hx-target="#syntheseResults" hx-swap="innerHTML" hx-push-url="true"
+     class="btn btn-secondary {% if filter_score == 'all' %}active{% endif %}">Tous</a>
+  <a href="?filter_score=warning"
+     hx-get="{{ url_for('evaluations.synthese', filter_score='warning') }}"
+     hx-target="#syntheseResults" hx-swap="innerHTML" hx-push-url="true"
+     class="btn btn-warning {% if filter_score == 'warning' %}active{% endif %}">&gt; {{ display_thresholds.score.warning|int }}%</a>
+  <a href="?filter_score=critical"
+     hx-get="{{ url_for('evaluations.synthese', filter_score='critical') }}"
+     hx-target="#syntheseResults" hx-swap="innerHTML" hx-push-url="true"
+     class="btn btn-danger {% if filter_score == 'critical' %}active{% endif %}">&gt; {{ display_thresholds.score.critical|int }}%</a>
+</div>
+<div class="card p-2 p-md-3">
+<div class="table-responsive">
+<table class="table table-bordered text-center mb-0">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Score</th>
+            <th>Score max</th>
+            <th>%</th>
+            <th>Risque</th>
+            <th>Dernière évaluation</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for app in applications %}
+        <tr>
+            <td><strong><a href="/resume/{{ app.name }}">{{ app.name }}</a></strong></td>
+            <td>
+                {% if app.score is none %}
+                    Non évaluée
+                {% else %}
+                    {{ app.score }}
+                {% endif %}
+            </td>
+            <td>{{ app.max_score or "N/A" }}</td>
+            <td>
+                {% if app.percentage is not none %}
+                    <span class="badge {% if app.percentage > display_thresholds.score.critical %} text-bg-danger {% elif app.percentage > display_thresholds.score.warning %} text-bg-warning {% else %} text-bg-success {% endif %}">
+                        {{ app.percentage }}%
+                    </span>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if app.risque is none %}
+                    Non évaluée
+                {% else %}
+                    {% set risk = app.risque|round(0)|int %}
+                    {% if risk > display_thresholds.risk.critical %}
+                        <span class="badge text-bg-danger">{{ risk }}</span>
+                    {% elif risk > display_thresholds.risk.warning %}
+                        <span class="badge text-bg-warning">{{ risk }}</span>
+                    {% else %}
+                        <span class="badge text-bg-success">{{ risk }}</span>
+                    {% endif %}
+                {% endif %}
+            </td>
+            <td>{{ app.last_evaluation or "Non évaluée" }}</td>
+            <td>
+                <button type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#radarModal"
+                  data-appname="{{ app.name }}">
+            <i class="bi bi-graph-up" aria-hidden="true"></i> Radar
+          </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</div>

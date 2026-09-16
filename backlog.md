@@ -43,10 +43,6 @@ Les tâches réalisées sont retirées du fichier.
 
 ## Epic 4 : Interface Utilisateur et Expérience (UI/UX)
 
-### User Stories
-- **US4.1** : *Améliorer le design*  
-  Moderniser l'affichage. 
-
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  
   La page de configuration des questions (US4.3, livrée) ne permet d'ajouter, modifier et

@@ -5,67 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}ADM{% endblock %}</title>
 <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body {
-background-color: #f8f9fa;
-  margin: 0;
-  padding: 0;
-}
-.logo {
-height: 50px;
-margin-right: 15px;
-   }
-main.container {
-  margin-top: 30px;
-     min-height: 70vh;
- }
- footer {
-     background-color: #0d6efd;
-    padding: 10px 20px;
-  color: #fff;
-  text-align: center;
-  }
-  footer a {
-  color: #fff;
-  text-decoration: underline;
-  }
-  /* Composant d'aide contextuelle unique (Tâche 4.5) : icône "?" déclenchant
-     un popover Bootstrap natif, utilisée à l'identique sur toutes les pages
-     (score.html, add.html, edit.html) au lieu d'une infobulle maison avec une
-     largeur fixe différente par page. */
-  .info-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    margin-left: 5px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background-color: #0d6efd;
-    color: #fff;
-    font-size: 14px;
-    font-weight: bold;
-    line-height: 1;
-    cursor: pointer;
-  }
-  .info-icon:hover,
-  .info-icon:focus {
-    background-color: #0b5ed7;
-  }
-  /* Largeur réactive (jamais figée en pixels) : le popover ne dépasse ni la
-     largeur disponible sur mobile, ni une largeur confortable sur desktop.
-     640px est volontairement généreux : l'aide de "Criticité" (add.html/
-     edit.html) est un texte long avec des listes imbriquées sur plusieurs
-     niveaux, illisible si on la contraint à une largeur étroite ; les autres
-     aides, plus courtes, restent naturellement plus compactes (un popover
-     Bootstrap épouse son contenu, cette valeur n'est qu'un plafond). */
-  .popover {
-    max-width: min(90vw, 640px);
-  }
-</style>
+<link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+<script>
+  // Phase 4 (US4.1) : applique le thème clair/sombre choisi (ou la
+  // préférence système) avant le premier rendu, pour éviter un flash de
+  // thème incorrect (FOUC). Ce script est volontairement indépendant
+  // d'Alpine.js, qui n'est chargé (avec defer) qu'en bas de <body> : Alpine
+  // ne gère que la bascule interactive du thème via le bouton dédié, pas
+  // son application initiale.
+  (function () {
+    try {
+      var stored = localStorage.getItem('adm-theme');
+      var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    } catch (e) {}
+  })();
+</script>
 {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -83,17 +40,27 @@ main.container {
     <div class="collapse navbar-collapse" id="headerNav">
         <div class="header-right d-flex flex-wrap gap-2 ms-lg-auto mt-3 mt-lg-0">
           {% if request.endpoint != 'index' %}
-          <a href="{{ url_for('applications.index') }}" class="btn btn-outline-light">Retour à l'index</a>
+          <a href="{{ url_for('applications.index') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left" aria-hidden="true"></i> Retour à l'index</a>
          {% endif %}
         {% if session.role == 'admin' %}
-          <a href="{{ url_for('settings.show_settings') }}" class="btn btn-outline-light">⚙️ Configuration</a>
-          <a href="{{ url_for('settings.list_questions') }}" class="btn btn-outline-light">❓ Questions</a>
-           <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-outline-light">👤 Comptes</a>
+          <a href="{{ url_for('settings.show_settings') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-gear" aria-hidden="true"></i> Configuration</a>
+          <a href="{{ url_for('settings.list_questions') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-question-circle" aria-hidden="true"></i> Questions</a>
+           <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-people" aria-hidden="true"></i> Comptes</a>
          {% endif %}
          {% if local_auth %}
-          <a href="{{ url_for('auth.change_own_password') }}" class="btn btn-outline-light">🔑 Mon mot de passe</a>
+          <a href="{{ url_for('auth.change_own_password') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-key" aria-hidden="true"></i> Mon mot de passe</a>
        {% endif %}
-      <a href="/logout" class="btn btn-primary">Déconnexion</a>
+      <!-- Phase 4 (US4.1) : bascule de thème clair/sombre gérée en Alpine.js.
+           x-data lit l'attribut posé par le script anti-FOUC du <head> pour
+           que l'icône affichée corresponde d'emblée au thème réellement
+           appliqué. -->
+      <button type="button" class="btn btn-outline-light btn-sm"
+              x-data="{ theme: document.documentElement.getAttribute('data-bs-theme') || 'light' }"
+              x-on:click="theme = (theme === 'dark' ? 'light' : 'dark'); document.documentElement.setAttribute('data-bs-theme', theme); try { localStorage.setItem('adm-theme', theme); } catch (e) {}"
+              aria-label="Basculer le thème clair/sombre" title="Basculer le thème clair/sombre">
+        <i class="bi" :class="theme === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill'" aria-hidden="true"></i>
+      </button>
+      <a href="/logout" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Déconnexion</a>
       </div>
   </div>
   {% endif %}
@@ -104,6 +71,35 @@ main.container {
  {% block content %}{% endblock %}
 </main>
 
+<!-- Homogénéisation des messages informatifs (US4.1, post-Phase 5) : avant
+     ce correctif, les messages flash Flask s'affichaient en haut de chaque
+     page dans une alerte Bootstrap inline (une par gabarit, dupliquée dans
+     11 templates), tandis que les actions htmx (Phase 4) affichaient un
+     toast en bas à droite — deux emplacements et deux formats différents
+     pour la même notion de "message informatif après une action". Les deux
+     mécanismes convergent maintenant ici, dans ce conteneur unique de
+     toasts : les messages flash sont rendus directement en toasts Bootstrap
+     (identiques en tout point à ceux créés dynamiquement par le script
+     d'écoute de HX-Trigger plus bas — voir le script qui les active juste
+     après le chargement de bootstrap.bundle.min.js), qu'ils viennent d'une
+     action htmx ou d'un rechargement de page complet. -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;" id="admToastContainer" aria-live="polite" aria-atomic="true">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% set known_toast_categories = ["success", "danger", "warning", "info", "primary", "secondary", "light", "dark"] %}
+    {% set light_toast_categories = ["warning", "info", "light"] %}
+    {% for category, message in messages %}
+      {% set toast_category = category if category in known_toast_categories else "secondary" %}
+      {% set close_btn_class = "" if toast_category in light_toast_categories else "btn-close-white" %}
+      <div class="toast align-items-center text-bg-{{ toast_category }} border-0" role="status" aria-live="polite" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">{{ message }}</div>
+          <button type="button" class="btn-close {{ close_btn_class }} me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+        </div>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
 <footer>
     <p>
     <a href="https://github.com/rumeaug17/ADM" target="_blank">Voir sur GitHub</a>
@@ -111,7 +107,7 @@ main.container {
 </p>
   </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script>
   // Initialisation unique des tooltips Bootstrap natifs (Tâche 4.5) : ce
   // script est le seul endroit qui instancie [data-bs-toggle="tooltip"],
@@ -125,6 +121,114 @@ main.container {
   // Bootstrap.
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
     new bootstrap.Tooltip(el);
+  });
+</script>
+<script>
+  // Homogénéisation des messages informatifs (US4.1, post-Phase 5) :
+  // fonctions partagées entre les toasts rendus par le serveur (messages
+  // flash, voir #admToastContainer ci-dessus) et ceux créés dynamiquement
+  // par le script d'écoute de HX-Trigger plus bas, pour garantir un
+  // comportement et une apparence strictement identiques quelle que soit
+  // l'origine du message.
+
+  // Bootstrap pose un texte noir sur ces fonds clairs (`.text-bg-warning`,
+  // `.text-bg-info`, `.text-bg-light`) : leur bouton de fermeture doit rester
+  // sombre (`.btn-close` par défaut) plutôt que `.btn-close-white`, illisible
+  // dessus. Cette liste doit rester synchronisée avec `light_toast_categories`
+  // ci-dessus (rendu serveur).
+  var ADM_LIGHT_TOAST_CATEGORIES = ['warning', 'info', 'light'];
+
+  function admToastCloseButtonClass(category) {
+    return ADM_LIGHT_TOAST_CATEGORIES.indexOf(category) === -1 ? 'btn-close-white' : '';
+  }
+
+  // Active un toast (déjà présent dans le DOM, qu'il soit rendu par le
+  // serveur ou construit dynamiquement) : l'affiche, le retire du DOM une
+  // fois masqué, avec le même délai que partout ailleurs (5 s).
+  function admActivateToast(toastEl) {
+    var toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 5000 });
+    toastEl.addEventListener('hidden.bs.toast', function () {
+      toastEl.remove();
+    });
+    toast.show();
+  }
+
+  // Les messages flash sont déjà rendus dans #admToastContainer par le
+  // gabarit (voir plus haut) : il reste à les activer au chargement de la
+  // page, exactement comme un toast créé dynamiquement après une action
+  // htmx.
+  document.querySelectorAll('#admToastContainer .toast').forEach(admActivateToast);
+</script>
+<!-- Phase 4 (US4.1) : htmx et Alpine.js, vendorisés (pas de CDN, comme
+     Bootstrap). Alpine est chargé avec "defer" comme le recommande sa propre
+     documentation pour son build "cdn.min.js" auto-initialisant. -->
+<script src="{{ url_for('static', filename='vendor/htmx/htmx.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/alpinejs/alpine.min.js') }}" defer></script>
+<script>
+  // Phase 4 (US4.1) : affiche un toast Bootstrap après une requête htmx dont
+  // la réponse porte un en-tête HX-Trigger contenant {"toast": {...}}. On ne
+  // s'appuie pas sur le mécanisme d'évènements intégré de htmx (déclenché
+  // automatiquement à partir de HX-Trigger) mais on relit et interprète
+  // nous-mêmes l'en-tête, pour rester indépendants des détails de version de
+  // htmx sur ce comportement.
+  document.body.addEventListener('htmx:afterRequest', function (event) {
+    // Correctif (US4.1, post-Phase 4) : les formulaires de confirmation
+    // (suppression/réinitialisation d'une application, voir index.html)
+    // vivent dans un modal Bootstrap. Avant htmx, leur soumission rechargeait
+    // toute la page, ce qui fermait le modal de facto. Avec htmx, la page ne
+    // se recharge plus : sans ce correctif, le modal restait ouvert après une
+    // action réussie, alors même que la ligne concernée avait bien été mise
+    // à jour/retirée en arrière-plan et qu'un toast confirmait l'action.
+    if (event.detail && event.detail.successful) {
+      var triggerEl = event.detail.elt;
+      var modalEl = triggerEl && triggerEl.closest && triggerEl.closest('.modal');
+      if (modalEl) {
+        var modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      }
+    }
+
+    var xhr = event.detail && event.detail.xhr;
+    var header = xhr && xhr.getResponseHeader && xhr.getResponseHeader('HX-Trigger');
+    if (!header) {
+      return;
+    }
+    var payload;
+    try {
+      payload = JSON.parse(header);
+    } catch (e) {
+      return;
+    }
+    var toastInfo = payload && payload.toast;
+    if (!toastInfo || !toastInfo.message) {
+      return;
+    }
+    var container = document.getElementById('admToastContainer');
+    if (!container) {
+      return;
+    }
+    var category = toastInfo.category || 'success';
+    var toastEl = document.createElement('div');
+    toastEl.className = 'toast align-items-center text-bg-' + category + ' border-0';
+    toastEl.setAttribute('role', 'status');
+    toastEl.setAttribute('aria-live', 'polite');
+    toastEl.setAttribute('aria-atomic', 'true');
+    toastEl.innerHTML =
+      '<div class="d-flex">' +
+        '<div class="toast-body"></div>' +
+        '<button type="button" class="btn-close ' + admToastCloseButtonClass(category) + ' me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>' +
+      '</div>';
+    // textContent (jamais innerHTML) : le nom d'application inclus dans le
+    // message vient des données utilisateur et ne doit pas être interprété
+    // comme du HTML.
+    toastEl.querySelector('.toast-body').textContent = toastInfo.message;
+    container.appendChild(toastEl);
+    // Même fonction d'activation que les toasts rendus par le serveur
+    // (messages flash) : apparence, délai et nettoyage du DOM identiques
+    // quelle que soit l'origine du message (voir le script précédent).
+    admActivateToast(toastEl);
   });
 </script>
 {% block extra_scripts %}{% endblock %}

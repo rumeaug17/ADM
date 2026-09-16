@@ -2,120 +2,117 @@
 
 {% block title %}ADM - Ajouter une application{% endblock %}
 
-{% block extra_head %}
-<style>
-    .card {
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    </style>
-{% endblock %}
-
 {% block content %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="mt-2">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<h2 class="text-center text-primary mb-4"><i class="bi bi-plus-circle" aria-hidden="true"></i> Ajouter une application</h2>
+
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  <div class="card p-4 my-3">
+    <h3><i class="bi bi-card-list" aria-hidden="true"></i> Informations générales</h3>
+    <div class="row g-3 mt-1">
+      <div class="col-md-6">
+        <div class="form-floating">
+          <input type="text" name="name" id="app-name" class="form-control" placeholder="Nom de l'application" required>
+          <label for="app-name">Nom de l'application</label>
         </div>
-      {% endfor %}
+      </div>
+      <div class="col-md-6">
+        <div class="form-floating">
+          <input type="text" name="rda" id="app-rda" class="form-control" placeholder="Nom du RDA" required>
+          <label for="app-rda">Nom du RDA</label>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-floating">
+          <input type="date" name="possession" id="app-possession" class="form-control" placeholder="Date de première possession" required>
+          <label for="app-possession">Date de première possession</label>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Type d'application :</label>
+        <select name="type_app" class="form-select">
+          <option value="Interne">Interne</option>
+          <option value="Editeur">Editeur</option>
+          <option value="Open source">Open source</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Type d'hébergement :</label>
+        <select name="hosting" class="form-select">
+          <option value="On prem">On prem</option>
+          <option value="Hybride">Hybride</option>
+          <option value="Cloud">Cloud</option>
+          <option value="SaaS">SaaS</option>
+        </select>
+      </div>
     </div>
-  {% endif %}
-{% endwith %}    
-	<h2 class="text-center text-primary mb-4">➕ Ajouter une application</h2>
-    <div class="card p-4">
-      <form method="post">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <div class="mb-3">
-          <label class="form-label">Nom de l'application :</label>
-          <input type="text" name="name" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Nom du RDA :</label>
-          <input type="text" name="rda" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Date de première possession :</label>
-          <input type="date" name="possession" class="form-control" required>
-        </div>
-		<div class="mb-3">
-		  <label class="form-label">Type d'application :</label>
-		  <select name="type_app" class="form-select">
-			<option value="Interne">Interne</option>
-			<option value="Editeur">Editeur</option>
-			<option value="Open source">Open source</option>
-		  </select>
-		</div>
-		<div class="mb-3">
-		  <label class="form-label">Type d'hébergement :</label>
-		  <select name="hosting" class="form-select">
-			<option value="On prem">On prem</option>
-			<option value="Hybride">Hybride</option>
-			<option value="Cloud">Cloud</option>
-			<option value="SaaS">SaaS</option>
-		  </select>
-		</div>
-		<div class="mb-3">
-		  <label class="form-label">Criticité :
-			<button type="button" class="info-icon" data-key="app-criticite" aria-label="Aide pour Criticité">?</button>
-		  </label>
-		  <select name="criticite" class="form-select">
-			<option value="1">Solution critique majeure (Criticité très élevée)</option>
-			<option value="2">Solution stratégique (Criticité élevée)</option>
-			<option value="3">Solution de support (Criticité moyenne)</option>
-			<option value="4" selected>Solution non critique (Criticité faible)</option>
-		  </select>
-		</div>
-        <div class="mb-3">
-          <label class="form-label">Disponibilité :
-			<button type="button" class="info-icon" data-key="app-disponibilite" aria-label="Aide pour Disponibilité">?</button>
-		  </label>
-          <select name="disponibilite" class="form-select">
-            <option value="D1">Faible</option>
-            <option value="D2">Moyenne</option>
-            <option value="D3">Élevée</option>
-            <option value="D4">Critique</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Intégrité :
-			<button type="button" class="info-icon" data-key="app-integrite" aria-label="Aide pour Intégrité">?</button>
-		  </label>
-          <select name="integrite" class="form-select">
-            <option value="I1">Faible</option>
-            <option value="I2">Moyenne</option>
-            <option value="I3">Élevée</option>
-            <option value="I4">Critique</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Confidentialité :
-			<button type="button" class="info-icon" data-key="app-confidentialite" aria-label="Aide pour Confidentialité">?</button>
-		  </label>
-          <select name="confidentialite" class="form-select">
-            <option value="C1">Faible</option>
-            <option value="C2">Moyenne</option>
-            <option value="C3">Élevée</option>
-            <option value="C4">Critique</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Pérennité :
-			<button type="button" class="info-icon" data-key="app-perennite" aria-label="Aide pour Pérennité">?</button>
-		  </label>
-          <select name="perennite" class="form-select">
-            <option value="P1">Faible</option>
-            <option value="P2">Moyenne</option>
-            <option value="P3">Élevée</option>
-            <option value="P4">Critique</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Ajouter</button>
-      </form>
+  </div>
+
+  <div class="card p-4 my-3">
+    <h3><i class="bi bi-shield-check" aria-hidden="true"></i> Classification de sécurité</h3>
+    <div class="row g-3 mt-1">
+      <div class="col-md-6 col-lg-4">
+        <label class="form-label">Criticité :
+          <button type="button" class="info-icon" data-key="app-criticite" aria-label="Aide pour Criticité">?</button>
+        </label>
+        <select name="criticite" class="form-select">
+          <option value="1">Solution critique majeure (Criticité très élevée)</option>
+          <option value="2">Solution stratégique (Criticité élevée)</option>
+          <option value="3">Solution de support (Criticité moyenne)</option>
+          <option value="4" selected>Solution non critique (Criticité faible)</option>
+        </select>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <label class="form-label">Disponibilité :
+          <button type="button" class="info-icon" data-key="app-disponibilite" aria-label="Aide pour Disponibilité">?</button>
+        </label>
+        <select name="disponibilite" class="form-select">
+          <option value="D1">Faible</option>
+          <option value="D2">Moyenne</option>
+          <option value="D3">Élevée</option>
+          <option value="D4">Critique</option>
+        </select>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <label class="form-label">Intégrité :
+          <button type="button" class="info-icon" data-key="app-integrite" aria-label="Aide pour Intégrité">?</button>
+        </label>
+        <select name="integrite" class="form-select">
+          <option value="I1">Faible</option>
+          <option value="I2">Moyenne</option>
+          <option value="I3">Élevée</option>
+          <option value="I4">Critique</option>
+        </select>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <label class="form-label">Confidentialité :
+          <button type="button" class="info-icon" data-key="app-confidentialite" aria-label="Aide pour Confidentialité">?</button>
+        </label>
+        <select name="confidentialite" class="form-select">
+          <option value="C1">Faible</option>
+          <option value="C2">Moyenne</option>
+          <option value="C3">Élevée</option>
+          <option value="C4">Critique</option>
+        </select>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <label class="form-label">Pérennité :
+          <button type="button" class="info-icon" data-key="app-perennite" aria-label="Aide pour Pérennité">?</button>
+        </label>
+        <select name="perennite" class="form-select">
+          <option value="P1">Faible</option>
+          <option value="P2">Moyenne</option>
+          <option value="P3">Élevée</option>
+          <option value="P4">Critique</option>
+        </select>
+      </div>
     </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check-lg" aria-hidden="true"></i> Ajouter</button>
+</form>
 
 {% endblock %}
 

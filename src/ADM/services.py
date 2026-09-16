@@ -25,6 +25,17 @@ ScoreMap: TypeAlias = dict[str, int | None]
 # standard de 0 à 3 pour toutes les options du questionnaire).
 MAX_OPTION_SCORE: Final = 3
 
+# Couleur de marque (vert forêt validé en Phase 0, voir app.css : jeton
+# --adm-primary/--bs-primary) utilisée pour le tracé et le remplissage du
+# graphique radar PNG (`generate_radar_chart`, ci-dessous). Corrigé (US4.1,
+# post-Phase 6) : ce PNG restait en bleu par défaut de matplotlib, la seule
+# couleur du radar que la Phase 6 n'avait pas alignée sur le reste de
+# l'application — la version interactive Chart.js, elle, utilisait déjà
+# cette même teinte (`ADM_RADAR_COLOR`, voir static/radar_charts.js). Cette
+# constante doit rester synchronisée avec les deux (valeur dupliquée, faute
+# de pouvoir partager une variable entre Python, CSS et JavaScript).
+_RADAR_CHART_COLOR: Final = "#0e6b5c"
+
 # Niveaux DICP valides (1 à 4), utilisés pour valider disponibilité, intégrité,
 # confidentialité et pérennité avant le calcul du risque.
 _DICP_LEVELS: Final = frozenset({"1", "2", "3", "4"})
@@ -305,10 +316,23 @@ def axis_scores(
     return {key: round(sum(items) / len(items), 2) if items else 0 for key, items in values.items()}
 
 
+def _radar_chart_bounds(scores_by_axis: Mapping[str, float]) -> tuple[list[str], list[float], int]:
+    """Calcule les catégories, les scores et la borne maximale d'échelle
+    (arrondie au supérieur, au moins 1) communes aux deux représentations du
+    radar chart : le PNG matplotlib (``generate_radar_chart``, conservé
+    comme repli sans JavaScript et pour l'impression/l'export) et les
+    données JSON du graphique interactif Chart.js (``radar_chart_data``,
+    Phase 6). Factoriser ce calcul garantit que les deux affichent
+    rigoureusement la même échelle, sans jamais pouvoir diverger."""
+    categories = list(scores_by_axis)
+    scores = list(scores_by_axis.values())
+    maximum = max(1, math.ceil(max(scores))) if scores else 3
+    return categories, scores, maximum
+
+
 def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     """Produit un graphique radar PNG encodé en base64."""
-    categories, scores = list(scores_by_axis), list(scores_by_axis.values())
-    maximum = max(1, math.ceil(max(scores))) if scores else 3
+    categories, scores, maximum = _radar_chart_bounds(scores_by_axis)
     scores += scores[:1]
     angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     angles += angles[:1]
@@ -320,11 +344,25 @@ def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     axis.set_xticks(angles[:-1])
     axis.set_xticklabels(categories)
     axis.set_ylim(-1, maximum)
-    axis.plot(angles, scores, color="blue", linewidth=2)
-    axis.fill(angles, scores, color="blue", alpha=0.25)
+    axis.plot(angles, scores, color=_RADAR_CHART_COLOR, linewidth=2)
+    axis.fill(angles, scores, color=_RADAR_CHART_COLOR, alpha=0.25)
     buffer = io.BytesIO()
     figure.savefig(buffer, format="png", bbox_inches="tight")
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
+def radar_chart_data(scores_by_axis: Mapping[str, float]) -> JsonData:
+    """Produit la même information que ``generate_radar_chart``, au format
+    attendu par le graphique radar interactif Chart.js côté client (Phase 6,
+    US4.1) : mêmes catégories (``labels``), mêmes scores (``scores``) et même
+    borne maximale d'échelle (``max``, voir ``_radar_chart_bounds``) que le
+    PNG, pour que les deux représentations restent visuellement cohérentes.
+    Exposée à la fois via une route JSON dédiée (comparaison d'une
+    application depuis la synthèse) et directement intégrée aux pages qui
+    calculent déjà ces scores pour leur propre rendu (résumé d'application,
+    radar moyen de la synthèse), sans aller-retour réseau supplémentaire."""
+    categories, scores, maximum = _radar_chart_bounds(scores_by_axis)
+    return {"labels": categories, "scores": scores, "max": maximum}
 
 
 class RadarChartCache:

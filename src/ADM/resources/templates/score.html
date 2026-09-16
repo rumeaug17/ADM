@@ -2,64 +2,15 @@
 
 {% block title %}ADM - Évaluation {{ application.name }}{% endblock %}
 
-{% block extra_head %}
-    <style>
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .form-select {
-            width: 100%;
-        }
-        h3 {
-            background-color: #0d6efd;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-			font-weight: bold;
-        }
-	.label {
-		font-weight: bold;
-		margin-top: 15px;
-	}
-        button {
-            margin-top: 15px;
-        }
-        /* Tâche 4.8 : bouton de soumission persistant en bas d'écran pour un
-           formulaire potentiellement très long. */
-        .eval-actions {
-            position: sticky;
-            bottom: 0;
-            background-color: #fff;
-            padding-top: 10px;
-            padding-bottom: 10px;
-            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
-            z-index: 20;
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="mt-2">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}	
-    <h2 class="text-center text-primary">✅ Évaluation : <strong>{{ application.name }}</strong></h2>
+    <h2 class="text-center text-primary"><i class="bi bi-check-circle" aria-hidden="true"></i> Évaluation : <strong>{{ application.name }}</strong></h2>
 
     <!-- Tâche 4.8 : repère de progression et sommaire d'ancres par catégorie,
          pour un formulaire potentiellement très long. -->
     <div class="card p-3 my-3" id="evaluationProgress">
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-        <h3 class="mb-0">📈 Progression</h3>
+        <h3 class="mb-0"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Progression</h3>
         <span id="progressLabel" class="fw-bold">0/0 questions répondues</span>
       </div>
       <div class="progress" role="progressbar" aria-label="Progression de l'évaluation"
@@ -70,7 +21,7 @@
         <ul class="list-inline mb-0">
           {% for category, questions_list in questions.items() %}
           <li class="list-inline-item mb-2">
-            <a href="#category-{{ loop.index }}" class="btn btn-sm btn-outline-primary">{{ category }}</a>
+            <a href="#category-{{ loop.index }}" class="btn btn-sm btn-outline-primary rounded-pill">{{ category }}</a>
           </li>
           {% endfor %}
         </ul>
@@ -81,14 +32,14 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 	    
 		<div class="card p-4 my-3">
-            <h3>👤 Évaluateur</h3>
+            <h3><i class="bi bi-person" aria-hidden="true"></i> Évaluateur</h3>
             <label>Nom de l'évaluateur :</label>
             <input type="text" name="evaluator_name" class="form-control" value="{{ application.evaluator_name if application.evaluator_name else application.rda }}">
         </div>
 
 		{% for category, questions_list in questions.items() %}
 		<div class="card p-4 my-3" id="category-{{ loop.index }}">
-				<h3>{{ category }}</h3>
+				<h3><i class="bi bi-folder2-open" aria-hidden="true"></i> {{ category }}</h3>
 			{% for key, question in questions_list.items() %}
 			<label class="label">{{ question.label }} :
 					<button type="button" class="info-icon" data-key="{{ key }}" aria-label="Aide pour {{ question.label }}">?</button>
@@ -103,7 +54,7 @@
 					{% endfor %}
 			</select>
 			{% endif %}
-			<label class="comment" for="{{ key }}_comment">Commentaire :</label>
+			<label class="comment text-muted small" for="{{ key }}_comment">Commentaire :</label>
 			<textarea id="{{ key }}_comment" name="{{ key }}_comment" class="form-control" aria-describedby="{{ key }}_comment_feedback">{{ application.comments.get(key ~ '_comment', '') }}</textarea>
 			<div id="{{ key }}_comment_feedback" class="invalid-feedback">Ce commentaire est obligatoire.</div>
 			{% endfor %}
@@ -111,9 +62,9 @@
 		{% endfor %}
 
         <div class="eval-actions">
-          <button type="submit" id="submitEval" class="btn btn-primary w-100">📊 Mettre à jour le Score</button>
+          <button type="submit" id="submitEval" class="btn btn-primary w-100"><i class="bi bi-bar-chart" aria-hidden="true"></i> Mettre à jour le Score</button>
           <!-- Bouton pour enregistrer le brouillon -->
-          <button type="submit" name="save_draft" value="true" class="btn btn-secondary w-100 mt-2">📝 Enregistrer brouillon</button>
+          <button type="submit" name="save_draft" value="true" class="btn btn-secondary w-100 mt-2"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Enregistrer brouillon</button>
         </div>
     </form>
 
