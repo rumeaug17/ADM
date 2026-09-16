@@ -33,7 +33,7 @@
         <ul class="list-inline mb-0">
           {% for category, questions_list in questions.items() %}
           <li class="list-inline-item mb-2">
-            <a href="#category-{{ loop.index }}" class="btn btn-sm btn-outline-primary">{{ category }}</a>
+            <a href="#category-{{ loop.index }}" class="btn btn-sm btn-outline-primary rounded-pill">{{ category }}</a>
           </li>
           {% endfor %}
         </ul>
@@ -51,7 +51,7 @@
 
 		{% for category, questions_list in questions.items() %}
 		<div class="card p-4 my-3" id="category-{{ loop.index }}">
-				<h3>{{ category }}</h3>
+				<h3><i class="bi bi-folder2-open" aria-hidden="true"></i> {{ category }}</h3>
 			{% for key, question in questions_list.items() %}
 			<label class="label">{{ question.label }} :
 					<button type="button" class="info-icon" data-key="{{ key }}" aria-label="Aide pour {{ question.label }}">?</button>
@@ -66,7 +66,7 @@
 					{% endfor %}
 			</select>
 			{% endif %}
-			<label class="comment" for="{{ key }}_comment">Commentaire :</label>
+			<label class="comment text-muted small" for="{{ key }}_comment">Commentaire :</label>
 			<textarea id="{{ key }}_comment" name="{{ key }}_comment" class="form-control" aria-describedby="{{ key }}_comment_feedback">{{ application.comments.get(key ~ '_comment', '') }}</textarea>
 			<div id="{{ key }}_comment_feedback" class="invalid-feedback">Ce commentaire est obligatoire.</div>
 			{% endfor %}

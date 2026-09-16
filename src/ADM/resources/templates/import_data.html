@@ -3,8 +3,23 @@
 {% block title %}Importation des données - ADM{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <h2 class="text-primary">Réimporter les données</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mt-2">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<h2 class="text-center text-primary mb-4"><i class="bi bi-upload" aria-hidden="true"></i> Réimporter les données</h2>
+
+<div class="card p-4">
   <p>Vous pouvez réimporter un fichier JSON précédemment sauvegardé contenant toutes les données et l'historique des évaluations.</p>
   <form method="POST" action="{{ url_for('exports.import_data') }}" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -12,14 +27,17 @@
       <label for="file" class="form-label">Sélectionnez le fichier JSON à importer :</label>
       <input type="file" class="form-control" id="file" name="file" accept=".json" required>
     </div>
-    <!-- Ajout d'une zone pour la confirmation -->
     <div class="mb-3">
       <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
         Attention : cela supprimera TOUTE la base et remplacera les données par celles du fichier importé.
       </div>
     </div>
-    <button type="submit" class="btn btn-danger">Confirmer l'importation</button>
-    <a href="{{ url_for('applications.index') }}" class="btn btn-secondary">Annuler</a>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-danger"><i class="bi bi-upload" aria-hidden="true"></i> Confirmer l'importation</button>
+      <a href="{{ url_for('applications.index') }}" class="btn btn-secondary">Annuler</a>
+    </div>
   </form>
 </div>
+
 {% endblock %}

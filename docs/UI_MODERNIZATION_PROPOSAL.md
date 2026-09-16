@@ -167,14 +167,15 @@ Jinja, sans toucher aux routes), `resume.html` (sections plus aérées) et
 `synthese.html` (cartes KPI et tableau redessinés avec les nouvelles
 couleurs sémantiques).
 
-**Phase 3 — Formulaires et pages secondaires (2 à 3 jours).** Étendre le
-design system à `score.html` (en conservant impérativement la barre de
-progression, le sommaire d'ancres et la validation des commentaires
-obligatoires, uniquement réhabillés), `add.html`, `edit.html`, `login.html`,
-`accounts.html`, `questions_settings.html`, `question_form.html`,
-`settings.html`, `change_password.html`, `import_data.html` et
-`error.html`. Labels flottants Bootstrap pour les formulaires courts,
-popovers d'aide contextuelle conservés à l'identique fonctionnellement.
+**Phase 3 — Formulaires et pages secondaires (2 à 3 jours). Réalisée le
+2026-09-16 (voir section 14).** Étendre le design system à `score.html` (en
+conservant impérativement la barre de progression, le sommaire d'ancres et
+la validation des commentaires obligatoires, uniquement réhabillés),
+`add.html`, `edit.html`, `login.html`, `accounts.html`,
+`questions_settings.html`, `question_form.html`, `settings.html`,
+`change_password.html`, `import_data.html` et `error.html`. Labels flottants
+Bootstrap pour les formulaires courts, popovers d'aide contextuelle
+conservés à l'identique fonctionnellement.
 
 **Phase 4 — Interactivité progressive avec htmx et Alpine.js (3 à 5
 jours).** Faire gagner en fluidité les actions qui rechargent aujourd'hui
@@ -440,12 +441,109 @@ commit créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 13. Prochaine étape immédiate
+## 14. Suivi — Phase 3 réalisée
 
-Après revue et merge de la Phase 2, ouvrir la Phase 3 (formulaires et pages
-secondaires : `score.html`, `add.html`, `edit.html`, `login.html`,
-`accounts.html`, `questions_settings.html`, `question_form.html`,
-`settings.html`, `change_password.html`, `import_data.html`, `error.html`)
-comme prochain ticket de développement, en conservant impérativement la
-barre de progression, le sommaire d'ancres et la validation des commentaires
-obligatoires de `score.html`, uniquement réhabillés.
+Implémentée le 2026-09-16, depuis la même session cloud liée au poste de
+Guillaume Rumeau (toujours pas d'accès `git`/shell sur ce poste depuis cette
+session : voir « Ce qui reste à faire côté utilisateur » ci-dessous).
+
+**Ce qui a été fait.** `login.html` et `change_password.html` (formulaires
+courts par excellence) passent en labels flottants Bootstrap
+(`form-floating`) pour tous leurs champs, dans une carte centrée. `add.html`
+et `edit.html` sont réorganisés en deux cartes thématiques (« Informations
+générales » et « Classification de sécurité ») disposées en grille
+responsive (`row g-3`), avec labels flottants sur les trois champs courts
+(nom, RDA, date de première possession) ; les listes déroulantes et les
+boutons d'aide contextuelle (`?`) restent des `<select>`/`<button>` Bootstrap
+classiques, inchangés fonctionnellement. `score.html` reçoit un traitement
+plus mesuré, conformément à la consigne de ne pas toucher au sommaire
+d'ancres, à la barre de progression ni à la validation des commentaires
+obligatoires : les puces du sommaire passent en pastilles arrondies
+(`rounded-pill`), chaque carte de catégorie reçoit une icône dans son
+bandeau de titre, et le libellé « Commentaire : » gagne un style discret
+(`text-muted small`, nouvelle règle `.comment` dans `app.css`) pour mieux se
+distinguer visuellement de la question elle-même. `accounts.html` voit son
+tableau enveloppé dans une carte `table-responsive`, comme les autres pages
+de liste depuis la Phase 2. `questions_settings.html` et `settings.html`
+reçoivent des icônes Bootstrap Icons sur leurs titres de section, pour
+rester cohérents avec le reste de l'application. `import_data.html` et
+`error.html`, qui n'avaient jamais été touchés depuis l'introduction du
+design system, passent au même gabarit que les autres pages : titre avec
+icône, formulaire/contenu dans une `.card`, bloc de messages flash ajouté
+sur `import_data.html` par cohérence avec le reste de l'application (ce
+chemin n'est actuellement jamais emprunté par la route, qui redirige
+toujours vers le catalogue en cas d'erreur, mais le bloc reste sans effet
+tant que ce comportement ne change pas). `question_form.html` n'a pas été
+modifié : sa structure (labels Bootstrap classiques, `textarea`, cases à
+cocher `form-check-inline`) était déjà conforme au design system depuis son
+introduction, sans nécessiter de réhabillage supplémentaire.
+
+**Écarts volontaires par rapport au plan initial, documentés ici pour la
+revue** :
+- Le bouton d'aide contextuelle conserve strictement le préfixe
+  `<button type="button" class="info-icon"` sur `add.html`, `edit.html` et
+  `score.html`, requis à l'identique par
+  `tests/test_help_widget.py::test_help_icons_render_as_accessible_popover_buttons` :
+  aucun attribut n'a été inséré entre `type="button"` et `class="info-icon"`.
+- Le sommaire d'ancres, la barre de progression (`id="evaluationProgressBar"`,
+  `role="progressbar"`) et l'indicateur « X/Y questions répondues » de
+  `score.html` sont strictement inchangés, de même que l'attribut littéral
+  `id="category-{{ loop.index }}"` requis par
+  `tests/test_score_progress_indicator.py` ; seule la classe
+  `rounded-pill` (utilitaire Bootstrap natif, pas une nouvelle règle CSS) a
+  été ajoutée aux liens du sommaire.
+- Le formulaire de suppression de compte (`accounts.html`) conserve
+  exactement `onsubmit="return confirm('Supprimer définitivement ce compte
+  ?');"`, vérifié par
+  `tests/test_routes_accounts.py` (le message de confirmation n'interpole
+  jamais le nom du compte, donc le test qui vérifie l'absence du nom
+  d'utilisateur dans cet attribut continue de passer).
+- Les attributs `name="..."` de tous les champs de formulaire (`category`,
+  `key`, `option_value`, `score_warning`, etc., vérifiés par
+  `tests/test_routes_questions.py` et `tests/test_routes_settings.py`) et le
+  marqueur `name="csrf_token" value="` (utilisé par l'extracteur de jeton CSRF
+  de `tests/test_routes_auth.py`) sont strictement inchangés ; seule leur
+  présentation (regroupement en cartes, labels flottants) a changé.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux Phases 1
+et 2, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 275
+tests passés, couverture 87,81 % (seuil 86 % maintenu), résultat strictement
+identique aux Phases 1 et 2 — aucune régression introduite. Les 7 échecs
+restants (`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le
+même problème de fins de ligne CRLF préexistant, sans rapport avec cette
+Phase 3.
+
+**Ce qui reste à faire côté utilisateur.** Comme aux Phases 1 et 2, cette
+session cloud n'a pas accès à `git`/un shell sur ce poste : les 11 fichiers
+modifiés (`static/css/app.css`, `templates/login.html`,
+`templates/change_password.html`, `templates/add.html`,
+`templates/edit.html`, `templates/accounts.html`,
+`templates/questions_settings.html`, `templates/settings.html`,
+`templates/import_data.html`, `templates/error.html`, `templates/score.html`)
+ont été déposés directement dans `C:\usr\ADM` via la liaison au poste, sans
+branche ni commit créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `feature/us4-1-phase3-formulaires`) et
+   vérifier le statut `git` pour confirmer la liste des fichiers modifiés
+   (les 11 ci-dessus, aucun autre — `question_form.html` n'a pas été
+   modifié).
+2. Relire le diff, en particulier `add.html`/`edit.html` (réorganisation en
+   deux cartes) et les nouveaux labels flottants.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur (clair et sombre) sur la
+   connexion, l'ajout/modification d'une application, l'évaluation, les
+   comptes, la configuration et l'import de données.
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 15. Prochaine étape immédiate
+
+Après revue et merge de la Phase 3, ouvrir la Phase 4 (interactivité
+progressive avec htmx et Alpine.js : actions du catalogue et filtres de la
+synthèse rafraîchis en fragment plutôt qu'en page complète, toasts après
+action, menu mobile et bascule de thème en Alpine.js) comme prochain ticket
+de développement — la première phase qui fait évoluer les routes Flask
+elles-mêmes (renvoi conditionnel d'un fragment de template), toujours sans
+abandonner le rendu serveur par templates Jinja.

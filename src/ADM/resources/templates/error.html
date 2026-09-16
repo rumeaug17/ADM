@@ -3,9 +3,9 @@
 {% block title %}Erreur - ADM{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h2 class="text-danger">Une erreur est survenue</h2>
+<div class="card p-4 text-center" style="max-width: 560px; margin: 0 auto;">
+    <h2 class="text-danger"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> Une erreur est survenue</h2>
     <p>{{ error_message }}</p>
-    <a href="{{ url_for('applications.index') }}" class="btn btn-primary">Retour à l'accueil</a>
+    <a href="{{ url_for('applications.index') }}" class="btn btn-primary"><i class="bi bi-arrow-left" aria-hidden="true"></i> Retour à l'accueil</a>
 </div>
 {% endblock %}

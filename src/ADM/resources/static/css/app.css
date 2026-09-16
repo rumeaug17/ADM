@@ -28,6 +28,16 @@
    du catalogue garde exactement `class="table table-bordered text-center"`
    dans une carte englobante, plutôt que d'adopter le nom de classe
    `.table-adm` de la maquette).
+
+   La Phase 3 (formulaires et pages secondaires — score.html, add.html,
+   edit.html, login.html, accounts.html, questions_settings.html,
+   settings.html, change_password.html, import_data.html, error.html)
+   ajoute la section « Commentaire du formulaire d'évaluation » ci-dessous ;
+   le reste du réhabillage de cette phase s'appuie sur les composants
+   Bootstrap déjà en place (cartes, `.form-floating`, `rounded-pill`) sans
+   nouvelle classe utilitaire, toujours sans changer les attributs de nom de
+   champ (`name="..."`) ni le bouton d'aide `<button type="button"
+   class="info-icon" ...>` vérifié par tests/test_help_widget.py.
    ========================================================================= */
 
 :root {
@@ -360,6 +370,16 @@ tr:hover {
   padding-bottom: 10px;
   box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
   z-index: 20;
+}
+
+/* ---------- Commentaire du formulaire d'évaluation (score.html, Phase 3) -
+   Le libellé "Commentaire :" n'avait jusqu'ici aucun style propre ; un texte
+   discret (comme le libellé de commentaire de mockups/evaluation.html)
+   distingue mieux la question elle-même (`.label`, en gras) du champ de
+   commentaire qui la suit. */
+.comment {
+  display: block;
+  margin-top: 6px;
 }
 
 /* ---------- Formulaire de question (question_form.html) ----------------- */

@@ -72,11 +72,25 @@ Les tâches réalisées sont retirées du fichier.
   (`synthese.html`) avec cartes KPI et tableaux redessinés (nouvelles
   couleurs sémantiques). Aucune route Flask modifiée, aucun test cassé
   (275 tests, 87,81 %, identique à la Phase 1 — détail et écarts volontaires
-  en section 12 de `docs/UI_MODERNIZATION_PROPOSAL.md`). Reste, côté
-  utilisateur (session cloud sans accès `git` sur ce poste) : créer une
-  branche, relire le diff, relancer les vérifications localement et
-  commiter (détail dans le document). Prochaine étape de développement :
-  Phase 3 (formulaires et pages secondaires).
+  en section 12 de `docs/UI_MODERNIZATION_PROPOSAL.md`). Phase 3 (formulaires
+  et pages secondaires) réalisée le 2026-09-16 : labels flottants Bootstrap
+  sur `login.html`/`change_password.html` (formulaires courts) et sur les
+  trois champs courts d'`add.html`/`edit.html`, désormais regroupés en deux
+  cartes thématiques ; `score.html` réhabillé sans toucher au sommaire
+  d'ancres, à la barre de progression ni à la validation des commentaires
+  obligatoires (Tâches 4.7/4.8, conservées) ; `accounts.html` aligné sur le
+  patron `table-responsive` des autres pages de liste ; icônes ajoutées sur
+  `questions_settings.html`/`settings.html` ; `import_data.html` et
+  `error.html`, jamais retouchés depuis l'introduction du design system,
+  passent au même gabarit que le reste de l'application ;
+  `question_form.html` inchangé (déjà conforme). Aucune route Flask
+  modifiée, aucun test cassé (275 tests, 87,81 %, identique aux Phases 1 et
+  2 — détail et écarts volontaires en section 14 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Reste, côté utilisateur (session
+  cloud sans accès `git` sur ce poste) : créer une branche, relire le diff,
+  relancer les vérifications localement et commiter (détail dans le
+  document). Prochaine étape de développement : Phase 4 (interactivité
+  progressive avec htmx et Alpine.js).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

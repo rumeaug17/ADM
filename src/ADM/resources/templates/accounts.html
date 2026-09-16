@@ -24,7 +24,9 @@
   </button>
 </div>
 
-<table class="table table-bordered text-center">
+<div class="card p-2 p-md-3">
+<div class="table-responsive">
+<table class="table table-bordered text-center mb-0">
   <thead>
     <tr>
       <th>Nom d'utilisateur</th>
@@ -83,6 +85,8 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
+</div>
 
 {% for account in accounts %}
   {% if local_auth %}
