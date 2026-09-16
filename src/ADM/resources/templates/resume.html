@@ -4,20 +4,20 @@
 
 {% block content %}
 
-  <h2 class="text-center text-primary">Résumé de l'application : {{ app.name }}</h2>
-
-  {% if session.role != 'readonly' %}
-  <!-- Boutons d'action -->
-  <div class="d-flex justify-content-between my-3">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <h2 class="fw-bold text-primary mb-0"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Résumé de l'application : {{ app.name }}</h2>
+    {% if session.role != 'readonly' %}
+    <div class="d-flex gap-2">
       <a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application"><i class="bi bi-pencil-square" aria-hidden="true"></i></a>
       <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application"><i class="bi bi-check-circle" aria-hidden="true"></i></a>
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
-  
+
   <!-- Détails de l'application -->
-  <div class="card">
+  <div class="card mb-4">
     <div class="card-header">
-      Détails de l'application
+      <i class="bi bi-info-circle" aria-hidden="true"></i> Détails de l'application
     </div>
     <div class="card-body">
       <p><strong>Nom :</strong> {{ app.name }}</p>
@@ -86,12 +86,12 @@
   </div>
   
   <!-- Affichage côte à côte des évaluations -->
-  <div class="row">
+  <div class="row g-4 mb-4">
     <!-- Évaluation Courante -->
     <div class="col-md-6">
-	  <div class="card">
+	  <div class="card h-100 mb-0">
 		<div class="card-header d-flex justify-content-between align-items-center">
-			<span>Évaluation Courante</span>
+			<span><i class="bi bi-clock-history" aria-hidden="true"></i> Évaluation Courante</span>
 			<!-- Élément placeholder invisible pour garder la même structure -->
 			<span class="btn btn-sm btn-link" style="visibility: hidden;">Comparaison</span>
 		</div>
@@ -110,9 +110,9 @@
     </div>
     <!-- Évaluation Précédente -->
     <div class="col-md-6">
-		<div class="card">
+		<div class="card h-100 mb-0">
 			<div class="card-header d-flex justify-content-between align-items-center">
-				<span>Évaluation Précédente</span>
+				<span><i class="bi bi-clock-history" aria-hidden="true"></i> Évaluation Précédente</span>
 				{% if app.evaluations and app.evaluations|length > 1 %}
 				  <button type="button" class="btn btn-sm btn-link" data-bs-toggle="modal" data-bs-target="#previousEvalModal" style="font-weight: normal; font-size: 0.9rem;">
 					Comparaison
@@ -138,12 +138,12 @@
   </div>
   
   <!-- Affichage côte à côte des scores par dimension -->
-  <div class="row">
+  <div class="row g-4 mb-4">
     <!-- Scores par Dimension (Évaluation Courante) -->
     <div class="col-md-6">
-      <div class="card">
+      <div class="card h-100 mb-0">
         <div class="card-header text-center">
-          Scores par Dimension (Évaluation Courante)
+          <i class="bi bi-bar-chart" aria-hidden="true"></i> Scores par Dimension (Évaluation Courante)
         </div>
         <div class="card-body">
           {% if category_sums %}
@@ -171,9 +171,9 @@
     </div>
     <!-- Scores par Dimension (Évaluation Précédente) -->
     <div class="col-md-6">
-      <div class="card">
+      <div class="card h-100 mb-0">
         <div class="card-header text-center">
-          Scores par Dimension (Évaluation Précédente)
+          <i class="bi bi-bar-chart" aria-hidden="true"></i> Scores par Dimension (Évaluation Précédente)
         </div>
         <div class="card-body">
           {% if previous_category_sums %}
@@ -202,9 +202,9 @@
   </div>
   
   <!-- Graphique Radar -->
-  <div class="card">
+  <div class="card mb-4">
     <div class="card-header text-center">
-      Graphique Radar
+      <i class="bi bi-graph-up" aria-hidden="true"></i> Graphique Radar
     </div>
     <div class="card-body text-center">
       <img src="data:image/png;base64,{{ radar_chart }}" alt="Radar Chart" class="img-fluid">

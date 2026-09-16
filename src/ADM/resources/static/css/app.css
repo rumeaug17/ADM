@@ -13,13 +13,21 @@
    vert sémantique "succès" (#198754) utilisé par les badges DICP/criticité,
    pour ne pas confondre couleur de marque et code couleur fonctionnel.
 
-   Cette Phase 1 ne change PAS la structure des gabarits ni leurs classes
+   La Phase 1 n'a pas changé la structure des gabarits ni leurs classes
    testées (voir tests/test_*_responsive.py, test_help_widget.py,
-   test_score_progress_indicator.py, test_synthese_kpi_grid.py) : elle
-   déplace du CSS existant vers ce fichier et le retinte avec les tokens
-   ci-dessous. La refonte visuelle des pages (nouvelles classes .card-adm,
-   .table-adm, .kpi-card, menu d'actions du catalogue, etc., déjà
-   esquissées dans mockups/) est prévue en Phase 2.
+   test_score_progress_indicator.py, test_synthese_kpi_grid.py) : elle a
+   déplacé du CSS existant vers ce fichier et l'a retinté avec les tokens
+   ci-dessous.
+
+   La Phase 2 (refonte visuelle du catalogue, de la fiche résumé et de la
+   synthèse — voir docs/UI_MODERNIZATION_PROPOSAL.md section 6) ajoute les
+   sections « Bandeau de navigation », « Cartes KPI » et « Tri/recherche du
+   catalogue » ci-dessous, et redessine le menu d'actions du catalogue en
+   menu contextuel (`⋯`) inspiré de mockups/catalogue.html — toujours sans
+   changer les classes protégées par les tests cités plus haut (le tableau
+   du catalogue garde exactement `class="table table-bordered text-center"`
+   dans une carte englobante, plutôt que d'adopter le nom de classe
+   `.table-adm` de la maquette).
    ========================================================================= */
 
 :root {
@@ -146,12 +154,37 @@ body {
   padding: 0;
 }
 .logo {
-  height: 50px;
+  height: 42px;
   margin-right: 15px;
+  padding: 4px;
+  border-radius: var(--adm-radius-sm);
+  background: rgba(255, 255, 255, 0.16);
 }
 main.container {
   margin-top: 30px;
   min-height: 70vh;
+}
+
+/* ---------- Bandeau de navigation (Phase 2) -----------------------------
+   `.navbar.bg-primary` (base.html) suit déjà --bs-primary/--bs-primary-rgb
+   (retintés plus haut) ; on ajoute ici un dégradé, un collage en haut de
+   page et des boutons plus compacts, inspirés de .navbar-adm dans
+   mockups/assets/mockup.css, sans renommer la classe Bootstrap utilisée
+   dans base.html. */
+.navbar.bg-primary {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: linear-gradient(120deg, var(--adm-primary), var(--adm-primary-strong) 130%) !important;
+  box-shadow: var(--adm-shadow-sm);
+}
+.navbar.bg-primary .btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+}
+.navbar.bg-primary .btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.65);
 }
 footer {
   background-color: var(--adm-primary);
@@ -282,6 +315,11 @@ tr:hover {
   background-color: var(--adm-danger) !important;
   color: #fff !important;
 }
+/* Phase 2 : badges arrondis en pilule (inspiré de .badge-pill-adm de la
+   maquette), appliqué à tous les badges existants sans renommer de classe. */
+.badge {
+  border-radius: 999px;
+}
 
 /* ---------- Flèches de tendance (resume.html) --------------------------- */
 .arrow {
@@ -336,4 +374,89 @@ tr:hover {
 }
 .option-row input[type="number"] {
   flex: 1;
+}
+
+/* ---------- Cartes KPI (synthese.html, Phase 2) -------------------------
+   Inspiré de .kpi-card/.kpi-icon dans mockups/assets/mockup.css : les 5
+   cartes de la grille `row-cols-*` (Tâche 4.10, structure inchangée)
+   passent d'un simple `bg-primary`/`bg-success`/... plat à une carte
+   dégradée avec pastille d'icône, sans changer les libellés ni le nombre de
+   colonnes vérifiés par tests/test_synthese_kpi_grid.py. */
+.kpi-card {
+  border-radius: var(--adm-radius-lg);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--adm-shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card .kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--adm-radius-sm);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  margin: 0 auto 0.6rem;
+}
+.kpi-card .kpi-label {
+  font-size: 0.82rem;
+  opacity: 0.92;
+}
+.kpi-card h2,
+.kpi-card h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.kpi-primary {
+  background: linear-gradient(135deg, #17907a, var(--adm-primary-strong));
+  color: #fff;
+}
+.kpi-success {
+  background: linear-gradient(135deg, #2fb872, #17663f);
+  color: #fff;
+}
+.kpi-warning {
+  background: linear-gradient(135deg, #ffcd45, #d98c00);
+  color: #3a2a00;
+}
+.kpi-warning .kpi-icon {
+  background: rgba(0, 0, 0, 0.1);
+}
+.kpi-danger {
+  background: linear-gradient(135deg, #ff6b6b, #b5202f);
+  color: #fff;
+}
+
+/* ---------- Tri et recherche instantanés du catalogue (Phase 2) --------
+   JavaScript pur côté client (voir index.html), sur les lignes déjà
+   rendues par Jinja : aucune route n'est modifiée. */
+.table-sort-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.table-sort-th:hover {
+  background-color: var(--adm-primary-strong);
+}
+.table-sort-th .bi {
+  font-size: 0.75em;
+  opacity: 0.6;
+  margin-left: 4px;
+}
+.table-sort-th.table-sort-active .bi {
+  opacity: 1;
+}
+
+/* ---------- Fiche résumé (resume.html, Phase 2) -------------------------
+   Sections plus aérées : en-têtes de carte plus marqués, sans changer la
+   structure (mêmes `.card`/`.card-header`/`.card-body` Bootstrap). */
+.card-header {
+  background-color: var(--adm-surface-2);
+  font-weight: 600;
+  padding: 0.85rem 1.1rem;
+}
+.card-body {
+  padding: 1.1rem 1.25rem;
 }

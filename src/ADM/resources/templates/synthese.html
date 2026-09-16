@@ -15,42 +15,47 @@
          balises "p" vides utilisées jusqu'ici comme espaceurs. -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 my-4 text-center">
       <div class="col">
-        <div class="card text-white bg-primary p-3 h-100">
-            <h4><i class="bi bi-collection" aria-hidden="true"></i> Nombre total d'applications</h4>
+        <div class="kpi-card kpi-primary p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-collection" aria-hidden="true"></i></div>
+            <div class="kpi-label">Nombre total d'applications</div>
             <h2>{{ total_apps }}</h2>
         </div>
       </div>
       <div class="col">
-        <div class="card text-white bg-success p-3 h-100">
-            <h4><i class="bi bi-star" aria-hidden="true"></i> Score moyen</h4>
+        <div class="kpi-card kpi-success p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-star" aria-hidden="true"></i></div>
+            <div class="kpi-label">Score moyen</div>
             <h2>{{ avg_score }}</h2>
         </div>
       </div>
       <div class="col">
-        <div class="card text-white bg-primary p-3 h-100">
-            <h4>Risque global</h4>
+        <div class="kpi-card kpi-primary p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-shield-exclamation" aria-hidden="true"></i></div>
+            <div class="kpi-label">Risque global</div>
 		{% if global_risk is not none %}
 		    {% if global_risk > display_thresholds.risk.critical %}
-		        <span class="badge bg-danger">{{ global_risk }}</span>
+		        <h2><span class="badge bg-danger">{{ global_risk }}</span></h2>
 		    {% elif global_risk > display_thresholds.risk.warning %}
-		        <span class="badge bg-warning">{{ global_risk }}</span>
+		        <h2><span class="badge bg-warning">{{ global_risk }}</span></h2>
 		    {% else %}
-		        <span class="badge bg-success">{{ global_risk }}</span>
+		        <h2><span class="badge bg-success">{{ global_risk }}</span></h2>
 		    {% endif %}
 		{% else %}
-		    <span>Non évalué</span>
+		    <h2><span>Non évalué</span></h2>
 		{% endif %}
         </div>
       </div>
       <div class="col">
-        <div class="card text-white bg-warning p-3 h-100">
-            <h4><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Applications &gt; {{ display_thresholds.score.warning|int }}%</h4>
+        <div class="kpi-card kpi-warning p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+            <div class="kpi-label">Applications &gt; {{ display_thresholds.score.warning|int }}%</div>
             <h2>{{ apps_above_warning }}</h2>
         </div>
       </div>
       <div class="col">
-        <div class="card text-white bg-score-high p-3 h-100">
-            <h4><i class="bi bi-fire" aria-hidden="true"></i> Applications &gt; {{ display_thresholds.score.critical|int }}%</h4>
+        <div class="kpi-card kpi-danger p-3 h-100">
+            <div class="kpi-icon"><i class="bi bi-fire" aria-hidden="true"></i></div>
+            <div class="kpi-label">Applications &gt; {{ display_thresholds.score.critical|int }}%</div>
             <h2>{{ apps_above_critical }}</h2>
         </div>
       </div>
@@ -60,33 +65,39 @@
 <div class="row my-4">
   <!-- Colonne du graphique radar -->
   <div class="col-md-6 text-center">
-    <img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes" class="img-fluid">
+    <div class="card p-2 p-md-3 h-100">
+      <img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes" class="img-fluid">
+    </div>
   </div>
   <!-- Colonne du tableau des meilleurs scores par catégorie -->
   <div class="col-md-6">
-    <h3 class="text-center">Pires scores par catégorie</h3>
-    <table class="table table-bordered text-center">
-      <thead>
-        <tr>
-          <th>Application</th>
-          <th>Catégorie</th>
-          <th>Score</th>
-        </tr>
-      </thead>
-	  <tbody>
-        {% for app, entries in best_grouped.items() %}
-          {% for entry in entries %}
+    <div class="card p-2 p-md-3 h-100">
+      <h3 class="text-center"><i class="bi bi-graph-down" aria-hidden="true"></i> Pires scores par catégorie</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered text-center mb-0">
+          <thead>
             <tr>
-              {% if loop.first %}
-                <td rowspan="{{ entries|length }}"><strong><a href="/resume/{{ app }}">{{ app }}</a></strong></td>
-              {% endif %}
-              <td>{{ entry[0] }}</td>
-              <td>{{ entry[1] }}</td>
+              <th>Application</th>
+              <th>Catégorie</th>
+              <th>Score</th>
             </tr>
-          {% endfor %}
-        {% endfor %}
-      </tbody>
-    </table>
+          </thead>
+          <tbody>
+            {% for app, entries in best_grouped.items() %}
+              {% for entry in entries %}
+                <tr>
+                  {% if loop.first %}
+                    <td rowspan="{{ entries|length }}"><strong><a href="/resume/{{ app }}">{{ app }}</a></strong></td>
+                  {% endif %}
+                  <td>{{ entry[0] }}</td>
+                  <td>{{ entry[1] }}</td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -96,7 +107,9 @@
     <a href="?filter_score=warning" class="btn btn-warning {% if filter_score == 'warning' %}active{% endif %}">&gt; {{ display_thresholds.score.warning|int }}%</a>
     <a href="?filter_score=critical" class="btn btn-danger {% if filter_score == 'critical' %}active{% endif %}">&gt; {{ display_thresholds.score.critical|int }}%</a>
 </div>
-    <table class="table table-bordered text-center">
+    <div class="card p-2 p-md-3">
+    <div class="table-responsive">
+    <table class="table table-bordered text-center mb-0">
         <thead>
             <tr>
                 <th>Nom</th>
@@ -142,21 +155,23 @@
 							<span class="badge bg-success">{{ risk }}</span>
 						{% endif %}
 					{% endif %}
-				</td>				
+				</td>
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
 		<td>
 			<button type="button"
-                  class="btn btn-sm btn-info"
+                  class="btn btn-sm btn-outline-primary"
                   data-bs-toggle="modal"
                   data-bs-target="#radarModal"
                   data-appname="{{ app.name }}">
-            Radar...
+            <i class="bi bi-graph-up" aria-hidden="true"></i> Radar
           </button>
 		</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    </div>
+    </div>
 
 	<!-- Modal pour afficher le graphique radar d'une application -->
 <div class="modal fade" id="radarModal" tabindex="-1" aria-labelledby="radarModalLabel" aria-hidden="true">

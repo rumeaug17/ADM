@@ -16,8 +16,12 @@
     </div>
   {% endif %}
 {% endwith %}
-    <h2 class="text-center text-primary"><i class="bi bi-journal-text" aria-hidden="true"></i> Catalogue des Applications</h2>
-    <div class="d-flex justify-content-between my-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+      <div>
+        <h2 class="fw-bold text-primary mb-0"><i class="bi bi-journal-text" aria-hidden="true"></i> Catalogue des Applications</h2>
+        <p class="text-muted mb-0 small">{{ applications|length }} application{{ 's' if applications|length != 1 else '' }} suivie{{ 's' if applications|length != 1 else '' }}</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
         {% if session.role != 'readonly' %}
         <a href="/add" class="btn btn-primary"><i class="bi bi-plus-circle" aria-hidden="true"></i> Ajouter une application</a>
         {% endif %}
@@ -26,30 +30,40 @@
 	<a href="/export_all" class="btn btn-outline-secondary"><i class="bi bi-download" aria-hidden="true"></i> Exporter tout</a>
 	{% if session.role != 'readonly' %}
 	<button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#reevaluateModal">
-        	Tout réévaluer
+        	<i class="bi bi-arrow-repeat" aria-hidden="true"></i> Tout réévaluer
     	</button>
 	{% endif %}
 	{% if session.role == 'admin' %}
 	<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#importModal">
-         Réimporter les données
+         <i class="bi bi-upload" aria-hidden="true"></i> Réimporter les données
     	</button>
 	{% endif %}
+      </div>
     </div>
 
+    <div class="mb-3">
+      <label for="catalogueSearch" class="form-label visually-hidden">Rechercher dans le catalogue</label>
+      <div class="input-group" style="max-width: 360px;">
+        <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+        <input type="search" id="catalogueSearch" class="form-control" placeholder="Rechercher une application, un RDA…">
+      </div>
+    </div>
+
+    <div class="card p-2 p-md-3">
     <div class="table-responsive">
     <table class="table table-bordered text-center">
         <thead>
             <tr>
-                <th>Nom</th>
-                <th>type</th>
-				<th>RDA</th>
-				<th>Criticité</th>
+                <th class="table-sort-th" data-sort-col="0" data-sort-type="text">Nom <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+                <th class="table-sort-th" data-sort-col="1" data-sort-type="text">type <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+				<th class="table-sort-th" data-sort-col="2" data-sort-type="text">RDA <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+				<th class="table-sort-th" data-sort-col="3" data-sort-type="number">Criticité <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
                 <th>Classification (DICP)</th>
-                <th>Score</th>
-                <th>%</th>
-                <th>Risque</th>
-                <th>Dernière évaluation</th>
-				<th>Évaluateur</th>
+                <th class="table-sort-th" data-sort-col="5" data-sort-type="number">Score <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+                <th class="table-sort-th" data-sort-col="6" data-sort-type="number">% <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+                <th class="table-sort-th" data-sort-col="7" data-sort-type="number">Risque <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+                <th class="table-sort-th" data-sort-col="8" data-sort-type="text">Dernière évaluation <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+				<th class="table-sort-th" data-sort-col="9" data-sort-type="text">Évaluateur <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -59,7 +73,7 @@
                 <td><strong><a href="/resume/{{ app.name }}">{{ app.name }}</a></strong></td>
                 <td>{{ app.type_app }} / {{ app.hosting }}</td>
                 <td>{{ app.rda }}</td>
-				<td>
+				<td data-sort-value="{{ app.criticite or 5 }}">
 				  {% if app.criticite == "1" %}
 					<span class="badge badge-criticite1">Très Élevée</span>
 				  {% elif app.criticite == "2" %}
@@ -85,7 +99,7 @@
 					</div>
 				</td>
 					
-                <td>
+                <td data-sort-value="{{ app.score if app.score is not none else -1 }}">
 			<div class="d-flex flex-nowrap gap-2">
 					{% if app.score is none %}
 						Non évaluée
@@ -94,7 +108,7 @@
 					{% endif %}
 			</div>
 		</td>
-                <td>
+                <td data-sort-value="{{ app.percentage if app.percentage is not none else -1 }}">
                     {% if app.percentage is not none %}
                         <span class="badge {% if app.percentage > display_thresholds.score.critical %} bg-danger {% elif app.percentage > display_thresholds.score.warning %} bg-warning {% else %} bg-success {% endif %}">
                             {{ app.percentage }}%
@@ -103,7 +117,7 @@
                         N/A
                     {% endif %}
                 </td>
-				<td>
+				<td{% if app.risque is not none %} data-sort-value="{{ app.risque|round(0)|int }}"{% else %} data-sort-value="-1"{% endif %}>
 					{% if app.risque is none %}
 						Non évaluée
 					{% else %}
@@ -120,23 +134,37 @@
                 <td>{{ app.last_evaluation or "Non évaluée" }}</td>
                 <td>{{ app.evaluator_name or "Non évaluée" }}</td>
                 <td>
-					<div class="d-flex flex-nowrap gap-2">
 					{% if session.role != 'readonly' %}
-                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application" aria-label="Évaluer l'application"><i class="bi bi-check-circle" aria-hidden="true"></i></a>
-					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" title="Réinitialiser l'évaluation" aria-label="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
-						<i class="bi bi-arrow-repeat" aria-hidden="true"></i>
-					</button>
-					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application" aria-label="Modifier l'application"><i class="bi bi-pencil-square" aria-hidden="true"></i></a>
-					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" title="Supprimer l'application" aria-label="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
-						<i class="bi bi-x-circle" aria-hidden="true"></i>
-					</button>
-					{% endif %}
+					<div class="dropdown">
+					  <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle-no-caret" data-bs-toggle="dropdown" aria-expanded="false" title="Actions" aria-label="Actions pour {{ app.name }}">
+					    <i class="bi bi-three-dots" aria-hidden="true"></i>
+					  </button>
+					  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+					    <li><a class="dropdown-item" href="/score/{{ app.name }}" aria-label="Évaluer l'application"><i class="bi bi-check-circle text-success me-2" aria-hidden="true"></i>Évaluer</a></li>
+					    <li><a class="dropdown-item" href="/edit/{{ app.name }}" aria-label="Modifier l'application"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Modifier</a></li>
+					    <li>
+					      <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}" aria-label="Réinitialiser l'évaluation">
+					        <i class="bi bi-arrow-repeat text-warning me-2" aria-hidden="true"></i>Réinitialiser
+					      </button>
+					    </li>
+					    <li><hr class="dropdown-divider"></li>
+					    <li>
+					      <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}" aria-label="Supprimer l'application">
+					        <i class="bi bi-x-circle me-2" aria-hidden="true"></i>Supprimer
+					      </button>
+					    </li>
+					  </ul>
 					</div>
+					{% endif %}
                 </td>
             </tr>
             {% endfor %}
+            <tr id="catalogueNoResultsRow" style="display: none;">
+              <td colspan="11" class="text-muted py-4">Aucune application ne correspond à la recherche.</td>
+            </tr>
         </tbody>
     </table>
+    </div>
     </div>
 
 
@@ -272,6 +300,91 @@ var resetModal = document.getElementById('confirmResetModal');
   // <script> exécuté avant le chargement de bootstrap.bundle.min.js,
   // provoquait une ReferenceError silencieuse et empêchait ces tooltips de
   // fonctionner.
+</script>
+
+<script>
+  // Tâche Phase 2 (US4.1) : tri et recherche instantanés, purement côté
+  // client, sur les lignes déjà rendues par Jinja pour cette page — aucune
+  // route Flask n'est appelée ni modifiée par ce script.
+  (function () {
+    var table = document.querySelector('table.table-bordered.text-center');
+    if (!table) {
+      return;
+    }
+    var tbody = table.querySelector('tbody');
+    var noResultsRow = document.getElementById('catalogueNoResultsRow');
+    var searchInput = document.getElementById('catalogueSearch');
+
+    function dataRows() {
+      return Array.prototype.filter.call(tbody.querySelectorAll('tr'), function (row) {
+        return row !== noResultsRow;
+      });
+    }
+
+    // --- Recherche instantanée : filtre les lignes dont le texte visible ne
+    // contient pas la saisie (insensible à la casse). ---
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        var query = searchInput.value.trim().toLowerCase();
+        var visibleCount = 0;
+        dataRows().forEach(function (row) {
+          var matches = !query || row.textContent.toLowerCase().indexOf(query) !== -1;
+          row.style.display = matches ? '' : 'none';
+          if (matches) {
+            visibleCount += 1;
+          }
+        });
+        if (noResultsRow) {
+          noResultsRow.style.display = visibleCount === 0 ? '' : 'none';
+        }
+      });
+    }
+
+    // --- Tri instantané par colonne : clic sur un en-tête pour trier les
+    // lignes visibles, en alternant ordre croissant/décroissant. Utilise
+    // l'attribut data-sort-value du <td> quand il existe (score, %, risque,
+    // criticité), sinon le texte affiché (nom, type, RDA, évaluateur, date -
+    // le format de date affiché se trie correctement en chaîne). ---
+    var sortState = { col: null, dir: 1 };
+    function cellSortKey(row, col, type) {
+      var cell = row.children[col];
+      if (!cell) {
+        return '';
+      }
+      var raw = cell.hasAttribute('data-sort-value') ? cell.getAttribute('data-sort-value') : cell.textContent.trim();
+      if (type === 'number') {
+        var num = parseFloat(raw);
+        return isNaN(num) ? -Infinity : num;
+      }
+      return raw.toLowerCase();
+    }
+
+    table.querySelectorAll('th.table-sort-th').forEach(function (th) {
+      th.addEventListener('click', function () {
+        var col = parseInt(th.getAttribute('data-sort-col'), 10);
+        var type = th.getAttribute('data-sort-type') || 'text';
+        sortState.dir = sortState.col === col ? -sortState.dir : 1;
+        sortState.col = col;
+
+        table.querySelectorAll('th.table-sort-th').forEach(function (other) {
+          other.classList.remove('table-sort-active');
+        });
+        th.classList.add('table-sort-active');
+
+        var rows = dataRows();
+        rows.sort(function (a, b) {
+          var keyA = cellSortKey(a, col, type);
+          var keyB = cellSortKey(b, col, type);
+          if (keyA < keyB) return -1 * sortState.dir;
+          if (keyA > keyB) return 1 * sortState.dir;
+          return 0;
+        });
+        rows.forEach(function (row) {
+          tbody.insertBefore(row, noResultsRow || null);
+        });
+      });
+    });
+  })();
 </script>
 
 {% endblock %}

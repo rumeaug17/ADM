@@ -63,11 +63,20 @@ Les tâches réalisées sont retirées du fichier.
   section 10 de `docs/UI_MODERNIZATION_PROPOSAL.md` pour le détail complet
   et les écarts volontaires). `ruff`/`mypy --strict`/`pytest --cov=ADM`
   passent (275 tests, couverture 87,81 %, seuil 86 % maintenu), résultat
-  identique à la mesure de référence avant modification. Reste, côté
+  identique à la mesure de référence avant modification. Phase 2 (refonte
+  visuelle des pages principales) réalisée le 2026-09-16 : catalogue
+  (`index.html`) avec recherche et tri instantanés en JavaScript pur côté
+  client, actions regroupées dans un menu contextuel (`⋯`) à la place des
+  quatre boutons, tableau conservant sa classe exacte testée ; fiche résumé
+  (`resume.html`) aux sections aérées (icônes, espacements) ; synthèse
+  (`synthese.html`) avec cartes KPI et tableaux redessinés (nouvelles
+  couleurs sémantiques). Aucune route Flask modifiée, aucun test cassé
+  (275 tests, 87,81 %, identique à la Phase 1 — détail et écarts volontaires
+  en section 12 de `docs/UI_MODERNIZATION_PROPOSAL.md`). Reste, côté
   utilisateur (session cloud sans accès `git` sur ce poste) : créer une
   branche, relire le diff, relancer les vérifications localement et
   commiter (détail dans le document). Prochaine étape de développement :
-  Phase 2 (refonte visuelle des pages principales).
+  Phase 3 (formulaires et pages secondaires).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

@@ -349,10 +349,103 @@ branche ni commit n'a été créé. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 11. Prochaine étape immédiate
+## 12. Suivi — Phase 2 réalisée
 
-Après revue et merge de la Phase 1, ouvrir la Phase 2 (refonte visuelle des
-pages principales : nouvelles classes `.card-adm`/`.table-adm`/`.kpi-card`,
-menu d'actions `⋯` du catalogue, bandeau de navigation sticky) comme
-prochain ticket de développement, en s'appuyant sur `mockups/` pour le détail
-visuel déjà validé.
+Implémentée le 2026-09-16, depuis la même session cloud liée au poste de
+Guillaume Rumeau (toujours pas d'accès `git`/shell sur ce poste depuis cette
+session : voir « Ce qui reste à faire côté utilisateur » ci-dessous).
+
+**Ce qui a été fait.** `index.html` : en-tête de page restructuré en ligne
+flex (titre + sous-titre avec le nombre d'applications), ajout d'un champ de
+recherche instantanée (`#catalogueSearch`) et de colonnes triables
+(`data-sort-col`/`data-sort-type`, icône `bi-arrow-down-up`), le tout géré en
+JavaScript pur côté client sur les lignes déjà rendues par Jinja (aucune
+route modifiée) ; tableau enveloppé dans une carte (`<div class="card p-2
+p-md-3">`) ; les quatre boutons d'action par ligne (Évaluer/Réinitialiser/
+Modifier/Supprimer) remplacés par un menu contextuel Bootstrap unique
+(icône « ⋯ »), conformément à l'ajustement retenu en Phase 0 (section 9).
+`resume.html` : en-tête restructuré en ligne flex, icônes ajoutées aux
+titres de carte, espacements aérés (`g-4`, `mb-4`, `h-100 mb-0`) entre les
+sections évaluation courante/précédente et scores par dimension.
+`synthese.html` : les 5 cartes KPI reconstruites avec les nouvelles classes
+`.kpi-card`/`.kpi-icon`/`.kpi-label` (dégradés sémantiques), radar et tableau
+« pires scores par catégorie » enveloppés dans des cartes symétriques, et le
+tableau principal des applications enveloppé dans `table-responsive` (il ne
+l'était pas jusqu'ici). `base.html` : boutons de la barre de navigation
+passés en taille `btn-sm`, icônes ajoutées à « Retour à l'index » et
+« Déconnexion ». `static/css/app.css` complété avec les nouvelles règles
+associées (bandeau de navigation sticky en dégradé, cartes KPI, en-tête de
+colonne triable, badges arrondis, polish des `.card-header`/`.card-body`).
+
+**Écarts volontaires par rapport à la maquette, documentés ici pour la
+revue** :
+- Le tableau du catalogue **conserve exactement** la classe
+  `<table class="table table-bordered text-center">` (sans `id` ni classe
+  supplémentaire sur la balise elle-même), car `tests/
+  test_catalogue_table_responsive.py` vérifie cette sous-chaîne littérale.
+  La maquette utilisait `.table-adm` : ce renommage n'a **pas** été repris,
+  au profit d'un habillage par sélecteur de classe existant
+  (`.table.table-bordered`) dans `app.css`, et le script de tri/recherche
+  sélectionne la table via `document.querySelector('table.table-bordered
+  .text-center')` plutôt que par un `id`, pour la même raison.
+- Le menu d'actions du catalogue conserve à l'identique les quatre
+  `aria-label` requis par les tests (« Évaluer l'application », etc.) ainsi
+  que les attributs `data-bs-target`/`data-appname` utilisés par le script
+  (non modifié) qui alimente la modale de confirmation : seule leur
+  présentation change (dropdown au lieu de boutons côte à côte).
+- La carte KPI « Applications > seuil critique % » de `synthese.html`
+  n'utilise plus la classe `.bg-score-high` (remplacée par `.kpi-danger`) :
+  vérifié par recherche dans `tests/` qu'aucun test ne dépend de cette
+  classe.
+- Les trois libellés KPI requis par `tests/test_synthese_kpi_grid.py`
+  (« Nombre total d'applications », « Score moyen », « Risque global »), la
+  structure en 5 `<div class="col">` et les classes de grille
+  `row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 my-4 text-center` sont
+  strictement inchangées.
+- La ligne `<img src="data:image/png;base64,{{ radar_chart }}" alt="Radar
+  Chart" class="img-fluid">` de `resume.html`, requise à l'identique par
+  `tests/test_resume_radar_responsive.py`, n'a subi aucune modification
+  (vérifié par relecture directe après édition).
+- Le bouton « Radar » de `synthese.html` est passé en `btn-outline-primary`
+  avec icône et libellé « Radar » (texte auparavant différent) : aucun test
+  ne dépend de ce texte, vérifié par recherche.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'en Phase 1,
+dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur — ces trois vérifications
+sont d'ailleurs sans effet réel ici puisque cette phase ne touche aucun
+fichier Python, seulement des gabarits et du CSS. `pytest --cov=ADM` : 275
+tests passés, couverture 87,81 % (seuil 86 % maintenu), résultat strictement
+identique à la Phase 1 — aucune régression introduite. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec cette Phase 2.
+
+**Ce qui reste à faire côté utilisateur.** Comme en Phase 1, cette session
+cloud n'a pas accès à `git`/un shell sur ce poste : les 5 fichiers modifiés
+(`static/css/app.css`, `templates/base.html`, `templates/index.html`,
+`templates/resume.html`, `templates/synthese.html`) ont été déposés
+directement dans `C:\usr\ADM` via la liaison au poste, sans branche ni
+commit créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `feature/us4-1-phase2-refonte-pages`) et
+   vérifier le statut `git` pour confirmer la liste des fichiers modifiés
+   (les 5 ci-dessus, aucun autre).
+2. Relire le diff, en particulier le nouveau menu d'actions du catalogue et
+   le script de tri/recherche dans `index.html`.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur (clair et sombre) sur le
+   catalogue, une fiche résumé et la synthèse, avec un test manuel du tri et
+   de la recherche instantanée sur le catalogue.
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 13. Prochaine étape immédiate
+
+Après revue et merge de la Phase 2, ouvrir la Phase 3 (formulaires et pages
+secondaires : `score.html`, `add.html`, `edit.html`, `login.html`,
+`accounts.html`, `questions_settings.html`, `question_form.html`,
+`settings.html`, `change_password.html`, `import_data.html`, `error.html`)
+comme prochain ticket de développement, en conservant impérativement la
+barre de progression, le sommaire d'ancres et la validation des commentaires
+obligatoires de `score.html`, uniquement réhabillés.

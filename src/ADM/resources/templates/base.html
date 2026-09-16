@@ -25,17 +25,17 @@
     <div class="collapse navbar-collapse" id="headerNav">
         <div class="header-right d-flex flex-wrap gap-2 ms-lg-auto mt-3 mt-lg-0">
           {% if request.endpoint != 'index' %}
-          <a href="{{ url_for('applications.index') }}" class="btn btn-outline-light">Retour à l'index</a>
+          <a href="{{ url_for('applications.index') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left" aria-hidden="true"></i> Retour à l'index</a>
          {% endif %}
         {% if session.role == 'admin' %}
-          <a href="{{ url_for('settings.show_settings') }}" class="btn btn-outline-light"><i class="bi bi-gear" aria-hidden="true"></i> Configuration</a>
-          <a href="{{ url_for('settings.list_questions') }}" class="btn btn-outline-light"><i class="bi bi-question-circle" aria-hidden="true"></i> Questions</a>
-           <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-outline-light"><i class="bi bi-people" aria-hidden="true"></i> Comptes</a>
+          <a href="{{ url_for('settings.show_settings') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-gear" aria-hidden="true"></i> Configuration</a>
+          <a href="{{ url_for('settings.list_questions') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-question-circle" aria-hidden="true"></i> Questions</a>
+           <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-people" aria-hidden="true"></i> Comptes</a>
          {% endif %}
          {% if local_auth %}
-          <a href="{{ url_for('auth.change_own_password') }}" class="btn btn-outline-light"><i class="bi bi-key" aria-hidden="true"></i> Mon mot de passe</a>
+          <a href="{{ url_for('auth.change_own_password') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-key" aria-hidden="true"></i> Mon mot de passe</a>
        {% endif %}
-      <a href="/logout" class="btn btn-primary">Déconnexion</a>
+      <a href="/logout" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Déconnexion</a>
       </div>
   </div>
   {% endif %}
