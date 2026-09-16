@@ -480,3 +480,17 @@ tr:hover {
 .card-body {
   padding: 1.1rem 1.25rem;
 }
+
+/* ---------- Interactivité htmx (Phase 4, US4.1) --------------------------
+   htmx ajoute temporairement ces classes pendant l'échange d'une ligne du
+   catalogue (réinitialisation ou suppression, `hx-swap="outerHTML
+   swap:0.3s"`) : une transition discrète signale la ligne concernée sans
+   JavaScript supplémentaire. */
+tr.htmx-swapping {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+tr.htmx-settling {
+  background-color: var(--adm-surface-2);
+  transition: background-color 1s ease-out;
+}

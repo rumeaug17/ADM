@@ -3,6 +3,7 @@
 import base64
 import csv
 import io
+import json
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
@@ -221,6 +222,28 @@ def require_app_by_name(name: str, database_session: TransactionSession) -> Appl
     if application is None:
         abort(404, description="Application non trouvée")
     return cast(Application, application)
+
+
+def is_htmx_request() -> bool:
+    """Indique si la requête courante a été déclenchée par htmx (US4.1, Phase 4).
+
+    Les routes concernées s'en servent pour renvoyer un fragment de gabarit
+    (une ligne de tableau, un bloc de résultats...) au lieu d'une page
+    complète ou d'une redirection, sans changer leur comportement pour les
+    requêtes classiques (navigation directe, formulaire sans JavaScript).
+    """
+    return bool(request.headers.get("HX-Request") == "true")
+
+
+def hx_trigger_toast_header(message: str, category: str = "success") -> dict[str, str]:
+    """Construit l'en-tête HX-Trigger déclenchant un toast côté client (Phase 4).
+
+    Le contenu est relu et interprété par le script d'écoute de
+    'htmx:afterRequest' dans base.html, qui affiche un toast Bootstrap avec ce
+    message - remplaçant, pour les réponses htmx, le flash Flask classique
+    (qui ne s'affiche qu'après un rechargement complet de page).
+    """
+    return {"HX-Trigger": json.dumps({"toast": {"message": message, "category": category}})}
 
 
 def require_account_by_username(username: str, account_session: AccountSession) -> Account:
@@ -551,6 +574,19 @@ def delete_application(name: str) -> ResponseReturnValue:
         app_to_delete = require_app_by_name(name, session_db)
         session_db.delete(app_to_delete)
         session_db.commit()
+        if is_htmx_request():
+            # Phase 4 (US4.1) : htmx retire la ligne concernée du tableau
+            # (hx-swap="outerHTML" sur un corps de réponse vide) ; le message
+            # de succès est transmis en toast via HX-Trigger plutôt que par un
+            # flash Flask, qui ne s'afficherait qu'au prochain rechargement
+            # complet de page.
+            return Response(
+                "",
+                status=200,
+                headers=hx_trigger_toast_header(
+                    f"L'application « {name} » a été supprimée.", "success"
+                ),
+            )
         return redirect(url_for("applications.index"))
     finally:
         session_db.close()
@@ -640,7 +676,24 @@ def reset_evaluation(name: str) -> ResponseReturnValue:
         app_to_reset.last_evaluation = None
         app_to_reset.evaluator_name = None
         session_db.commit()
-        flash(f"L'évaluation de l'application '{name}' a été réinitialisée.", "success")
+        message = f"L'évaluation de l'application '{name}' a été réinitialisée."
+        if is_htmx_request():
+            # Phase 4 (US4.1) : htmx ne remplace que la ligne concernée
+            # (hx-target/hx-swap="outerHTML" posés dynamiquement sur le
+            # formulaire de confirmation, voir index.html). Le `row_id` est
+            # repris tel quel du champ caché du formulaire pour que htmx
+            # retrouve la même ligne dans le DOM. On n'appelle volontairement
+            # PAS flash() ici : le message part en toast via HX-Trigger, pour
+            # éviter qu'un flash Flask ne reste en attente et ne s'affiche à
+            # tort lors d'une navigation complète ultérieure.
+            row_id = request.form.get("row_id") or "app-row"
+            app_dict = to_dicts_with_metrics([app_to_reset])[0]
+            return Response(
+                render_template("_application_row.html", app=app_dict, row_id=row_id),
+                status=200,
+                headers=hx_trigger_toast_header(message, "success"),
+            )
+        flash(message, "success")
         return redirect(url_for("applications.index"))
     finally:
         session_db.close()
@@ -725,6 +778,19 @@ def synthese() -> ResponseReturnValue:
         for category, (app_name, score_val) in best_by_category.items():
             if app_name:
                 best_grouped.setdefault(app_name, []).append((category, score_val))
+
+        if is_htmx_request():
+            # Phase 4 (US4.1) : un changement de filtre (?filter_score=...)
+            # ne rafraîchit que le groupe de filtres + le tableau
+            # (_synthese_results.html), sans régénérer le graphique radar
+            # (coûteux, inchangé par le filtre) ni les cartes KPI (leurs
+            # valeurs sont calculées sur l'ensemble du catalogue, pas sur
+            # `scored_apps` filtré : elles ne varient jamais avec le filtre).
+            return render_template(
+                "_synthese_results.html",
+                applications=scored_apps,
+                filter_score=filter_score,
+            )
 
         return render_template(
             "synthese.html",

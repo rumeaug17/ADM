@@ -178,19 +178,20 @@ Bootstrap pour les formulaires courts, popovers d'aide contextuelle
 conservés à l'identique fonctionnellement.
 
 **Phase 4 — Interactivité progressive avec htmx et Alpine.js (3 à 5
-jours).** Faire gagner en fluidité les actions qui rechargent aujourd'hui
-toute la page, sans changer le contrat des routes existantes : suppression
-et réinitialisation d'une application confirmées en modale puis appliquées
-via une requête htmx qui ne rafraîchit que la ligne concernée ; filtres de
-la synthèse (`?filter_score=...`, déjà gérés côté serveur) déclenchés en
-htmx pour ne rafraîchir que le tableau et les KPI ; messages flash
-remplacés par des toasts Bootstrap après une action htmx ; menu mobile et
-bascule de thème gérés en Alpine.js. Concrètement, les routes concernées
-apprennent à renvoyer un fragment de template quand la requête porte l'en-
-tête htmx, et continuent de renvoyer la page complète sinon — une évolution
-additive et rétrocompatible, pas une réécriture. C'est la phase la plus
-proche d'un changement d'approche front évoqué en préambule, tout en
-respectant strictement Flask/Python et le rendu par templates.
+jours). Réalisée le 2026-09-16 (voir section 16).** Faire gagner en fluidité
+les actions qui rechargent aujourd'hui toute la page, sans changer le
+contrat des routes existantes : suppression et réinitialisation d'une
+application confirmées en modale puis appliquées via une requête htmx qui
+ne rafraîchit que la ligne concernée ; filtres de la synthèse
+(`?filter_score=...`, déjà gérés côté serveur) déclenchés en htmx pour ne
+rafraîchir que le tableau et les KPI ; messages flash remplacés par des
+toasts Bootstrap après une action htmx ; menu mobile et bascule de thème
+gérés en Alpine.js. Concrètement, les routes concernées apprennent à
+renvoyer un fragment de template quand la requête porte l'en-tête htmx, et
+continuent de renvoyer la page complète sinon — une évolution additive et
+rétrocompatible, pas une réécriture. C'est la phase la plus proche d'un
+changement d'approche front évoqué en préambule, tout en respectant
+strictement Flask/Python et le rendu par templates.
 
 **Phase 5 — Mode sombre, accessibilité et finitions (1 à 2 jours).**
 Finaliser la bascule de thème (persistée en `localStorage`, avec
@@ -538,12 +539,149 @@ branche ni commit créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 15. Prochaine étape immédiate
+## 16. Suivi — Phase 4 réalisée
 
-Après revue et merge de la Phase 3, ouvrir la Phase 4 (interactivité
-progressive avec htmx et Alpine.js : actions du catalogue et filtres de la
-synthèse rafraîchis en fragment plutôt qu'en page complète, toasts après
-action, menu mobile et bascule de thème en Alpine.js) comme prochain ticket
-de développement — la première phase qui fait évoluer les routes Flask
-elles-mêmes (renvoi conditionnel d'un fragment de template), toujours sans
-abandonner le rendu serveur par templates Jinja.
+Implémentée le 2026-09-16, depuis la même session cloud liée au poste de
+Guillaume Rumeau (toujours pas d'accès `git`/shell sur ce poste depuis cette
+session : voir « Ce qui reste à faire côté utilisateur » ci-dessous). C'est
+la première phase qui modifie `ADM.routes` lui-même, et non plus seulement
+les gabarits/CSS.
+
+**Ce qui a été fait.** htmx 2.0.10 et Alpine.js 3.17.3 sont vendorisés dans
+`static/vendor/htmx/htmx.min.js` et `static/vendor/alpinejs/alpine.min.js`
+(builds `dist/htmx.min.js` et `dist/cdn.min.js`, choisis pour rester sur des
+scripts globaux sans étape de build, dans le même esprit que Bootstrap en
+Phase 1 — htmx 4.x, ESM uniquement, et le build modulaire d'Alpine,
+qui exige un appel manuel à `Alpine.start()`, ont été volontairement
+écartés). Le tableau du catalogue (`index.html`) voit sa ligne factorisée
+dans un nouveau partiel `_application_row.html`, réutilisé à la fois par la
+boucle complète et par la réponse fragment de `/reset/<name>` : chaque ligne
+reçoit un identifiant stable `app-row-{{ loop.index }}`, porté aussi par les
+boutons de suppression/réinitialisation du menu d'actions (`data-row-id`).
+Comme les modales de confirmation Bootstrap sont uniques et partagées (hors
+du tableau), le JavaScript de `index.html` lit ce `data-row-id` à
+l'ouverture de la modale (`show.bs.modal`) pour poser dynamiquement
+`hx-post`/`hx-target`/`hx-swap` sur le formulaire de confirmation puis
+appeler `htmx.process(form)` (nécessaire car ces attributs n'existent pas au
+chargement initial de la page). Pour la réinitialisation, le `row_id`
+courant est en plus recopié dans un champ caché du formulaire afin que le
+serveur puisse le renvoyer tel quel dans l'`id` du fragment produit, et que
+htmx retrouve la bonne ligne même après plusieurs réinitialisations
+successives. Côté serveur, `ADM.routes` gagne deux petits utilitaires
+(`is_htmx_request`, qui teste l'en-tête `HX-Request`, et
+`hx_trigger_toast_header`, qui construit l'en-tête `HX-Trigger` au format
+JSON attendu par le script d'écoute côté client) : `delete_application`
+renvoie, pour une requête htmx, un corps vide avec cet en-tête (la ligne est
+alors retirée du tableau par `hx-swap="outerHTML"` sur une réponse vide) ;
+`reset_evaluation` renvoie le fragment `_application_row.html` de la ligne
+mise à jour, sans appeler `flash()` dans cette branche (pour éviter qu'un
+message Flask reste en attente et s'affiche à tort lors d'une navigation
+complète ultérieure) ; les deux routes conservent strictement leur
+comportement `redirect()`/`flash()` d'origine pour toute requête non-htmx
+(vérifié explicitement, voir Vérifications ci-dessous). La synthèse
+(`synthese.html`) voit son bloc filtres + tableau factorisé dans
+`_synthese_results.html`, encapsulé dans `<div id="syntheseResults">` :
+cliquer sur un filtre (`?filter_score=...`) déclenche un `hx-get` qui ne
+remplace que ce bloc (`hx-push-url="true"` conserve une URL
+partageable/rechargeable), sans régénérer le graphique radar. Un toast
+Bootstrap générique est ajouté dans `base.html` : un script écoute
+l'évènement `htmx:afterRequest`, relit lui-même l'en-tête `HX-Trigger` de la
+réponse (plutôt que de s'appuyer sur le déclenchement d'évènement intégré de
+htmx, pour rester indépendant de ses détails de version) et affiche un
+`bootstrap.Toast` dont le texte est posé via `textContent` (jamais
+`innerHTML`, le nom d'application inclus dans le message venant de données
+utilisateur). Enfin, `base.html` reçoit un bouton de bascule de thème géré en
+Alpine.js (`x-data`/`x-on:click`/`:class`, avec persistance dans
+`localStorage`), précédé d'un script synchrone dans `<head>` qui applique le
+thème choisi (ou `prefers-color-scheme` à défaut) avant le premier rendu
+pour éviter tout flash de thème incorrect (FOUC) — ce script est
+indépendant d'Alpine.js, chargé plus tard avec `defer`, et ne gère que
+l'application initiale du thème, pas sa bascule interactive.
+
+**Écarts volontaires par rapport au plan initial, documentés ici pour la
+revue** :
+- Les 5 cartes KPI de `synthese.html` ne sont volontairement **pas**
+  intégrées au fragment `_synthese_results.html` rafraîchi par htmx, alors
+  que le plan initial (section 6) mentionnait de rafraîchir « le tableau et
+  les KPI ». En y regardant de plus près, `ADM.routes.synthese()` calcule ces
+  5 valeurs (`summarize_catalogue`) à partir de la liste complète des
+  applications, pas de la liste filtrée `scored_apps` : elles ne dépendent
+  donc jamais de `filter_score`, et les inclure dans le fragment échangé
+  n'aurait fait que retransmettre le même HTML à chaque clic de filtre, sans
+  bénéfice pour l'utilisateur. Cette exclusion évite aussi de casser
+  `tests/test_synthese_kpi_grid.py`, qui compte 5 occurrences littérales de
+  `<div class="col">` dans `synthese.html`.
+- `test_catalogue_action_buttons_have_accessible_labels`
+  (`tests/test_catalogue_table_responsive.py`) a été adapté pour lire
+  `_application_row.html` au lieu d'`index.html`, puisque le balisage des
+  boutons d'action (et leurs `aria-label`) a été déplacé dans ce nouveau
+  partiel ; les assertions elles-mêmes (mêmes 4 libellés) sont inchangées.
+  Même précédent que l'adaptation de `test_help_widget.py` et
+  `test_score_progress_indicator.py` en Phase 1.
+- Le menu de navigation mobile (`navbar-toggler`/`collapse` Bootstrap natif)
+  n'a volontairement **pas** été réécrit en Alpine.js : il fonctionnait déjà
+  correctement et n'était couvert par aucun test spécifique, donc le
+  réimplémenter en Alpine n'aurait fait qu'ajouter un risque de régression
+  visuelle sans bénéfice fonctionnel. Seule la bascule de thème, qui
+  n'existait pas encore, a été confiée à Alpine.js.
+- `app.css` gagne une courte section « Interactivité htmx (Phase 4) » : des
+  styles de transition (opacité pendant l'échange, fond transitoire après
+  l'échange) sur les classes `htmx-swapping`/`htmx-settling`, posées
+  automatiquement par htmx pendant le remplacement d'une ligne, pour un
+  retour visuel discret sans JavaScript supplémentaire.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux Phases 1
+à 3, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 275
+tests passés, couverture 87,55 % (seuil 86 % maintenu), résultat conforme
+aux phases précédentes — aucune régression introduite. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec cette Phase 4.
+En complément de la suite automatisée, un script manuel a exercé les trois
+nouvelles branches `HX-Request` (`/reset/<name>`, `/delete/<name>`,
+`/synthese?filter_score=...`) avec et sans l'en-tête htmx : les réponses
+htmx renvoient bien un fragment/corps vide avec l'en-tête `HX-Trigger`
+attendu, tandis que les requêtes sans cet en-tête conservent exactement le
+`redirect()`/page complète d'origine (notamment `reset_evaluation`, dont le
+comportement non-htmx est aussi couvert par
+`tests/test_routes_applications.py::test_reset_receives_the_name_parameter`).
+
+**Ce qui reste à faire côté utilisateur.** Comme aux phases précédentes,
+cette session cloud n'a pas accès à `git`/un shell sur ce poste : les 10
+fichiers modifiés ou créés (`src/ADM/routes.py`,
+`static/css/app.css`, `templates/base.html`, `templates/index.html`,
+`templates/synthese.html`, `templates/_application_row.html` (nouveau),
+`templates/_synthese_results.html` (nouveau),
+`static/vendor/htmx/htmx.min.js` (nouveau),
+`static/vendor/alpinejs/alpine.min.js` (nouveau),
+`tests/test_catalogue_table_responsive.py`) ont été déposés directement dans
+`C:\usr\ADM` via la liaison au poste, sans branche ni commit créés. Reste
+donc à faire, localement :
+1. Créer une branche dédiée (ex. `feature/us4-1-phase4-htmx-alpine`) et
+   vérifier le statut `git` pour confirmer la liste des fichiers modifiés/
+   créés (les 10 ci-dessus, aucun autre).
+2. Relire le diff, en particulier `ADM/routes.py` (nouvelles branches
+   `HX-Request` dans `delete_application`, `reset_evaluation` et
+   `synthese`) et les nouveaux partiels de gabarits.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur (clair et sombre) et vérifier à
+   la souris : suppression et réinitialisation d'une application depuis le
+   catalogue (la ligne doit disparaître/se mettre à jour sans rechargement
+   de page, avec un toast de confirmation), changement de filtre sur la page
+   de synthèse (le tableau se met à jour sans rechargement, l'URL change),
+   bascule du thème clair/sombre (persistée après rafraîchissement de la
+   page), et menu mobile sur un écran étroit.
+5. Vérifier qu'aucun message d'erreur JavaScript n'apparaît dans la console
+   du navigateur pendant ces actions.
+6. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 17. Prochaine étape immédiate
+
+Après revue et merge de la Phase 4, ouvrir la Phase 5 (mode sombre,
+accessibilité et finitions : finaliser la bascule de thème introduite en
+Phase 4, auditer les contrastes du design system en clair et en sombre,
+l'ordre de tabulation et les libellés ARIA, et corriger les derniers écarts
+visuels entre pages) comme prochain ticket de développement.

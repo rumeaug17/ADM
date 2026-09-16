@@ -1,0 +1,104 @@
+{#
+  Ligne du tableau du catalogue (index.html), factorisée en Phase 4 (US4.1,
+  interactivité progressive htmx) pour être réutilisée à deux endroits :
+  - le tableau complet d'index.html, une fois par application (`row_id` vaut
+    alors "app-row-{{ loop.index }}") ;
+  - la réponse HTML renvoyée par /reset/<name> quand la requête porte l'en-
+    tête HX-Request : htmx remplace alors uniquement cette ligne
+    (`hx-target`/`hx-swap="outerHTML"`), sans recharger toute la page. Dans
+    ce cas, `row_id` est repris tel quel du formulaire de confirmation (champ
+    caché `row_id`), pour que htmx retrouve la même ligne dans le DOM.
+
+  Variables attendues : `app` (dict enrichi des métriques, comme retourné par
+  `to_dicts_with_metrics`), `row_id` (identifiant HTML stable de la ligne).
+  `session`, `display_thresholds` et `csrf_token` viennent du contexte global
+  (context processor `template_values`, voir ADM.app).
+#}
+<tr id="{{ row_id }}" data-appname="{{ app.name }}">
+    <td><strong><a href="/resume/{{ app.name }}">{{ app.name }}</a></strong></td>
+    <td>{{ app.type_app }} / {{ app.hosting }}</td>
+    <td>{{ app.rda }}</td>
+    <td data-sort-value="{{ app.criticite or 5 }}">
+      {% if app.criticite == "1" %}
+        <span class="badge badge-criticite1">Très Élevée</span>
+      {% elif app.criticite == "2" %}
+        <span class="badge badge-criticite2">Élevée</span>
+      {% elif app.criticite == "3" %}
+        <span class="badge badge-criticite3">Moyenne</span>
+      {% elif app.criticite == "4" %}
+        <span class="badge badge-criticite4">Faible</span>
+      {% else %}
+        N/A
+      {% endif %}
+    </td>
+    <td>
+        <div class="d-flex flex-nowrap gap-2">
+        {% set disponibilite_label = app.disponibilite|dicp_label %}
+        <span class="badge badge-{{ app.disponibilite.lower() }}"{% if disponibilite_label %} title="Disponibilité : {{ disponibilite_label }}"{% endif %}>{{ app.disponibilite }}</span>
+        {% set integrite_label = app.integrite|dicp_label %}
+        <span class="badge badge-{{ app.integrite.lower() }}"{% if integrite_label %} title="Intégrité : {{ integrite_label }}"{% endif %}>{{ app.integrite }}</span>
+        {% set confidentialite_label = app.confidentialite|dicp_label %}
+        <span class="badge badge-{{ app.confidentialite.lower() }}"{% if confidentialite_label %} title="Confidentialité : {{ confidentialite_label }}"{% endif %}>{{ app.confidentialite }}</span>
+        {% set perennite_label = app.perennite|dicp_label %}
+        <span class="badge badge-{{ app.perennite.lower() }}"{% if perennite_label %} title="Pérennité : {{ perennite_label }}"{% endif %}>{{ app.perennite }}</span>
+        </div>
+    </td>
+    <td data-sort-value="{{ app.score if app.score is not none else -1 }}">
+        <div class="d-flex flex-nowrap gap-2">
+            {% if app.score is none %}
+                Non évaluée
+            {% else %}
+                {{ app.score }}/{{ app.max_score or "N/A" }}
+            {% endif %}
+        </div>
+    </td>
+    <td data-sort-value="{{ app.percentage if app.percentage is not none else -1 }}">
+        {% if app.percentage is not none %}
+            <span class="badge {% if app.percentage > display_thresholds.score.critical %} bg-danger {% elif app.percentage > display_thresholds.score.warning %} bg-warning {% else %} bg-success {% endif %}">
+                {{ app.percentage }}%
+            </span>
+        {% else %}
+            N/A
+        {% endif %}
+    </td>
+    <td{% if app.risque is not none %} data-sort-value="{{ app.risque|round(0)|int }}"{% else %} data-sort-value="-1"{% endif %}>
+        {% if app.risque is none %}
+            Non évaluée
+        {% else %}
+            {% set risk = app.risque|round(0)|int %}
+            {% if risk > display_thresholds.risk.critical %}
+                <span class="badge bg-danger">{{ risk }}</span>
+            {% elif risk > display_thresholds.risk.warning %}
+                <span class="badge bg-warning">{{ risk }}</span>
+            {% else %}
+                <span class="badge bg-success">{{ risk }}</span>
+            {% endif %}
+        {% endif %}
+    </td>
+    <td>{{ app.last_evaluation or "Non évaluée" }}</td>
+    <td>{{ app.evaluator_name or "Non évaluée" }}</td>
+    <td>
+        {% if session.role != 'readonly' %}
+        <div class="dropdown">
+          <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle-no-caret" data-bs-toggle="dropdown" aria-expanded="false" title="Actions" aria-label="Actions pour {{ app.name }}">
+            <i class="bi bi-three-dots" aria-hidden="true"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li><a class="dropdown-item" href="/score/{{ app.name }}" aria-label="Évaluer l'application"><i class="bi bi-check-circle text-success me-2" aria-hidden="true"></i>Évaluer</a></li>
+            <li><a class="dropdown-item" href="/edit/{{ app.name }}" aria-label="Modifier l'application"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Modifier</a></li>
+            <li>
+              <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}" data-row-id="{{ row_id }}" aria-label="Réinitialiser l'évaluation">
+                <i class="bi bi-arrow-repeat text-warning me-2" aria-hidden="true"></i>Réinitialiser
+              </button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}" data-row-id="{{ row_id }}" aria-label="Supprimer l'application">
+                <i class="bi bi-x-circle me-2" aria-hidden="true"></i>Supprimer
+              </button>
+            </li>
+          </ul>
+        </div>
+        {% endif %}
+    </td>
+</tr>

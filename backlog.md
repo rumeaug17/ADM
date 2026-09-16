@@ -86,11 +86,32 @@ Les tâches réalisées sont retirées du fichier.
   `question_form.html` inchangé (déjà conforme). Aucune route Flask
   modifiée, aucun test cassé (275 tests, 87,81 %, identique aux Phases 1 et
   2 — détail et écarts volontaires en section 14 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Phase 4 (interactivité progressive
+  avec htmx et Alpine.js) réalisée le 2026-09-16 : htmx 2.0.10 et
+  Alpine.js 3.17.3 vendorisés dans `static/vendor/` ; suppression et
+  réinitialisation d'une application depuis le catalogue confirmées en
+  modale puis appliquées via htmx, qui ne rafraîchit que la ligne concernée
+  (partiel `_application_row.html`, `id` de ligne stable propagé par
+  `data-row-id`) au lieu de recharger toute la page ; filtres de la
+  synthèse (`?filter_score=...`) rafraîchissant seulement le tableau
+  (partiel `_synthese_results.html`, sans les cartes KPI, dont les valeurs
+  ne dépendent volontairement pas du filtre côté serveur) ; messages de
+  succès transmis en toasts Bootstrap via l'en-tête `HX-Trigger` plutôt
+  qu'en `flash()` pour ces actions ; bascule de thème clair/sombre ajoutée
+  et gérée en Alpine.js, avec script anti-FOUC dans `base.html` ; menu
+  mobile conservé sur le `navbar-toggler` Bootstrap natif (déjà
+  fonctionnel, non réécrit en Alpine). C'est la première phase qui modifie
+  `ADM.routes` (branches conditionnelles sur l'en-tête `HX-Request`,
+  additives, sans changer le comportement des requêtes non-htmx). Aucun
+  test cassé (275 tests, couverture 87,55 %, seuil 86 % maintenu) hormis un
+  test de présence de balisage statique adapté à son nouvel emplacement
+  (détail et écarts volontaires en section 16 de
   `docs/UI_MODERNIZATION_PROPOSAL.md`). Reste, côté utilisateur (session
   cloud sans accès `git` sur ce poste) : créer une branche, relire le diff,
-  relancer les vérifications localement et commiter (détail dans le
-  document). Prochaine étape de développement : Phase 4 (interactivité
-  progressive avec htmx et Alpine.js).
+  relancer les vérifications localement, tester manuellement les nouvelles
+  interactions htmx/Alpine et commiter (détail dans le document). Prochaine
+  étape de développement : Phase 5 (mode sombre, accessibilité et
+  finitions).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

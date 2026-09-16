@@ -128,15 +128,21 @@ def test_catalogue_action_buttons_have_accessible_labels() -> None:
     """Les 4 boutons d'action (évaluer/réinitialiser/modifier/supprimer) ne
     sont représentés que par un émoji : chacun doit porter un ``aria-label``
     explicite en complément du ``title`` (infobulle absente au toucher sur
-    mobile)."""
-    index_html = (TEMPLATES / "index.html").read_text(encoding="utf-8")
+    mobile).
+
+    Phase 4 (US4.1) : ce balisage a été factorisé de ``index.html`` vers
+    ``_application_row.html`` (partiel réutilisé par le tableau complet et par
+    la réponse htmx de ``/reset/<name>``), d'où la lecture de ce nouveau
+    fichier plutôt que d'``index.html`` — même précédent que l'adaptation de
+    ``test_help_widget.py``/``test_score_progress_indicator.py`` en Phase 1."""
+    row_html = (TEMPLATES / "_application_row.html").read_text(encoding="utf-8")
     for label in (
         "Évaluer l'application",
         "Réinitialiser l'évaluation",
         "Modifier l'application",
         "Supprimer l'application",
     ):
-        assert f'aria-label="{label}"' in index_html, label
+        assert f'aria-label="{label}"' in row_html, label
 
 
 def test_catalogue_action_buttons_render_with_accessible_labels(tmp_path: Path) -> None:
