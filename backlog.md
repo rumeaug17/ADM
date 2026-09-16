@@ -45,7 +45,18 @@ Les tâches réalisées sont retirées du fichier.
 
 ### User Stories
 - **US4.1** : *Améliorer le design*  
-  Moderniser l'affichage. 
+  Moderniser l'affichage. Cadrage réalisé (`docs/UI_MODERNIZATION_PROPOSAL.md`) :
+  plan en 7 phases, Bootstrap 5 modernisé + htmx/Alpine.js en complément
+  progressif, sans changement de framework serveur ni de logique de gabarits
+  Jinja2. Phase 0 (maquettes statiques, `mockups/`) validée le 2026-09-16 par
+  Guillaume Rumeau, avec deux ajustements retenus pour la suite : couleur de
+  marque en vert forêt légèrement foncé (`#0e6b5c` / `#0a4d42`, distincte du
+  vert sémantique des badges DICP/criticité) plutôt que le bleu Bootstrap par
+  défaut, et actions du catalogue regroupées dans un menu contextuel (`⋯`)
+  plutôt qu'une rangée de boutons. Prochaine étape : Phase 1 (fondations du
+  design system — `static/css/app.css` à partir de `mockups/assets/mockup.css`,
+  vendoring Bootstrap/Bootstrap Icons, remplacement des émojis), à ouvrir
+  comme prochain ticket de développement.
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

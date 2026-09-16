@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADM — Catalogue (maquette)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="assets/mockup.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="mockup-banner">
+  <i class="bi bi-easel2"></i> Maquette statique — Phase 0 de US4.1 — <a href="index.html" class="alert-link">retour au sommaire</a>
+</div>
+
+<header>
+<nav class="navbar navbar-expand-lg navbar-adm px-3 py-3">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center gap-3">
+      <span class="logo-badge"><i class="bi bi-diagram-3-fill"></i></span>
+      <div>
+        <div class="brand-title h5 mb-0">ADM</div>
+        <div class="brand-sub">Gestion de la dette applicative</div>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2 ms-auto flex-wrap">
+      <a href="synthese.html" class="btn btn-nav-ghost btn-sm"><i class="bi bi-bar-chart-line"></i> Synthèse</a>
+      <a href="#" class="btn btn-nav-ghost btn-sm"><i class="bi bi-gear"></i> Configuration</a>
+      <a href="#" class="btn btn-nav-ghost btn-sm"><i class="bi bi-question-circle"></i> Questions</a>
+      <a href="#" class="btn btn-nav-ghost btn-sm"><i class="bi bi-people"></i> Comptes</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Basculer le thème clair/sombre">
+        <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+      </button>
+      <a href="#" class="btn btn-light btn-sm"><i class="bi bi-box-arrow-right"></i> Déconnexion</a>
+    </div>
+  </div>
+</nav>
+</header>
+
+<main class="container my-4">
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold mb-0"><i class="bi bi-table text-primary"></i> Catalogue des applications</h2>
+      <p class="text-muted mb-0">18 applications suivies</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="#" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Ajouter une application</a>
+      <a href="#" class="btn btn-outline-secondary"><i class="bi bi-download"></i> Exporter CSV</a>
+      <button class="btn btn-outline-warning" type="button"><i class="bi bi-arrow-repeat"></i> Tout réévaluer</button>
+    </div>
+  </div>
+
+  <div class="card-adm p-2 p-md-3">
+    <div class="table-responsive">
+      <table class="table table-adm align-middle text-center mb-0">
+        <thead>
+          <tr>
+            <th class="text-start">Nom</th>
+            <th>Type</th>
+            <th>RDA</th>
+            <th>Criticité</th>
+            <th>DICP</th>
+            <th>Score</th>
+            <th>%</th>
+            <th>Risque</th>
+            <th>Dernière évaluation</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-start"><a href="#" class="fw-semibold text-decoration-none">CRM-Ventes</a></td>
+            <td class="text-muted small">Éditeur / SaaS</td>
+            <td>M. Bernard</td>
+            <td><span class="badge badge-pill-adm badge-crit-2">Élevée</span></td>
+            <td>
+              <div class="d-flex justify-content-center gap-1">
+                <span class="badge badge-pill-adm badge-dicp-2" title="Disponibilité">D2</span>
+                <span class="badge badge-pill-adm badge-dicp-1" title="Intégrité">I1</span>
+                <span class="badge badge-pill-adm badge-dicp-3" title="Confidentialité">C3</span>
+                <span class="badge badge-pill-adm badge-dicp-1" title="Pérennité">P1</span>
+              </div>
+            </td>
+            <td>42/60</td>
+            <td><span class="badge bg-success badge-pill-adm">70 %</span></td>
+            <td><span class="badge bg-warning text-dark badge-pill-adm">54</span></td>
+            <td class="text-muted small">12/09/2026</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary btn-icon-adm dropdown-toggle-no-caret" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Actions" aria-label="Actions">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-check2 text-success me-2"></i>Évaluer</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-counterclockwise text-warning me-2"></i>Réinitialiser</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash3 me-2"></i>Supprimer</a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="text-start"><a href="#" class="fw-semibold text-decoration-none">Portail-RH</a></td>
+            <td class="text-muted small">Interne / On prem</td>
+            <td>S. Nguyen</td>
+            <td><span class="badge badge-pill-adm badge-crit-1">Très élevée</span></td>
+            <td>
+              <div class="d-flex justify-content-center gap-1">
+                <span class="badge badge-pill-adm badge-dicp-4" title="Disponibilité">D4</span>
+                <span class="badge badge-pill-adm badge-dicp-4" title="Intégrité">I4</span>
+                <span class="badge badge-pill-adm badge-dicp-4" title="Confidentialité">C4</span>
+                <span class="badge badge-pill-adm badge-dicp-2" title="Pérennité">P2</span>
+              </div>
+            </td>
+            <td>81/120</td>
+            <td><span class="badge bg-danger badge-pill-adm">68 %</span></td>
+            <td><span class="badge bg-danger badge-pill-adm">82</span></td>
+            <td class="text-muted small">03/09/2026</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary btn-icon-adm dropdown-toggle-no-caret" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Actions" aria-label="Actions">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-check2 text-success me-2"></i>Évaluer</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-counterclockwise text-warning me-2"></i>Réinitialiser</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash3 me-2"></i>Supprimer</a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="text-start"><a href="#" class="fw-semibold text-decoration-none">Facturation-Legacy</a></td>
+            <td class="text-muted small">Interne / On prem</td>
+            <td>P. Dubois</td>
+            <td><span class="badge badge-pill-adm badge-crit-3">Moyenne</span></td>
+            <td>
+              <div class="d-flex justify-content-center gap-1">
+                <span class="badge badge-pill-adm badge-dicp-3" title="Disponibilité">D3</span>
+                <span class="badge badge-pill-adm badge-dicp-3" title="Intégrité">I3</span>
+                <span class="badge badge-pill-adm badge-dicp-2" title="Confidentialité">C2</span>
+                <span class="badge badge-pill-adm badge-dicp-4" title="Pérennité">P4</span>
+              </div>
+            </td>
+            <td>25/90</td>
+            <td><span class="badge bg-danger badge-pill-adm">28 %</span></td>
+            <td><span class="badge bg-danger badge-pill-adm">91</span></td>
+            <td class="text-muted small">28/06/2026</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary btn-icon-adm dropdown-toggle-no-caret" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Actions" aria-label="Actions">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-check2 text-success me-2"></i>Évaluer</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-counterclockwise text-warning me-2"></i>Réinitialiser</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash3 me-2"></i>Supprimer</a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="text-start"><a href="#" class="fw-semibold text-decoration-none">Espace-Collaborateur</a></td>
+            <td class="text-muted small">Open source / Cloud</td>
+            <td>L. Martin</td>
+            <td><span class="badge badge-pill-adm badge-crit-4">Faible</span></td>
+            <td>
+              <div class="d-flex justify-content-center gap-1">
+                <span class="badge badge-pill-adm badge-dicp-1" title="Disponibilité">D1</span>
+                <span class="badge badge-pill-adm badge-dicp-1" title="Intégrité">I1</span>
+                <span class="badge badge-pill-adm badge-dicp-1" title="Confidentialité">C1</span>
+                <span class="badge badge-pill-adm badge-dicp-1" title="Pérennité">P1</span>
+              </div>
+            </td>
+            <td>55/60</td>
+            <td><span class="badge bg-success badge-pill-adm">92 %</span></td>
+            <td><span class="badge bg-success badge-pill-adm">12</span></td>
+            <td class="text-muted small">01/09/2026</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary btn-icon-adm dropdown-toggle-no-caret" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Actions" aria-label="Actions">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-check2 text-success me-2"></i>Évaluer</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-counterclockwise text-warning me-2"></i>Réinitialiser</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash3 me-2"></i>Supprimer</a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="text-start"><a href="#" class="fw-semibold text-decoration-none">Outil-Support-N2</a></td>
+            <td class="text-muted small">Éditeur / Hybride</td>
+            <td>K. Haddad</td>
+            <td><span class="badge badge-pill-adm badge-crit-3">Moyenne</span></td>
+            <td>
+              <div class="d-flex justify-content-center gap-1">
+                <span class="badge badge-pill-adm badge-dicp-2" title="Disponibilité">D2</span>
+                <span class="badge badge-pill-adm badge-dicp-2" title="Intégrité">I2</span>
+                <span class="badge badge-pill-adm badge-dicp-1" title="Confidentialité">C1</span>
+                <span class="badge badge-pill-adm badge-dicp-2" title="Pérennité">P2</span>
+              </div>
+            </td>
+            <td class="text-muted">Non évaluée</td>
+            <td class="text-muted">N/A</td>
+            <td class="text-muted">Non évaluée</td>
+            <td class="text-muted small">Non évaluée</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary btn-icon-adm dropdown-toggle-no-caret" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Actions" aria-label="Actions">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-check2 text-success me-2"></i>Évaluer</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-counterclockwise text-warning me-2"></i>Réinitialiser</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash3 me-2"></i>Supprimer</a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="text-muted small mt-3">
+    <i class="bi bi-info-circle"></i> Données fictives. Structure et colonnes identiques à l'écran
+    actuel (<code>templates/index.html</code>) : rien n'est ajouté ni retiré fonctionnellement, seul
+    l'habillage change (icônes Bootstrap Icons au lieu d'émojis, badges arrondis, tableau sur carte).
+  </p>
+
+</main>
+
+<footer class="footer-adm">
+  Maquette de démonstration — Phase 0, US4.1 — ADM
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var toggle = document.getElementById('themeToggle');
+    var icon = document.getElementById('themeIcon');
+    function apply(theme) {
+      root.setAttribute('data-bs-theme', theme);
+      icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+      try { localStorage.setItem('adm-mockup-theme', theme); } catch (e) {}
+    }
+    var saved = 'light';
+    try { saved = localStorage.getItem('adm-mockup-theme') || 'light'; } catch (e) {}
+    apply(saved);
+    toggle.addEventListener('click', function () {
+      apply(root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>

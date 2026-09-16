@@ -108,10 +108,15 @@ significative.
 ## 5. Design system proposé
 
 Une palette de couleurs formalisée en variables CSS Bootstrap (`--bs-primary`
-et équivalents), pour ne plus redéfinir `#0d6efd` en dur à chaque page,
-avec les mêmes teintes sémantiques que celles déjà choisies pour les badges
-DICP et de criticité (vert/jaune/orange/rouge), mais déclarées une seule
-fois. Une typographie web moderne (par exemple *Inter*), auto-hébergée dans
+et équivalents), pour ne plus redéfinir la couleur de marque en dur à chaque
+page. Couleur de marque validée en Phase 0 (voir section 9) : un vert forêt
+légèrement foncé (`#0e6b5c`, variante appuyée `#0a4d42`) à la place du bleu
+Bootstrap par défaut, volontairement distinct du vert sémantique des badges
+DICP et de criticité (`#198754`, plus vif) pour ne jamais confondre couleur
+de marque et code couleur fonctionnel. Les teintes sémantiques elles-mêmes
+restent celles déjà choisies pour les badges DICP et de criticité
+(vert/jaune/orange/rouge), mais déclarées une seule fois. Une typographie
+web moderne (par exemple *Inter*), auto-hébergée dans
 `static/` plutôt qu'appelée depuis Google Fonts, pour rester cohérente avec
 la future CSP et fonctionner en environnement fermé. Une iconographie
 Bootstrap Icons en remplacement des émojis partout où ils servent d'action
@@ -131,10 +136,11 @@ optionnelle pour une version interactive).
 
 ## 6. Plan d'action détaillé
 
-**Phase 0 — Cadrage visuel (0,5 à 1 jour, sans code).** Produire deux ou
-trois maquettes statiques (catalogue, formulaire d'évaluation, synthèse) en
-clair et en sombre, pour validation avant tout développement. Objectif :
-éviter les allers-retours une fois le code entamé.
+**Phase 0 — Cadrage visuel (0,5 à 1 jour, sans code). Réalisée et validée le
+2026-09-16 par Guillaume Rumeau.** Quatre pages HTML statiques (sommaire,
+catalogue, formulaire d'évaluation, synthèse), clair et sombre, dans
+`mockups/` (voir section 9 pour le détail et les deux ajustements retenus
+avant de passer en Phase 1).
 
 **Phase 1 — Fondations du design system (2 à 3 jours).** Créer
 `src/ADM/resources/static/css/app.css` regroupant les tokens de couleur, les
@@ -221,7 +227,42 @@ CDN externe. La Tâche 3.6 (pagination des listes) gagnerait à être
 développée en même temps que la Phase 4 (htmx), les deux se combinant
 naturellement.
 
-## 9. Prochaine étape immédiate
+## 9. Suivi — Phase 0 validée
 
-Valider ce document, puis produire les maquettes de la Phase 0 avant
-d'ouvrir un premier ticket de développement pour la Phase 1.
+Document validé par Guillaume Rumeau le 2026-09-16. Les maquettes de la
+Phase 0 sont dans `mockups/` (`index.html` en sommaire, `catalogue.html`,
+`evaluation.html`, `synthese.html`, `README.md`, `assets/mockup.css`) et
+n'ont entraîné aucune modification du code de l'application. Deux
+ajustements y ont été décidés par rapport à la proposition initiale, à
+reprendre tels quels en Phase 1 :
+
+- **Couleur de marque** : vert forêt légèrement foncé (`#0e6b5c`, variante
+  appuyée `#0a4d42`, variante claire `#3ddbb4` pour le mode sombre et les
+  accents type barre de progression) à la place du bleu Bootstrap par
+  défaut évoqué en section 5 de la version initiale de ce document. Choisi
+  volontairement distinct du vert sémantique des badges DICP/criticité
+  (`#198754`) pour ne pas mélanger couleur de marque et code couleur
+  fonctionnel. `mockups/assets/mockup.css` implémente ce retint par-dessus
+  Bootstrap (variables `--bs-primary`/`--bs-link-color` côté racine,
+  surcharge explicite de `.btn-primary`/`.btn-outline-primary` qui ne sont
+  pas pilotés par ces variables dans Bootstrap 5.3) : cette approche, pas
+  seulement les valeurs de couleur, est directement réutilisable pour
+  `static/css/app.css` en Phase 1.
+- **Actions du catalogue** : les quatre boutons d'action par ligne
+  (Évaluer/Modifier/Réinitialiser/Supprimer) sont regroupés dans un menu
+  contextuel unique (icône « ⋯ »), comme déjà envisagé en section 6 (Phase
+  2) mais avancé dès la maquette après un premier essai en boutons empilés
+  jugé peu lisible.
+
+Aucune autre remarque sur les pages ou le contenu : la direction visuelle
+(cartes, tableaux, badges, mode sombre, typographie, iconographie Bootstrap
+Icons) est validée telle quelle.
+
+## 10. Prochaine étape immédiate
+
+Ouvrir la Phase 1 (fondations du design system) comme premier ticket de
+développement : créer `src/ADM/resources/static/css/app.css` à partir de
+`mockups/assets/mockup.css` (palette et menu d'actions inclus), vendoriser
+Bootstrap/Bootstrap Icons dans `static/vendor/`, et supprimer les blocs
+`<style>` dupliqués des gabarits listés en section 6. `backlog.md` a été mis
+à jour en conséquence sous US4.1 (Epic 4).
