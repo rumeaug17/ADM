@@ -51,6 +51,13 @@ function admRadarChartConfig(radarData) {
     options: {
       responsive: true,
       maintainAspectRatio: true,
+      // Correctif (US4.1, post-Phase 6) : carré explicite plutôt que de
+      // dépendre du ratio par défaut de Chart.js pour le type "radar" —
+      // combiné à `.radar-chart-wrapper` (voir app.css), qui plafonne la
+      // largeur disponible, ce carré évite qu'un radar placé dans une carte
+      // pleine largeur (resume.html) s'affiche démesurément plus grand que
+      // le PNG qu'il remplace.
+      aspectRatio: 1,
       scales: {
         r: {
           beginAtZero: true,

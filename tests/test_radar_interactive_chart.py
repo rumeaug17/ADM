@@ -25,6 +25,7 @@ import json
 import math
 from pathlib import Path
 
+import pytest
 from flask import Flask
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
@@ -223,6 +224,51 @@ def test_radar_charts_js_exposes_the_expected_helper_functions() -> None:
         assert f"function {function_name}(" in content
 
 
+def test_radar_chart_config_forces_a_square_aspect_ratio() -> None:
+    """Correctif (bug d'affichage post-Phase 6) : un ratio carré explicite,
+    plutôt que de dépendre du ratio par défaut de Chart.js, pour un rendu
+    prévisible combiné à ``.radar-chart-wrapper`` (voir app.css)."""
+    content = (STATIC / "radar_charts.js").read_text(encoding="utf-8")
+    assert "aspectRatio: 1" in content
+
+
+# ---------------------------------------------------------------------------
+# Correctif (post-Phase 6) : le radar de resume.html s'affichait bien plus
+# grand que le PNG qu'il remplaçait, dans une carte pleine largeur.
+# ---------------------------------------------------------------------------
+
+
+def test_app_css_defines_a_radar_chart_wrapper_with_a_bounded_width() -> None:
+    css = (STATIC / "css" / "app.css").read_text(encoding="utf-8")
+    # La règle elle-même (pas seulement son nom, qui apparaît aussi dans le
+    # commentaire qui la précède).
+    rule_start = css.index(".radar-chart-wrapper {")
+    rule_body = css[rule_start:].split("}")[0]
+    assert "max-width" in rule_body
+
+
+@pytest.mark.parametrize(
+    ("template_name", "canvas_id"),
+    [
+        ("resume.html", "resumeRadarChart"),
+        ("synthese.html", "syntheseRadarChart"),
+        ("synthese.html", "radarChartCanvas"),
+    ],
+)
+def test_radar_canvas_is_wrapped_in_a_width_bounded_container(
+    template_name: str, canvas_id: str
+) -> None:
+    html = (TEMPLATES / template_name).read_text(encoding="utf-8")
+    canvas_index = html.index(f'id="{canvas_id}"')
+    preceding_html = html[:canvas_index]
+    wrapper_index = preceding_html.rindex("<div")
+    # Le <div class="radar-chart-wrapper"> doit être le parent direct (ou
+    # quasi direct) du <canvas>, pas une carte pleine largeur plus haute dans
+    # l'arborescence : on vérifie que le dernier <div> ouvert avant le canvas
+    # porte bien cette classe.
+    assert 'class="radar-chart-wrapper"' in preceding_html[wrapper_index:]
+
+
 # ---------------------------------------------------------------------------
 # resume.html : PNG affiché par défaut, remplacé par le graphique interactif
 # ---------------------------------------------------------------------------
@@ -286,9 +332,35 @@ def test_synthese_html_modal_fetches_json_and_falls_back_to_the_png_on_failure()
         in (synthese_html)
     )
     assert '"/radar/" + encodeURIComponent(appName) + "/data"' in synthese_html
-    assert (
-        "radarModal.addEventListener('hidden.bs.modal', resetRadarModalDisplay);" in synthese_html
-    )
+    assert "pendingRadarData = null;" in synthese_html
+    assert "resetRadarModalDisplay();" in synthese_html
+
+
+def test_synthese_html_modal_renders_the_chart_only_after_shown_not_show() -> None:
+    """Correctif (bug d'affichage post-Phase 6) : ``show.bs.modal`` se
+    déclenche AVANT que Bootstrap ne rende le modal visible (le fondu
+    d'ouverture ne démarre qu'ensuite). Créer le graphique Chart.js à ce
+    moment-là mesure un conteneur de largeur nulle et produit un canvas
+    quasi invisible (juste le contour blanc de ``.chart-surface`` — le
+    « point blanc » signalé). ``admRenderRadarChart`` ne doit donc être
+    appelé que dans un gestionnaire ``shown.bs.modal``, jamais directement
+    dans ``show.bs.modal``."""
+    synthese_html = (TEMPLATES / "synthese.html").read_text(encoding="utf-8")
+
+    show_start = synthese_html.index("addEventListener('show.bs.modal'")
+    shown_start = synthese_html.index("addEventListener('shown.bs.modal'")
+    hidden_start = synthese_html.index("addEventListener('hidden.bs.modal'")
+    assert show_start < shown_start < hidden_start
+
+    show_handler_body = synthese_html[show_start:shown_start]
+    shown_handler_body = synthese_html[shown_start:hidden_start]
+
+    assert "admRenderRadarChart(" not in show_handler_body
+    assert "admRenderRadarChart(" in shown_handler_body
+    # La requête réseau, elle, démarre bien dès "show.bs.modal" (pas besoin
+    # d'attendre la fin du fondu d'ouverture pour l'envoyer) : seul le rendu
+    # est différé.
+    assert "fetch(" in show_handler_body
 
 
 def test_synthese_page_embeds_the_average_radar_scores_as_json(tmp_path: Path) -> None:

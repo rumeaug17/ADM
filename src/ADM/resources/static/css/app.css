@@ -524,3 +524,18 @@ tr.htmx-settling {
   padding: 0.75rem;
   border-radius: var(--adm-radius);
 }
+
+/* Correctif (US4.1, post-Phase 6) : le <canvas> du graphique radar
+   interactif (voir static/radar_charts.js) hérite de `.chart-surface`
+   ci-dessus, mais Chart.js (mode `responsive`) dimensionne le canvas
+   d'après la largeur de son *parent direct*, pas d'après le `max-width` du
+   canvas lui-même. Sans conteneur dédié, un radar placé dans une carte
+   pleine largeur (`resume.html`) s'agrandissait démesurément par rapport au
+   PNG qu'il remplace (~600×530px, voir ADM.services.generate_radar_chart).
+   `.radar-chart-wrapper` fixe une largeur maximale raisonnable, proche de
+   celle du PNG, pour que les deux représentations restent visuellement
+   comparables quel que soit l'endroit où le radar est affiché. */
+.radar-chart-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+}

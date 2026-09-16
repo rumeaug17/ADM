@@ -172,6 +172,18 @@ Les tâches réalisées sont retirées du fichier.
   inchangée). 304 tests passés (292 + 12 nouveaux dans
   `tests/test_radar_interactive_chart.py`), couverture 87,65 % maintenue
   (détail et écarts volontaires en section 21 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Correctif du 2026-09-16 (signalé par
+  Guillaume Rumeau) : deux bugs d'affichage des radars interactifs — le
+  radar de `resume.html` s'affichait bien trop grand (Chart.js dimensionne
+  le `<canvas>` d'après son parent direct, une carte pleine largeur, faute
+  de conteneur dédié) et la modale « Radar » de la synthèse n'affichait
+  qu'un point blanc (le graphique était construit sur l'évènement
+  `show.bs.modal`, déclenché avant que Bootstrap ne rende le modal visible,
+  donc sur un conteneur de largeur nulle). Corrigés respectivement par une
+  nouvelle classe `.radar-chart-wrapper` (largeur plafonnée, `app.css`) et
+  par le déplacement du rendu vers l'évènement `shown.bs.modal` (le modal
+  réellement affiché). 310 tests passés (304 + 6 nouveaux), couverture
+  87,65 % maintenue (détail en section 22 de
   `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de développement :
   Phase 7 (validation et non-régression, à formaliser en fin de projet).
 

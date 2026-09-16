@@ -212,9 +212,15 @@
       <i class="bi bi-graph-up" aria-hidden="true"></i> Graphique Radar
     </div>
     <div class="card-body text-center" id="resumeRadarCard">
-      <canvas id="resumeRadarChart" class="d-none chart-surface" role="img"
-              aria-label="Graphique radar des scores par dimension de l'évaluation courante"
-              width="400" height="400"></canvas>
+      <!-- Correctif (US4.1, post-Phase 6) : .radar-chart-wrapper plafonne la
+           largeur disponible pour Chart.js (voir app.css), sans quoi le
+           radar interactif s'affichait bien plus grand que le PNG qu'il
+           remplace dans cette carte pleine largeur. -->
+      <div class="radar-chart-wrapper">
+        <canvas id="resumeRadarChart" class="d-none chart-surface" role="img"
+                aria-label="Graphique radar des scores par dimension de l'évaluation courante"
+                width="400" height="400"></canvas>
+      </div>
       <img src="data:image/png;base64,{{ radar_chart }}" alt="Radar Chart" class="img-fluid chart-surface">
     </div>
   </div>

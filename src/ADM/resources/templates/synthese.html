@@ -70,9 +70,14 @@
        static/radar_charts.js et le bloc extra_scripts en bas de page). -->
   <div class="col-md-6 text-center">
     <div class="card p-2 p-md-3 h-100" id="syntheseRadarCard">
-      <canvas id="syntheseRadarChart" class="d-none chart-surface" role="img"
-              aria-label="Graphique radar des scores moyens par dimension, toutes applications confondues"
-              width="400" height="400"></canvas>
+      <!-- Correctif (US4.1, post-Phase 6) : voir la même remarque dans
+           resume.html — .radar-chart-wrapper plafonne la largeur disponible
+           pour Chart.js (app.css). -->
+      <div class="radar-chart-wrapper">
+        <canvas id="syntheseRadarChart" class="d-none chart-surface" role="img"
+                aria-label="Graphique radar des scores moyens par dimension, toutes applications confondues"
+                width="400" height="400"></canvas>
+      </div>
       <img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes" class="img-fluid chart-surface">
     </div>
   </div>
@@ -133,9 +138,14 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body text-center">
-        <canvas id="radarChartCanvas" class="d-none chart-surface" role="img"
-                aria-label="Graphique radar de l'application sélectionnée"
-                width="400" height="400"></canvas>
+        <!-- Correctif (US4.1, post-Phase 6) : voir la même remarque dans
+             resume.html — .radar-chart-wrapper plafonne la largeur
+             disponible pour Chart.js (app.css). -->
+        <div class="radar-chart-wrapper">
+          <canvas id="radarChartCanvas" class="d-none chart-surface" role="img"
+                  aria-label="Graphique radar de l'application sélectionnée"
+                  width="400" height="400"></canvas>
+        </div>
         <img id="radarChartImg" src="" alt="Radar Chart" class="img-fluid chart-surface">
       </div>
     </div>
@@ -161,6 +171,7 @@
   // mettre à jour son contenu en fonction de l'application sélectionnée.
   var radarModal = document.getElementById('radarModal');
   var radarModalChart = null;
+  var pendingRadarData = null;
 
   function resetRadarModalDisplay() {
     if (radarModalChart) {
@@ -179,16 +190,34 @@
     document.getElementById('modalAppName').textContent = appName;
     resetRadarModalDisplay();
     // Repli PNG (comportement historique, avant Phase 6) : posé
-    // immédiatement, remplacé par le graphique interactif dès que ses
-    // données JSON arrivent.
+    // immédiatement, remplacé par le graphique interactif une fois le modal
+    // réellement affiché (voir "shown.bs.modal" ci-dessous).
     document.getElementById('radarChartImg').src = "/radar/" + encodeURIComponent(appName);
-    fetch("/radar/" + encodeURIComponent(appName) + "/data")
+    // Correctif (US4.1, post-Phase 6) : la requête démarre dès maintenant
+    // (pas besoin d'attendre pour ça), mais son résultat n'est exploité
+    // qu'après "shown.bs.modal".
+    pendingRadarData = fetch("/radar/" + encodeURIComponent(appName) + "/data")
       .then(function (response) {
         if (!response.ok) {
           throw new Error("radar data request failed");
         }
         return response.json();
-      })
+      });
+  });
+
+  // Correctif (US4.1, post-Phase 6) : "show.bs.modal" se déclenche AVANT que
+  // Bootstrap ne rende le modal visible (le fondu d'ouverture ne démarre
+  // qu'ensuite) — créer le graphique Chart.js à ce moment-là mesurait un
+  // conteneur de largeur nulle (le modal n'a pas encore de dimensions
+  // affichées) et produisait un canvas quasi invisible (juste le contour
+  // blanc de `.chart-surface`). "shown.bs.modal", déclenché une fois le
+  // modal effectivement affiché, garantit que le graphique se dimensionne
+  // correctement.
+  radarModal.addEventListener('shown.bs.modal', function () {
+    if (!pendingRadarData) {
+      return;
+    }
+    pendingRadarData
       .then(function (radarData) {
         var canvas = document.getElementById('radarChartCanvas');
         canvas.classList.remove('d-none');
@@ -203,6 +232,9 @@
       });
   });
 
-  radarModal.addEventListener('hidden.bs.modal', resetRadarModalDisplay);
+  radarModal.addEventListener('hidden.bs.modal', function () {
+    pendingRadarData = null;
+    resetRadarModalDisplay();
+  });
 </script>
 {% endblock %}

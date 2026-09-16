@@ -1080,10 +1080,107 @@ créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 22. Prochaine étape immédiate
+## 22. Correctif — affichage des graphiques radar interactifs
+
+Signalé le 2026-09-16 par Guillaume Rumeau après la Phase 6, deux bugs
+d'affichage : (1) sur `resume.html`, le radar interactif s'affichait bien
+trop grand ; (2) sur la modale de la synthèse (bouton « Radar » d'une
+application), la popup s'ouvrait mais sans radar visible, seulement « un
+point blanc ».
+
+**Cause du bug 1 (radar trop grand).** Chart.js, en mode `responsive`,
+dimensionne le `<canvas>` d'après la largeur de son **parent direct**, pas
+d'après une éventuelle règle `max-width` posée sur le canvas lui-même
+(`.chart-surface` n'y suffisait donc pas). Sur `resume.html`, ce parent est
+une carte pleine largeur (contrairement à `synthese.html`, où le radar tient
+dans une colonne `col-md-6` ~ deux fois plus étroite) : le graphique
+s'agrandissait démesurément par rapport au PNG qu'il remplace (~600×530px,
+voir `ADM.services.generate_radar_chart`).
+
+**Cause du bug 2 (radar invisible dans la modale).** L'évènement Bootstrap
+`show.bs.modal`, utilisé jusqu'ici pour déclencher le rendu Chart.js, se
+déclenche **avant** que Bootstrap ne rende le modal visible à l'écran (le
+fondu d'ouverture ne démarre qu'ensuite, dans `_showElement`, appelé après
+`show.bs.modal`). Créer le graphique à ce moment-là revient à le dimensionner
+d'après un conteneur dont la largeur affichée est nulle : Chart.js produit
+alors un canvas quasi invisible, dont seul le contour blanc de
+`.chart-surface` (fond blanc, léger padding) reste perceptible — exactement
+le « point blanc » signalé.
+
+**Correctifs.**
+- Une nouvelle classe `.radar-chart-wrapper` (`static/css/app.css`, `max-
+  width: 480px; margin: 0 auto;`) enveloppe chaque `<canvas>` de radar
+  (`resume.html`, radar moyen et modale de `synthese.html`) : Chart.js mesure
+  désormais ce conteneur dédié et de largeur plafonnée, plutôt que la carte
+  ou le modal qui l'englobe. La configuration Chart.js (`static/
+  radar_charts.js`) fixe en plus explicitement `aspectRatio: 1` (carré),
+  plutôt que de dépendre du ratio par défaut de la librairie.
+- Le rendu du graphique de la modale (`synthese.html`) est déplacé de
+  l'écouteur `show.bs.modal` vers un nouvel écouteur `shown.bs.modal`,
+  déclenché une fois le modal réellement affiché (dimensions non nulles). La
+  requête réseau (`/radar/<name>/data`) démarre toujours dès `show.bs.modal`
+  (pas besoin d'attendre pour l'envoyer), mais son résultat n'est exploité —
+  et le graphique construit — qu'après `shown.bs.modal`, via une promesse
+  intermédiaire (`pendingRadarData`).
+
+**Écarts volontaires par rapport à une correction minimale, documentés ici
+pour la revue** :
+- `.radar-chart-wrapper` a été appliqué aux trois emplacements (résumé,
+  radar moyen de la synthèse, modale), alors que seuls le premier et le
+  troisième étaient explicitement signalés en bug : le radar moyen de la
+  synthèse tient dans une colonne `col-md-6` qui reste raisonnable sur un
+  écran standard, mais deviendrait lui aussi surdimensionné sur un très
+  large écran — corrigé par cohérence et par prudence plutôt que d'attendre
+  un troisième signalement.
+- Le PNG (image, repli) n'est pas concerné par ces deux bugs ni par ces
+  correctifs : il conserve sa taille intrinsèque via `img-fluid`, inchangée
+  depuis la Phase 5.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux phases
+précédentes, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 310
+tests passés (304 + 6 nouveaux dans `tests/test_radar_interactive_chart.py`),
+couverture 87,65 % (seuil 86 % maintenu), résultat conforme aux phases
+précédentes — aucune régression introduite. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec ce correctif.
+Les nouveaux tests vérifient : que `.radar-chart-wrapper` plafonne bien la
+largeur (`max-width`) et enveloppe directement chacun des trois `<canvas>`
+de radar ; que `aspectRatio: 1` est bien configuré ; et — pour le bug 2 —
+que `admRenderRadarChart` n'est appelé que dans le gestionnaire
+`shown.bs.modal`, jamais directement dans `show.bs.modal`, tandis que la
+requête réseau, elle, démarre bien dès ce dernier. Comme pour la Phase 6,
+ces tests ne peuvent pas exécuter de JavaScript ni piloter un vrai
+navigateur : un contrôle manuel reste nécessaire pour confirmer le rendu
+visuel effectif.
+
+**Ce qui reste à faire côté utilisateur.** Les 5 fichiers modifiés
+(`static/css/app.css`, `static/radar_charts.js`, `templates/resume.html`,
+`templates/synthese.html`, `tests/test_radar_interactive_chart.py`) ont été
+déposés directement dans `C:\usr\ADM` via la liaison au poste, sans branche
+ni commit créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `fix/us4-1-radars-interactifs-affichage`)
+   et vérifier le statut `git` pour confirmer la liste des fichiers modifiés
+   (les 5 ci-dessus, aucun autre).
+2. Relire le diff, en particulier le passage de `show.bs.modal` à
+   `shown.bs.modal` dans `synthese.html`.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur et vérifier à l'œil : le radar de
+   `resume.html` s'affiche à une taille raisonnable (comparable au PNG
+   précédent, pas plus large que la carte) ; le clic sur « Radar » d'une
+   application dans la synthèse affiche bien le graphique dans la modale
+   (plus de point blanc), avec un léger délai le temps du fondu d'ouverture
+   du modal.
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 23. Prochaine étape immédiate
 
 Après revue et merge de la Phase 5, du correctif d'homogénéisation des
-messages et de cette Phase 6, ouvrir la Phase 7 (validation et
+messages, de la Phase 6 et de ce correctif d'affichage, ouvrir la Phase 7
+(validation et
 non-régression en continu, déjà appliquée à chaque phase mais à formaliser
 en fin de projet : revue manuelle de chaque rôle sur desktop et mobile, avec
 captures d'écran avant/après).
