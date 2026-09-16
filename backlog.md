@@ -184,6 +184,17 @@ Les tâches réalisées sont retirées du fichier.
   par le déplacement du rendu vers l'évènement `shown.bs.modal` (le modal
   réellement affiché). 310 tests passés (304 + 6 nouveaux), couverture
   87,65 % maintenue (détail en section 22 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Correctif du 2026-09-16 (demandé par
+  Guillaume Rumeau) : le radar PNG (matplotlib, repli sans JavaScript et
+  export/impression) restait tracé et rempli dans le bleu par défaut de
+  matplotlib, seule couleur du radar que la Phase 6 n'avait pas alignée sur
+  le vert de marque (`#0e6b5c`) déjà utilisé par le graphique interactif
+  Chart.js. Corrigé via une nouvelle constante `_RADAR_CHART_COLOR` dans
+  `ADM.services`, vérifiée par un test qui intercepte directement les appels
+  matplotlib (`PolarAxes.plot`/`fill`) plutôt que par un échantillonnage de
+  pixels du PNG, jugé trop fragile (marge trop faible entre bleu et vert une
+  fois mélangés au fond blanc). 312 tests passés (310 + 2 nouveaux),
+  couverture 87,65 % maintenue (détail en section 23 de
   `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de développement :
   Phase 7 (validation et non-régression, à formaliser en fin de projet).
 

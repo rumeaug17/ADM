@@ -24,9 +24,11 @@ modernisation)."""
 import json
 import math
 from pathlib import Path
+from typing import Any
 
 import pytest
 from flask import Flask
+from matplotlib.projections.polar import PolarAxes
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
 from ADM.accounts_service import create_account
@@ -146,6 +148,63 @@ def test_radar_chart_data_defaults_to_a_maximum_of_three_when_there_are_no_score
     quand aucun score n'est disponible (aucune catégorie de question
     configurée, ou aucune réponse)."""
     assert radar_chart_data({}) == {"labels": [], "scores": [], "max": 3}
+
+
+# ---------------------------------------------------------------------------
+# Correctif (US4.1, post-Phase 6) : le PNG matplotlib restait tracé en bleu
+# par défaut, seule couleur du radar que la Phase 6 n'avait pas alignée sur
+# le reste de l'application (le graphique interactif Chart.js, lui, utilisait
+# déjà le vert de marque, voir ADM_RADAR_COLOR dans static/radar_charts.js).
+# ---------------------------------------------------------------------------
+
+
+def test_generate_radar_chart_draws_with_the_brand_green_not_matplotlibs_default_blue(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Vérifie la couleur réellement transmise à matplotlib (et non une simple
+    présence de texte dans le code source) : un test par échantillonnage de
+    pixels serait fragile, l'écart entre le bleu par défaut et le vert de
+    marque une fois mélangé au blanc (``alpha=0.25``) étant trop faible pour
+    un seuil fiable sur les canaux RGB."""
+    captured_colors: list[Any] = []
+    original_plot = PolarAxes.plot
+    original_fill = PolarAxes.fill
+
+    def spy_plot(self: PolarAxes, *args: Any, **kwargs: Any) -> Any:
+        captured_colors.append(kwargs.get("color"))
+        return original_plot(self, *args, **kwargs)
+
+    def spy_fill(self: PolarAxes, *args: Any, **kwargs: Any) -> Any:
+        captured_colors.append(kwargs.get("color"))
+        return original_fill(self, *args, **kwargs)
+
+    monkeypatch.setattr(PolarAxes, "plot", spy_plot)
+    monkeypatch.setattr(PolarAxes, "fill", spy_fill)
+
+    generate_radar_chart({"Architecture": 2.0, "Exploitation": 1.0})
+
+    assert len(captured_colors) == 2, (
+        "le tracé et le remplissage doivent tous les deux être capturés"
+    )
+    for color in captured_colors:
+        assert color == "#0e6b5c"
+        assert color != "blue"
+
+
+def test_radar_chart_brand_color_matches_the_applications_primary_color() -> None:
+    """La couleur du radar PNG (``ADM.services._RADAR_CHART_COLOR``) doit
+    rester synchronisée avec le jeton de couleur de marque défini dans
+    app.css (``--adm-primary``) et avec celle déjà utilisée par le graphique
+    interactif Chart.js (``ADM_RADAR_COLOR``, voir static/radar_charts.js) :
+    faute de pouvoir partager une variable entre Python, CSS et JavaScript,
+    ce test garde les trois valeurs dupliquées en phase."""
+    services_source = (PROJECT_ROOT / "src" / "ADM" / "services.py").read_text(encoding="utf-8")
+    app_css = (STATIC / "css" / "app.css").read_text(encoding="utf-8")
+    radar_charts_js = (STATIC / "radar_charts.js").read_text(encoding="utf-8")
+
+    assert '_RADAR_CHART_COLOR: Final = "#0e6b5c"' in services_source
+    assert "--adm-primary: #0e6b5c;" in app_css
+    assert 'ADM_RADAR_COLOR = "#0e6b5c";' in radar_charts_js
 
 
 # ---------------------------------------------------------------------------

@@ -25,6 +25,17 @@ ScoreMap: TypeAlias = dict[str, int | None]
 # standard de 0 à 3 pour toutes les options du questionnaire).
 MAX_OPTION_SCORE: Final = 3
 
+# Couleur de marque (vert forêt validé en Phase 0, voir app.css : jeton
+# --adm-primary/--bs-primary) utilisée pour le tracé et le remplissage du
+# graphique radar PNG (`generate_radar_chart`, ci-dessous). Corrigé (US4.1,
+# post-Phase 6) : ce PNG restait en bleu par défaut de matplotlib, la seule
+# couleur du radar que la Phase 6 n'avait pas alignée sur le reste de
+# l'application — la version interactive Chart.js, elle, utilisait déjà
+# cette même teinte (`ADM_RADAR_COLOR`, voir static/radar_charts.js). Cette
+# constante doit rester synchronisée avec les deux (valeur dupliquée, faute
+# de pouvoir partager une variable entre Python, CSS et JavaScript).
+_RADAR_CHART_COLOR: Final = "#0e6b5c"
+
 # Niveaux DICP valides (1 à 4), utilisés pour valider disponibilité, intégrité,
 # confidentialité et pérennité avant le calcul du risque.
 _DICP_LEVELS: Final = frozenset({"1", "2", "3", "4"})
@@ -333,8 +344,8 @@ def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     axis.set_xticks(angles[:-1])
     axis.set_xticklabels(categories)
     axis.set_ylim(-1, maximum)
-    axis.plot(angles, scores, color="blue", linewidth=2)
-    axis.fill(angles, scores, color="blue", alpha=0.25)
+    axis.plot(angles, scores, color=_RADAR_CHART_COLOR, linewidth=2)
+    axis.fill(angles, scores, color=_RADAR_CHART_COLOR, alpha=0.25)
     buffer = io.BytesIO()
     figure.savefig(buffer, format="png", bbox_inches="tight")
     return base64.b64encode(buffer.getvalue()).decode("utf-8")

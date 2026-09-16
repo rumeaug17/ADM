@@ -1176,11 +1176,71 @@ ni commit créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 23. Prochaine étape immédiate
+## 23. Correctif — couleur du radar PNG alignée sur la couleur de marque
+
+Demandé le 2026-09-16 par Guillaume Rumeau : « Change la couleur de
+l'intérieur des radars, pour avoir un vert homogène avec le reste de
+l'application. »
+
+**Cause.** La Phase 6 avait introduit le graphique radar interactif Chart.js
+en reprenant déjà la couleur de marque (vert forêt `#0e6b5c`, jeton
+`--adm-primary`/`--bs-primary` validé en Phase 0, voir `ADM_RADAR_COLOR` dans
+`static/radar_charts.js`), mais n'avait pas touché au PNG matplotlib
+(`ADM.services.generate_radar_chart`, conservé comme repli sans JavaScript et
+pour l'impression/l'export) : celui-ci restait tracé et rempli dans le bleu
+par défaut de matplotlib (`color="blue"`), seule couleur du radar que la
+Phase 6 n'avait pas alignée sur le reste de l'application.
+
+**Correctif.** Une nouvelle constante `_RADAR_CHART_COLOR = "#0e6b5c"`
+(`src/ADM/services.py`, juste après `MAX_OPTION_SCORE`) remplace `"blue"`
+dans les deux appels matplotlib de `generate_radar_chart` (`axis.plot` et
+`axis.fill`). Cette valeur est dupliquée à dessein entre Python (constante),
+CSS (`--adm-primary`) et JavaScript (`ADM_RADAR_COLOR`), faute de pouvoir
+partager une variable entre ces trois langages ; un nouveau test
+(`tests/test_radar_interactive_chart.py`) garde les trois en phase.
+
+**Vérification de la couleur réellement produite.** Un test par
+échantillonnage de pixels du PNG a été exploré puis écarté : une fois
+mélangée au fond blanc (`alpha=0.25`), la marge entre le bleu par défaut et
+le vert de marque est trop faible sur les canaux RGB pour un seuil fiable et
+non fragile. Le nouveau test intercepte à la place directement les appels
+`PolarAxes.plot`/`PolarAxes.fill` (via `monkeypatch`) et vérifie l'argument
+`color` réellement transmis à matplotlib (`"#0e6b5c"`, jamais `"blue"`) —
+une vérification du comportement d'exécution, pas seulement du texte source.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux phases
+précédentes, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 312
+tests passés (310 + 2 nouveaux dans `tests/test_radar_interactive_chart.py`),
+couverture 87,65 % (seuil 86 % maintenu), résultat conforme aux phases
+précédentes — aucune régression introduite. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec ce correctif.
+
+**Ce qui reste à faire côté utilisateur.** Les 2 fichiers modifiés
+(`src/ADM/services.py`, `tests/test_radar_interactive_chart.py`) ont été
+déposés directement dans `C:\usr\ADM` via la liaison au poste, sans branche
+ni commit créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `fix/us4-1-radar-couleur-verte`) et vérifier
+   le statut `git` pour confirmer la liste des fichiers modifiés (les 2
+   ci-dessus, aucun autre).
+2. Relire le diff.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur et vérifier à l'œil que le radar
+   s'affiche désormais dans un vert homogène avec le reste de l'application,
+   y compris en repli PNG (par exemple en désactivant JavaScript, ou en
+   observant la modale de la synthèse juste après son ouverture, avant que
+   le graphique interactif ne prenne le relais).
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 24. Prochaine étape immédiate
 
 Après revue et merge de la Phase 5, du correctif d'homogénéisation des
-messages, de la Phase 6 et de ce correctif d'affichage, ouvrir la Phase 7
-(validation et
+messages, de la Phase 6, du correctif d'affichage des radars et de ce
+correctif de couleur, ouvrir la Phase 7 (validation et
 non-régression en continu, déjà appliquée à chaque phase mais à formaliser
 en fin de projet : revue manuelle de chaque rôle sur desktop et mobile, avec
 captures d'écran avant/après).
