@@ -853,14 +853,122 @@ affiché) et réinitialiser une évaluation (modal fermé, ligne mise à jour,
 toast affiché), puis inclure ce correctif dans la même branche/revue que la
 Phase 5 (ou une branche dédiée si la Phase 5 est déjà mergée).
 
-## 20. Prochaine étape immédiate
+## 20. Correctif — homogénéisation des messages informatifs
 
-Après revue et merge de la Phase 5, ouvrir la Phase 6 optionnelle
-(graphiques interactifs : remplacer les images radar statiques par un
-graphique interactif Chart.js, vendorisé, sans CDN, affichant les mêmes
-données — touche `ADM.services` et les routes concernées pour exposer les
-scores en JSON en plus du PNG actuel, à arbitrer séparément des phases 1 à 5
-puisqu'elle est plus proche du fonctionnel que du seul habillage) ou, si
+Signalé le 2026-09-16 par Guillaume Rumeau après la Phase 5 : « Il faut
+homogénéiser les messages informatifs. Parfois en haut de l'écran parfois en
+bas à droite. Il faut que ce soit toujours au même endroit et avec le même
+format. »
+
+**Cause.** L'application affichait ses messages informatifs de deux façons
+différentes selon leur origine, un décalage hérité de la Phase 4. Les
+messages flash Flask (connexion, erreurs de formulaire, actions terminées
+par un rechargement complet de page) apparaissaient en haut de la page, dans
+une alerte Bootstrap (`alert alert-{{ category }}`) — un bloc identique
+dupliqué dans 11 gabarits (`index.html`, `add.html`, `edit.html`,
+`score.html`, `login.html`, `change_password.html`, `accounts.html`,
+`questions_settings.html`, `settings.html`, `import_data.html`,
+`question_form.html`). Les actions déclenchées en htmx (suppression/
+réinitialisation d'une application, voir section 16), elles, affichaient
+depuis la Phase 4 un toast Bootstrap en bas à droite. Deux emplacements,
+deux formats, pour la même notion de message informatif après une action —
+la Phase 4 avait introduit le second mécanisme sans unifier le premier.
+
+**Correctif.** Le rendu des messages flash est désormais centralisé dans
+`base.html`, seul gabarit qui appelle encore `get_flashed_messages` : ils
+sont rendus directement comme des toasts Bootstrap, dans le même conteneur
+que les toasts htmx (`#admToastContainer`, en bas à droite) et avec
+exactement le même balisage (`toast align-items-center
+text-bg-<catégorie> border-0`, bouton de fermeture dont la couleur s'adapte
+à la catégorie — sombre sur fond clair pour `warning`/`info`/`light`, blanc
+sinon). Les 11 gabarits cités ci-dessus ont perdu leur bloc `{% with
+messages = get_flashed_messages(...) %}` dupliqué (retiré via un script
+Python plutôt que l'outil d'édition habituel, par prudence : plusieurs de
+ces gabarits utilisent des fins de ligne CRLF, un script en octets garantit
+qu'aucune n'est corrompue au passage). Deux fonctions JavaScript partagées
+(`admToastCloseButtonClass`, qui choisit la couleur du bouton de fermeture
+selon la catégorie, et `admActivateToast`, qui affiche le toast avec le même
+délai de 5 s et le retire du DOM à sa fermeture) remplacent la logique
+auparavant écrite en dur dans l'écouteur `htmx:afterRequest` : ce dernier les
+appelle désormais lui aussi, pour garantir un comportement strictement
+identique quelle que soit l'origine du message (rendu serveur au chargement
+de la page, ou toast construit dynamiquement après une action htmx).
+
+**Écarts volontaires par rapport à une suppression pure et simple, documentés
+ici pour la revue** :
+- `login.html` a reçu un petit ajustement cosmétique en plus du retrait du
+  bloc de messages flash : une ligne vide a été restaurée entre le titre et
+  la carte de connexion (l'ancien bloc, bien que vide la plupart du temps,
+  servait aussi de séparateur visuel dans le gabarit), pour rester cohérent
+  avec la mise en page des autres pages courtes.
+- Les catégories de message utilisées dans `ADM.routes` restent uniquement
+  `"success"`, `"danger"` et `"info"` (vérifié par recherche) : le nouveau
+  rendu gère néanmoins aussi `warning`/`primary`/`secondary`/`light`/`dark`
+  par cohérence avec l'ensemble des couleurs sémantiques Bootstrap
+  disponibles, et retombe sur `secondary` pour toute catégorie inconnue,
+  plutôt que de laisser passer une classe CSS invalide.
+- Le conteneur de toasts (`#admToastContainer`) existait déjà depuis la
+  Phase 4 (section 16) : cette correction ne crée ni nouveau conteneur ni
+  nouvel emplacement à l'écran, elle fait converger les messages flash vers
+  celui qui existait déjà pour les toasts htmx.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux phases
+précédentes, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 292
+tests passés (285 + 7 nouveaux, `tests/test_flash_messages_as_toasts.py`),
+couverture 87,55 % (seuil 86 % maintenu), résultat conforme aux phases
+précédentes — aucune régression introduite. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec ce correctif.
+Les nouveaux tests vérifient : qu'aucun des 11 gabarits ne contient plus
+d'appel à `get_flashed_messages` ni le patron `alert-{{ category }}` (garde-
+fou anti-régression, sur l'ensemble des gabarits) ; qu'une erreur de
+connexion s'affiche bien comme un toast (`text-bg-danger`) et non plus comme
+une alerte en haut de page ; que le message de déconnexion (`text-bg-info`,
+fond clair) garde un bouton de fermeture sombre tandis qu'une connexion
+réussie (`text-bg-success`, fond foncé) garde un bouton blanc ; et que les
+deux fonctions JavaScript partagées sont bien définies une seule fois et
+appelées à la fois par la boucle d'activation des toasts flash et par
+l'écouteur `htmx:afterRequest`.
+
+**Ce qui reste à faire côté utilisateur.** Les 13 fichiers modifiés ou créés
+(`templates/base.html`, `templates/accounts.html`,
+`templates/questions_settings.html`, `templates/index.html`,
+`templates/score.html`, `templates/import_data.html`,
+`templates/settings.html`, `templates/edit.html`, `templates/add.html`,
+`templates/change_password.html`, `templates/login.html`,
+`templates/question_form.html`, `tests/test_flash_messages_as_toasts.py`
+(nouveau)) ont été déposés directement dans `C:\usr\ADM` via la liaison au
+poste, sans branche ni commit créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex.
+   `fix/us4-1-homogeneisation-messages-informatifs`) et vérifier le statut
+   `git` pour confirmer la liste des fichiers modifiés/créés (les 13
+   ci-dessus, aucun autre).
+2. Relire le diff, en particulier `base.html` (nouveau rendu des toasts
+   flash et fonctions JS partagées) et les 11 gabarits dont un bloc a été
+   retiré (vérifier qu'aucun contenu utile n'a disparu au passage, en
+   particulier sur les fichiers CRLF).
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur (clair et sombre) et vérifier à
+   l'œil que tous les messages qui apparaissaient auparavant en haut de page
+   (erreur de connexion, validation de formulaire, déconnexion, changement de
+   mot de passe, ajout/modification/suppression d'une question ou d'un
+   compte, import de données) s'affichent désormais en bas à droite, avec le
+   même format que les toasts de suppression/réinitialisation d'application
+   déjà en place depuis la Phase 4.
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 21. Prochaine étape immédiate
+
+Après revue et merge de la Phase 5 et de ce correctif, ouvrir la Phase 6
+optionnelle (graphiques interactifs : remplacer les images radar statiques
+par un graphique interactif Chart.js, vendorisé, sans CDN, affichant les
+mêmes données — touche `ADM.services` et les routes concernées pour exposer
+les scores en JSON en plus du PNG actuel, à arbitrer séparément des phases 1
+à 5 puisqu'elle est plus proche du fonctionnel que du seul habillage) ou, si
 cette phase optionnelle n'est pas retenue, la Phase 7 (validation et
 non-régression en continu, déjà appliquée à chaque phase mais à formaliser
 en fin de projet : revue manuelle de chaque rôle sur desktop et mobile, avec

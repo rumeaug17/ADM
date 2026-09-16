@@ -141,9 +141,23 @@ Les tâches réalisées sont retirées du fichier.
   ancêtre de l'élément déclencheur après une requête réussie, correctif
   générique à tout formulaire htmx en modal, voir section 19 de
   `docs/UI_MODERNIZATION_PROPOSAL.md`). 285 tests passés (282 + 3 nouveaux),
-  couverture 87,55 % maintenue. Prochaine étape de développement : Phase 6
-  optionnelle (graphiques interactifs) ou, à défaut, Phase 7 (validation et
-  non-régression, à formaliser en fin de projet).
+  couverture 87,55 % maintenue. Correctif du 2026-09-16 (signalé par
+  Guillaume Rumeau) : les messages informatifs s'affichaient tantôt en haut
+  de page (messages flash Flask, alerte Bootstrap dupliquée dans 11
+  gabarits), tantôt en bas à droite (toasts htmx de la Phase 4) — deux
+  emplacements et deux formats pour la même notion de message après une
+  action. Corrigé en centralisant le rendu des messages flash dans
+  `base.html`, seul gabarit qui appelle encore `get_flashed_messages` : ils
+  sont désormais rendus comme des toasts Bootstrap dans le même conteneur et
+  avec le même balisage que les toasts htmx (`text-bg-<catégorie>`, bouton de
+  fermeture adapté à la catégorie), et deux fonctions JavaScript partagées
+  (`admActivateToast`, `admToastCloseButtonClass`) remplacent la logique
+  auparavant dupliquée dans l'écouteur `htmx:afterRequest` (voir section 20
+  de `docs/UI_MODERNIZATION_PROPOSAL.md`). 292 tests passés (285 + 7
+  nouveaux dans `tests/test_flash_messages_as_toasts.py`), couverture
+  87,55 % maintenue, aucune route Flask modifiée. Prochaine étape de
+  développement : Phase 6 optionnelle (graphiques interactifs) ou, à défaut,
+  Phase 7 (validation et non-régression, à formaliser en fin de projet).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

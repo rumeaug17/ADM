@@ -71,9 +71,34 @@
  {% block content %}{% endblock %}
 </main>
 
-<!-- Phase 4 (US4.1) : conteneur des toasts Bootstrap affichés après une
-     action htmx (voir le script d'écoute de HX-Trigger plus bas). -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;" id="admToastContainer" aria-live="polite" aria-atomic="true"></div>
+<!-- Homogénéisation des messages informatifs (US4.1, post-Phase 5) : avant
+     ce correctif, les messages flash Flask s'affichaient en haut de chaque
+     page dans une alerte Bootstrap inline (une par gabarit, dupliquée dans
+     11 templates), tandis que les actions htmx (Phase 4) affichaient un
+     toast en bas à droite — deux emplacements et deux formats différents
+     pour la même notion de "message informatif après une action". Les deux
+     mécanismes convergent maintenant ici, dans ce conteneur unique de
+     toasts : les messages flash sont rendus directement en toasts Bootstrap
+     (identiques en tout point à ceux créés dynamiquement par le script
+     d'écoute de HX-Trigger plus bas — voir le script qui les active juste
+     après le chargement de bootstrap.bundle.min.js), qu'ils viennent d'une
+     action htmx ou d'un rechargement de page complet. -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;" id="admToastContainer" aria-live="polite" aria-atomic="true">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% set known_toast_categories = ["success", "danger", "warning", "info", "primary", "secondary", "light", "dark"] %}
+    {% set light_toast_categories = ["warning", "info", "light"] %}
+    {% for category, message in messages %}
+      {% set toast_category = category if category in known_toast_categories else "secondary" %}
+      {% set close_btn_class = "" if toast_category in light_toast_categories else "btn-close-white" %}
+      <div class="toast align-items-center text-bg-{{ toast_category }} border-0" role="status" aria-live="polite" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">{{ message }}</div>
+          <button type="button" class="btn-close {{ close_btn_class }} me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+        </div>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
 
 <footer>
     <p>
@@ -97,6 +122,42 @@
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
     new bootstrap.Tooltip(el);
   });
+</script>
+<script>
+  // Homogénéisation des messages informatifs (US4.1, post-Phase 5) :
+  // fonctions partagées entre les toasts rendus par le serveur (messages
+  // flash, voir #admToastContainer ci-dessus) et ceux créés dynamiquement
+  // par le script d'écoute de HX-Trigger plus bas, pour garantir un
+  // comportement et une apparence strictement identiques quelle que soit
+  // l'origine du message.
+
+  // Bootstrap pose un texte noir sur ces fonds clairs (`.text-bg-warning`,
+  // `.text-bg-info`, `.text-bg-light`) : leur bouton de fermeture doit rester
+  // sombre (`.btn-close` par défaut) plutôt que `.btn-close-white`, illisible
+  // dessus. Cette liste doit rester synchronisée avec `light_toast_categories`
+  // ci-dessus (rendu serveur).
+  var ADM_LIGHT_TOAST_CATEGORIES = ['warning', 'info', 'light'];
+
+  function admToastCloseButtonClass(category) {
+    return ADM_LIGHT_TOAST_CATEGORIES.indexOf(category) === -1 ? 'btn-close-white' : '';
+  }
+
+  // Active un toast (déjà présent dans le DOM, qu'il soit rendu par le
+  // serveur ou construit dynamiquement) : l'affiche, le retire du DOM une
+  // fois masqué, avec le même délai que partout ailleurs (5 s).
+  function admActivateToast(toastEl) {
+    var toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 5000 });
+    toastEl.addEventListener('hidden.bs.toast', function () {
+      toastEl.remove();
+    });
+    toast.show();
+  }
+
+  // Les messages flash sont déjà rendus dans #admToastContainer par le
+  // gabarit (voir plus haut) : il reste à les activer au chargement de la
+  // page, exactement comme un toast créé dynamiquement après une action
+  // htmx.
+  document.querySelectorAll('#admToastContainer .toast').forEach(admActivateToast);
 </script>
 <!-- Phase 4 (US4.1) : htmx et Alpine.js, vendorisés (pas de CDN, comme
      Bootstrap). Alpine est chargé avec "defer" comme le recommande sa propre
@@ -157,18 +218,17 @@
     toastEl.innerHTML =
       '<div class="d-flex">' +
         '<div class="toast-body"></div>' +
-        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>' +
+        '<button type="button" class="btn-close ' + admToastCloseButtonClass(category) + ' me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>' +
       '</div>';
     // textContent (jamais innerHTML) : le nom d'application inclus dans le
     // message vient des données utilisateur et ne doit pas être interprété
     // comme du HTML.
     toastEl.querySelector('.toast-body').textContent = toastInfo.message;
     container.appendChild(toastEl);
-    var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-    toastEl.addEventListener('hidden.bs.toast', function () {
-      toastEl.remove();
-    });
-    toast.show();
+    // Même fonction d'activation que les toasts rendus par le serveur
+    // (messages flash) : apparence, délai et nettoyage du DOM identiques
+    // quelle que soit l'origine du message (voir le script précédent).
+    admActivateToast(toastEl);
   });
 </script>
 {% block extra_scripts %}{% endblock %}
