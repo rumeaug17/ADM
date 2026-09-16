@@ -210,11 +210,12 @@
   <!-- Correctif (US4.1, post-Phase 6) : carte centrée sur une colonne
        col-md-6, comme le radar moyenne de la synthèse (synthese.html),
        plutôt qu'une carte pleine largeur. Le radar lui-même est déjà
-       plafonné à 480px par .radar-chart-wrapper (voir plus bas et app.css) :
-       dans une carte pleine largeur, l'écart entre ces 480px et la largeur
-       de la carte se traduisait par un bandeau blanc bien plus large
-       qu'autour du radar moyenne, dont la carte (col-md-6) est déjà proche
-       de cette même largeur. -->
+       plafonné par .radar-chart-wrapper (voir plus bas et app.css, dont le
+       commentaire détaille le choix de cette limite) : dans une carte
+       pleine largeur, l'écart entre cette limite et la largeur de la carte
+       se traduisait par un bandeau blanc bien plus large qu'autour du radar
+       moyenne, dont la carte (col-md-6) est déjà proche de cette même
+       largeur. -->
   <div class="row g-4 mb-4 justify-content-center">
     <div class="col-md-6">
       <div class="card h-100 mb-0">

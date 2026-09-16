@@ -531,11 +531,25 @@ tr.htmx-settling {
    d'après la largeur de son *parent direct*, pas d'après le `max-width` du
    canvas lui-même. Sans conteneur dédié, un radar placé dans une carte
    pleine largeur (`resume.html`) s'agrandissait démesurément par rapport au
-   PNG qu'il remplace (~600×530px, voir ADM.services.generate_radar_chart).
-   `.radar-chart-wrapper` fixe une largeur maximale raisonnable, proche de
-   celle du PNG, pour que les deux représentations restent visuellement
-   comparables quel que soit l'endroit où le radar est affiché. */
+   PNG qu'il remplace. `.radar-chart-wrapper` fixe une largeur maximale
+   raisonnable pour que les deux représentations restent visuellement
+   comparables quel que soit l'endroit où le radar est affiché.
+   Correctif (US4.1, signalé le 2026-09-16 par Guillaume Rumeau) : ce
+   plafond avait été fixé à 480px, sensiblement plus petit que la taille
+   naturelle du PNG avec les 7 catégories réellement configurées dans cette
+   instance (Architecture & Intégration, Documentation & Gouvernance, etc.,
+   voir static/questions.json) — environ 620-630px de large une fois
+   recadré par matplotlib (`bbox_inches="tight"`), les libellés longs
+   agrandissant ce recadrage. Résultat : le radar interactif (resume.html et
+   modale de synthese.html, tous deux recadrés sur une colonne/un modal de
+   taille comparable par le correctif précédent) restait visiblement plus
+   petit, avec plus de blanc autour, que le radar moyenne quand celui-ci
+   s'affichait en PNG. Remonté à 640px, une valeur qui n'est plus la
+   limite active dans les conteneurs actuels (colonne `col-md-6`, modal de
+   taille par défaut) : le radar interactif utilise désormais toute la
+   largeur disponible, comme le fait déjà le PNG (`img-fluid`, sans plafond
+   propre). */
 .radar-chart-wrapper {
-  max-width: 480px;
+  max-width: 640px;
   margin: 0 auto;
 }

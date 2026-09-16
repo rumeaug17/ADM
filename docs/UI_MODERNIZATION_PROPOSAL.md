@@ -1362,11 +1362,76 @@ donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 26. Prochaine étape immédiate
+## 26. Correctif — le radar interactif restait trop petit face au PNG (limite sous-dimensionnée)
+
+Signalé le 2026-09-16 par Guillaume Rumeau, captures d'écran à l'appui : le
+correctif de la section 25 (colonnes/modal resserrés) n'a pas suffi — « il y
+a trop de blanc et le radar lui-même est trop petit ». En comparant avec le
+radar moyenne (affiché en PNG sur la capture), l'écart de taille était
+flagrant ; hypothèse avancée, confirmée par investigation : « c'est
+probablement lié aux libellés ».
+
+**Cause, plus précise que celle de la section 25.** `.radar-chart-wrapper`
+plafonnait le radar interactif à 480px — une valeur choisie lors du
+correctif de la section 22 sans tenir compte de la taille réelle du PNG
+qu'elle est censée égaler. Or cette taille dépend directement des libellés
+de catégorie (l'hypothèse du signalement, confirmée) : avec les 7 catégories
+réellement configurées dans cette instance (`static/questions.json` :
+« Architecture & Intégration », « Documentation & Gouvernance », etc.), le
+PNG recadré par matplotlib (`bbox_inches="tight"`) mesure environ 620-630px
+de large — nettement plus que les 480px du plafond. Résultat : même une fois
+les conteneurs resserrés (section 25), le radar interactif restait
+visiblement plus petit que le PNG (radar moyenne), avec un excédent de blanc
+correspondant à l'écart entre 480px et sa taille réelle.
+
+**Correctif.** `.radar-chart-wrapper` passe de 480px à 640px (`app.css`) —
+une valeur qui n'est plus une limite active dans les conteneurs actuels
+(colonne `col-md-6`, modal de taille par défaut, tous deux plus étroits que
+640px dans la quasi-totalité des résolutions d'écran) : le radar interactif
+utilise désormais toute la largeur disponible de son conteneur, exactement
+comme le fait déjà le PNG (`img-fluid`, qui n'a jamais eu de plafond propre).
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux phases
+précédentes, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 316
+tests passés (315 + 1 nouveau dans `tests/test_radar_interactive_chart.py`),
+couverture 87,65 % (seuil 86 % maintenu), résultat conforme aux correctifs
+précédents — aucune régression introduite. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec ce correctif.
+Le nouveau test génère le PNG avec les catégories réellement définies dans
+`static/questions.json`, mesure sa largeur (Pillow) et vérifie que le
+plafond de `.radar-chart-wrapper` lui reste au moins égal — garde-fou
+directement dérivé du signalement, qui empêche cette régression précise (un
+plafond redevenu plus petit que le PNG réel) de se reproduire silencieusement
+si les catégories ou leurs libellés changent. Comme pour les correctifs
+précédents, un contrôle manuel reste nécessaire pour confirmer le rendu
+visuel effectif.
+
+**Ce qui reste à faire côté utilisateur.** Les 3 fichiers modifiés
+(`static/css/app.css`, `templates/resume.html`, `templates/synthese.html`,
+`tests/test_radar_interactive_chart.py` — 4 au total) ont été déposés
+directement dans `C:\usr\ADM` via la liaison au poste, sans branche ni
+commit créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `fix/us4-1-radar-taille`) et vérifier le
+   statut `git` pour confirmer la liste des fichiers modifiés (les 4
+   ci-dessus, aucun autre).
+2. Relire le diff.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur et vérifier à l'œil que le radar
+   de la page résumé et celui de la modale de la synthèse sont désormais
+   visuellement comparables en taille (et en blanc environnant) au radar
+   moyenne de la synthèse.
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 27. Prochaine étape immédiate
 
 Après revue et merge de la Phase 5, du correctif d'homogénéisation des
 messages, de la Phase 6, du correctif d'affichage des radars, du correctif
-de couleur, du correctif d'animation et de ce correctif d'espacement, ouvrir
-la Phase 7 (validation et non-régression en continu, déjà appliquée à
-chaque phase mais à formaliser en fin de projet : revue manuelle de chaque
-rôle sur desktop et mobile, avec captures d'écran avant/après).
+de couleur, du correctif d'animation et des deux correctifs d'espacement/
+taille, ouvrir la Phase 7 (validation et non-régression en continu, déjà
+appliquée à chaque phase mais à formaliser en fin de projet : revue manuelle
+de chaque rôle sur desktop et mobile, avec captures d'écran avant/après).

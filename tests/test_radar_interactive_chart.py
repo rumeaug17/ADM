@@ -21,14 +21,18 @@ graphique lui-même — un test manuel dans un navigateur reste nécessaire pour
 ça (voir « Ce qui reste à faire côté utilisateur » du document de
 modernisation)."""
 
+import base64
+import io
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any
 
 import pytest
 from flask import Flask
 from matplotlib.projections.polar import PolarAxes
+from PIL import Image
 
 from ADM.accounts_json import AccountJsonSession, init_account_db
 from ADM.accounts_service import create_account
@@ -318,6 +322,33 @@ def test_app_css_defines_a_radar_chart_wrapper_with_a_bounded_width() -> None:
     assert "max-width" in rule_body
 
 
+def test_radar_chart_wrapper_is_at_least_as_wide_as_the_pngs_natural_size() -> None:
+    """Correctif (signalé le 2026-09-16 par Guillaume Rumeau) : la largeur
+    naturelle du PNG (matplotlib, recadré par ``bbox_inches="tight"``) dépend
+    de la longueur des libellés de catégorie réellement configurés (voir
+    ``static/questions.json``), pas d'une valeur fixe. Un plafond
+    ``.radar-chart-wrapper`` plus petit que cette largeur naturelle faisait
+    paraître le radar interactif (``resume.html``, modale de
+    ``synthese.html``) nettement plus petit — et bien plus entouré de blanc —
+    que le PNG (radar moyenne) une fois affichés côte à côte, exactement le
+    problème signalé : ce test garde le plafond au moins aussi large que le
+    PNG produit avec les catégories réellement utilisées par l'application."""
+    questions = json.loads((STATIC / "questions.json").read_text(encoding="utf-8"))
+    categories = list(questions.keys())
+    assert categories, "static/questions.json doit définir au moins une catégorie"
+    encoded_png = generate_radar_chart(dict.fromkeys(categories, 2.0))
+    png_width, _ = Image.open(io.BytesIO(base64.b64decode(encoded_png))).size
+
+    css = (STATIC / "css" / "app.css").read_text(encoding="utf-8")
+    rule_start = css.index(".radar-chart-wrapper {")
+    rule_body = css[rule_start:].split("}")[0]
+    match = re.search(r"max-width:\s*(\d+)px", rule_body)
+    assert match, ".radar-chart-wrapper doit définir un max-width en pixels"
+    wrapper_max_width = int(match.group(1))
+
+    assert wrapper_max_width >= png_width
+
+
 @pytest.mark.parametrize(
     ("template_name", "canvas_id"),
     [
@@ -344,17 +375,17 @@ def test_radar_canvas_is_wrapped_in_a_width_bounded_container(
 # Correctif (US4.1, post-Phase 6) : le blanc autour du radar de chaque
 # application (page résumé et modale de la synthèse) était plus important
 # qu'autour du radar moyenne de la synthèse, le radar lui-même étant plafonné
-# à 480px (.radar-chart-wrapper) dans des conteneurs bien plus larges (carte
-# pleine largeur, modal "lg").
+# (.radar-chart-wrapper) dans des conteneurs bien plus larges (carte pleine
+# largeur, modal "lg").
 # ---------------------------------------------------------------------------
 
 
 def test_resume_html_radar_card_sits_in_a_half_width_column_like_the_average_radar() -> None:
     """Comme le radar moyenne de la synthèse (``col-md-6``, voir
     ``synthese.html``), plutôt qu'une carte pleine largeur : sans cela, le
-    radar (plafonné à 480px) laissait un bandeau blanc bien plus large autour
-    de lui que sur la synthèse, dont la carte fait déjà à peu près cette
-    largeur."""
+    radar (plafonné par ``.radar-chart-wrapper``) laissait un bandeau blanc
+    bien plus large autour de lui que sur la synthèse, dont la carte fait
+    déjà à peu près cette largeur."""
     resume_html = (TEMPLATES / "resume.html").read_text(encoding="utf-8")
     header_index = resume_html.index("Graphique Radar")
     preceding_html = resume_html[:header_index]
@@ -364,8 +395,8 @@ def test_resume_html_radar_card_sits_in_a_half_width_column_like_the_average_rad
 
 def test_synthese_radar_modal_is_not_wider_than_needed_for_the_radar() -> None:
     """La modale radar de la synthèse n'utilise plus ``modal-lg`` (~800px) :
-    un modal bien plus large que le radar qu'il contient (plafonné à 480px
-    par ``.radar-chart-wrapper``) ne faisait qu'ajouter du blanc superflu
+    un modal bien plus large que le radar qu'il contient (plafonné par
+    ``.radar-chart-wrapper``) ne faisait qu'ajouter du blanc superflu
     autour de lui, plus visible que sur le radar moyenne de cette même
     page."""
     synthese_html = (TEMPLATES / "synthese.html").read_text(encoding="utf-8")

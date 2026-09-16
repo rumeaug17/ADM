@@ -217,6 +217,19 @@ Les tâches réalisées sont retirées du fichier.
   html` : modale radar passée à la taille par défaut de Bootstrap, ~500px),
   sans toucher au radar lui-même. 315 tests passés (313 + 2 nouveaux),
   couverture 87,65 % maintenue (détail en section 25 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Correctif du 2026-09-16 (signalé par
+  Guillaume Rumeau, captures à l'appui : le correctif précédent n'a pas
+  suffi) : le radar interactif restait nettement plus petit, avec plus de
+  blanc, que le radar moyenne en PNG — cause identifiée (hypothèse de
+  Guillaume Rumeau, confirmée) : `.radar-chart-wrapper` plafonnait à 480px,
+  une valeur fixée sans rapport avec la taille réelle du PNG, qui dépend des
+  libellés de catégorie et mesure ~620-630px avec les 7 catégories
+  réellement configurées (`static/questions.json`). Remonté à 640px
+  (`app.css`), une limite qui n'est plus active dans les conteneurs actuels :
+  le radar interactif utilise désormais toute la largeur disponible, comme
+  le PNG. 316 tests passés (315 + 1 nouveau, qui mesure le PNG produit avec
+  les vraies catégories et garde le plafond au moins aussi large), couverture
+  87,65 % maintenue (détail en section 26 de
   `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de développement :
   Phase 7 (validation et non-régression, à formaliser en fin de projet).
 
