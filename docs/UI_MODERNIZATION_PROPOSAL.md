@@ -193,11 +193,11 @@ rétrocompatible, pas une réécriture. C'est la phase la plus proche d'un
 changement d'approche front évoqué en préambule, tout en respectant
 strictement Flask/Python et le rendu par templates.
 
-**Phase 5 — Mode sombre, accessibilité et finitions (1 à 2 jours).**
-Finaliser la bascule de thème (persistée en `localStorage`, avec
-`prefers-color-scheme` comme valeur par défaut), auditer les contrastes du
-nouveau design, l'ordre de tabulation et les libellés ARIA, et corriger les
-derniers écarts visuels entre pages.
+**Phase 5 — Mode sombre, accessibilité et finitions (1 à 2 jours). Réalisée
+le 2026-09-16 (voir section 18).** Finaliser la bascule de thème (persistée
+en `localStorage`, avec `prefers-color-scheme` comme valeur par défaut),
+auditer les contrastes du nouveau design, l'ordre de tabulation et les
+libellés ARIA, et corriger les derniers écarts visuels entre pages.
 
 **Phase 6 — Graphiques interactifs (optionnelle, 2 à 3 jours, à arbitrer
 séparément).** Remplacer les images radar statiques par un graphique
@@ -678,10 +678,141 @@ donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 17. Prochaine étape immédiate
+## 18. Suivi — Phase 5 réalisée
 
-Après revue et merge de la Phase 4, ouvrir la Phase 5 (mode sombre,
-accessibilité et finitions : finaliser la bascule de thème introduite en
-Phase 4, auditer les contrastes du design system en clair et en sombre,
-l'ordre de tabulation et les libellés ARIA, et corriger les derniers écarts
-visuels entre pages) comme prochain ticket de développement.
+Implémentée le 2026-09-16, depuis la même session cloud liée au poste de
+Guillaume Rumeau (toujours pas d'accès `git`/shell sur ce poste depuis cette
+session : voir « Ce qui reste à faire côté utilisateur » ci-dessous).
+
+**Ce qui a été fait.** La bascule de thème clair/sombre elle-même (script
+anti-FOUC, bouton Alpine.js, persistance `localStorage` avec
+`prefers-color-scheme` en valeur par défaut) avait déjà été construite en
+Phase 4 : cette phase a porté sur l'audit annoncé (contrastes, tabulation,
+libellés ARIA) et sur les écarts qu'il a révélés.
+
+*Audit de contraste.* Les badges affichés sur fond jaune (`--adm-warning`)
+ou orange (`--adm-orange`) — badges DICP/criticité personnalisés
+(`.badge-d2`, `.badge-criticite2`, etc., définis dans `app.css`) et badges de
+score/risque calculés à l'exécution (`_application_row.html`,
+`_synthese_results.html`, `resume.html`, `synthese.html`) — utilisaient tous
+le texte blanc par défaut de `.badge` (Bootstrap), avec un contraste mesuré
+d'environ 1,6:1 (jaune) et 2,6:1 (orange), très en-dessous du minimum WCAG AA
+de 4,5:1 (les badges sur fond vert/rouge, eux, passaient de justesse, environ
+4,5:1). Corrigé de deux façons complémentaires : les badges de score/risque,
+qui utilisaient les utilitaires Bootstrap `bg-danger`/`bg-warning`/
+`bg-success` (lesquels ne fixent pas de couleur de texte), sont passés aux
+utilitaires `text-bg-*` équivalents, qui pairent automatiquement la bonne
+couleur de texte (noir pour `text-bg-warning`, déjà blanc et donc inchangé
+pour `text-bg-danger`/`text-bg-success`) ; les badges DICP/criticité
+personnalisés reçoivent un nouveau jeton `--adm-badge-text-dark` (`#3a2a00`,
+la même teinte que le texte déjà utilisé sur la carte KPI jaune) comme
+couleur de texte explicite sur fond jaune/orange, portant le contraste à
+environ 8,5:1 et 5,4:1 respectivement. Par cohérence, les badges `bg-success`/
+`bg-secondary` sans problème de contraste (`accounts.html`,
+`questions_settings.html`) sont eux aussi passés à `text-bg-*` (aucun
+changement visuel, juste le bon idiome Bootstrap).
+
+*Libellés accessibles.* Les deux boutons d'action de `resume.html`
+(modifier/évaluer) n'étaient identifiés que par un `title` (infobulle
+Bootstrap) : un `aria-label` reprenant le même texte a été ajouté, à
+l'identique des libellés déjà utilisés pour les mêmes actions dans
+`_application_row.html`. Le modal de réinitialisation de mot de passe
+d'`accounts.html` (un par compte, `id="resetPasswordModal-{{ loop.index }}"`)
+n'avait pas d'`aria-labelledby` ni d'`id` sur son titre, contrairement à tous
+les autres modaux de l'application : corrigé à l'identique du patron déjà en
+place ailleurs (`id="resetPasswordModalLabel-{{ loop.index }}"` posé sur le
+titre et référencé par le modal).
+
+*Tabulation.* Aucun `tabindex` positif n'a été trouvé dans l'application (les
+seuls `tabindex` présents sont les `tabindex="-1"` standards des modaux
+Bootstrap) : l'ordre de tabulation suit l'ordre du DOM partout, aucune
+correction n'était nécessaire sur ce point.
+
+*Finition visuelle liée au mode sombre.* Les graphiques radar
+(`resume.html`, `synthese.html`) sont des images PNG rendues côté serveur
+par matplotlib, toujours sur fond blanc (rendu conservé tel quel, voir Phase
+6 optionnelle pour une version interactive) : en thème sombre, sans
+traitement, elles flottaient en rectangle blanc brut sur la carte sombre qui
+les contient. Une nouvelle classe `.chart-surface` les encadre d'une plaque
+blanche avec un léger espacement, pour que ce contraste paraisse voulu
+plutôt que subi, en clair comme en sombre.
+
+**Écarts volontaires par rapport au plan initial, documentés ici pour la
+revue** :
+- La bascule de thème et sa persistance, prévues dans le libellé de cette
+  phase, avaient déjà été livrées en Phase 4 (section 16) : cette phase n'a
+  donc pas eu à les reconstruire, seulement à les auditer et à corriger ce
+  que l'audit a trouvé.
+- `.badge-d1`/`.badge-i1`/`.badge-c1`/`.badge-p1`/`.badge-criticite4` (fond
+  vert) et `.badge-d4`/`.badge-i4`/`.badge-c4`/`.badge-p4`/`.badge-criticite1`
+  (fond rouge), ainsi que `.bg-score-high`, sont restés en texte blanc : leur
+  contraste mesuré (~4,5:1) passe le seuil WCAG AA, de justesse mais sans
+  ambiguïté ; les retoucher n'aurait apporté aucun bénéfice d'accessibilité.
+- L'audit n'a pas cherché à revoir la hiérarchie des titres (`<h2>`/`<h3>`/
+  `<h5>`) page par page : `.card h3` sert de bandeau visuel coloré depuis la
+  Phase 1 (pas nécessairement un vrai niveau 3 de plan de page), un chantier
+  de restructuration sémantique plus large que le périmètre annoncé de
+  cette phase (contrastes, tabulation, libellés ARIA, finitions), à
+  reconsidérer séparément si besoin.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux Phases 1
+à 4, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 282
+tests passés (275 + 7 nouveaux, `tests/test_phase5_accessibility.py`),
+couverture 87,55 % (seuil 86 % maintenu), résultat conforme aux phases
+précédentes — aucune régression introduite. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec cette Phase 5.
+Les nouveaux tests vérifient, de façon programmatique (calcul du ratio de
+contraste selon la formule WCAG officielle, pas une simple présence de
+règle CSS), que le texte des badges jaune/orange atteint bien 4,5:1, que les
+gabarits de score/risque utilisent `text-bg-*` et non plus `bg-*` seul, que
+les deux liens d'action de `resume.html` portent leur `aria-label`, et que
+le modal de réinitialisation de mot de passe expose un nom accessible
+correctement apparié pour chaque compte. Un test préexistant
+(`test_resume_radar_responsive.py`) a été mis à jour pour refléter l'ajout
+de `chart-surface` à la classe de l'image radar (même précédent que les
+adaptations de tests des phases précédentes).
+
+**Ce qui reste à faire côté utilisateur.** Comme aux phases précédentes,
+cette session cloud n'a pas accès à `git`/un shell sur ce poste : les 9
+fichiers modifiés ou créés (`static/css/app.css`,
+`templates/_application_row.html`, `templates/_synthese_results.html`,
+`templates/resume.html`, `templates/synthese.html`,
+`templates/accounts.html`, `templates/questions_settings.html`,
+`tests/test_resume_radar_responsive.py`,
+`tests/test_phase5_accessibility.py` (nouveau)) ont été déposés directement
+dans `C:\usr\ADM` via la liaison au poste, sans branche ni commit créés.
+Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `feature/us4-1-phase5-accessibilite`) et
+   vérifier le statut `git` pour confirmer la liste des fichiers modifiés/
+   créés (les 9 ci-dessus, aucun autre).
+2. Relire le diff, en particulier les nouvelles classes `text-bg-*` et
+   `chart-surface`, et le nouveau fichier de tests.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur (clair et sombre) et vérifier à
+   l'œil : lisibilité des badges de score/risque et de criticité sur fond
+   jaune/orange, apparence des graphiques radar en thème sombre (plaque
+   blanche discrète plutôt que rectangle brut), annonce du nom du modal de
+   réinitialisation de mot de passe par un lecteur d'écran ou l'inspecteur
+   d'accessibilité du navigateur.
+5. Idéalement, passer un outil d'audit automatisé (Lighthouse, axe
+   DevTools) sur les pages principales pour confirmer qu'aucune régression
+   d'accessibilité n'a été introduite ailleurs.
+6. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 19. Prochaine étape immédiate
+
+Après revue et merge de la Phase 5, ouvrir la Phase 6 optionnelle
+(graphiques interactifs : remplacer les images radar statiques par un
+graphique interactif Chart.js, vendorisé, sans CDN, affichant les mêmes
+données — touche `ADM.services` et les routes concernées pour exposer les
+scores en JSON en plus du PNG actuel, à arbitrer séparément des phases 1 à 5
+puisqu'elle est plus proche du fonctionnel que du seul habillage) ou, si
+cette phase optionnelle n'est pas retenue, la Phase 7 (validation et
+non-régression en continu, déjà appliquée à chaque phase mais à formaliser
+en fin de projet : revue manuelle de chaque rôle sur desktop et mobile, avec
+captures d'écran avant/après).

@@ -101,11 +101,16 @@ def _logged_in_client(application: Flask) -> FlaskClient:
 def test_resume_radar_image_has_img_fluid_class() -> None:
     """Le gabarit ``resume.html`` doit donner la classe ``img-fluid`` à
     l'image du radar, comme le fait déjà ``index.html`` pour la modale radar
-    et ``synthese.html`` pour le graphique comparatif."""
+    et ``synthese.html`` pour le graphique comparatif.
+
+    Phase 5 (US4.1) : l'image gagne aussi ``chart-surface`` (voir app.css),
+    qui l'encadre d'une plaque blanche en thème sombre — sans cette classe,
+    le graphique matplotlib (toujours rendu sur fond blanc) flottait en
+    rectangle brut sur la carte sombre qui le contient."""
     resume_html = (TEMPLATES / "resume.html").read_text(encoding="utf-8")
     assert 'src="data:image/png;base64,{{ radar_chart }}"' in resume_html
     assert (
-        '<img src="data:image/png;base64,{{ radar_chart }}" alt="Radar Chart" class="img-fluid">'
+        '<img src="data:image/png;base64,{{ radar_chart }}" alt="Radar Chart" class="img-fluid chart-surface">'
         in resume_html
     )
 
@@ -116,4 +121,4 @@ def test_resume_page_renders_radar_image_with_img_fluid_class(tmp_path: Path) ->
 
     resume_html = client.get("/resume/Application%20de%20test").get_data(as_text=True)
 
-    assert 'alt="Radar Chart" class="img-fluid"' in resume_html
+    assert 'alt="Radar Chart" class="img-fluid chart-surface"' in resume_html

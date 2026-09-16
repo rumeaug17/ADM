@@ -54,9 +54,9 @@
       </td>
       <td>
         {% if account.active %}
-          <span class="badge bg-success">Actif</span>
+          <span class="badge text-bg-success">Actif</span>
         {% else %}
-          <span class="badge bg-secondary">Inactif</span>
+          <span class="badge text-bg-secondary">Inactif</span>
         {% endif %}
       </td>
       <td>
@@ -90,12 +90,12 @@
 
 {% for account in accounts %}
   {% if local_auth %}
-  <div class="modal fade" id="resetPasswordModal-{{ loop.index }}" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="resetPasswordModal-{{ loop.index }}" tabindex="-1" aria-labelledby="resetPasswordModalLabel-{{ loop.index }}" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <form method="post" action="{{ url_for('accounts.reset_account_password', username=account.username) }}">
           <div class="modal-header">
-            <h5 class="modal-title">Réinitialiser le mot de passe de {{ account.username }}</h5>
+            <h5 class="modal-title" id="resetPasswordModalLabel-{{ loop.index }}">Réinitialiser le mot de passe de {{ account.username }}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
           </div>
           <div class="modal-body">

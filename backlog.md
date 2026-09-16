@@ -109,9 +109,31 @@ Les tâches réalisées sont retirées du fichier.
   `docs/UI_MODERNIZATION_PROPOSAL.md`). Reste, côté utilisateur (session
   cloud sans accès `git` sur ce poste) : créer une branche, relire le diff,
   relancer les vérifications localement, tester manuellement les nouvelles
-  interactions htmx/Alpine et commiter (détail dans le document). Prochaine
-  étape de développement : Phase 5 (mode sombre, accessibilité et
-  finitions).
+  interactions htmx/Alpine et commiter (détail dans le document). Phase 5
+  (mode sombre, accessibilité et finitions) réalisée le 2026-09-16 : la
+  bascule de thème et sa persistance `localStorage` étaient déjà livrées en
+  Phase 4, cette phase a porté sur l'audit de contraste annoncé et ses
+  corrections — badges de score/risque et badges DICP/criticité sur fond
+  jaune/orange passés d'un texte blanc illisible (contraste ~1,6:1 et ~2,6:1)
+  à un texte conforme WCAG AA (`text-bg-*` Bootstrap pour les premiers,
+  nouveau jeton `--adm-badge-text-dark` pour les seconds, ~8,5:1 et ~5,4:1) ;
+  aria-label ajouté aux deux liens d'action icône-seule de `resume.html` ;
+  nom accessible corrigé sur le modal de réinitialisation de mot de passe
+  d'`accounts.html` (`aria-labelledby`/`id` manquants) ; graphiques radar
+  (toujours rendus en PNG blanc par matplotlib) encadrés d'une plaque
+  blanche (`chart-surface`) pour rester lisibles en thème sombre ; aucun
+  `tabindex` positif trouvé, ordre de tabulation déjà correct. Aucune route
+  Flask modifiée. 282 tests passés (275 + 7 nouveaux dans
+  `tests/test_phase5_accessibility.py`, dont un calcul programmatique du
+  ratio de contraste WCAG), couverture 87,55 % maintenue (détail et écarts
+  volontaires en section 18 de `docs/UI_MODERNIZATION_PROPOSAL.md`). Reste,
+  côté utilisateur (session cloud sans accès `git` sur ce poste) : créer une
+  branche, relire le diff, relancer les vérifications localement, vérifier
+  visuellement (badges, thème sombre, lecteur d'écran/inspecteur
+  d'accessibilité) et commiter (détail dans le document). Prochaine étape de
+  développement : Phase 6 optionnelle (graphiques interactifs) ou, à
+  défaut, Phase 7 (validation et non-régression, à formaliser en fin de
+  projet).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

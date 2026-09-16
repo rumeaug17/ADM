@@ -51,7 +51,7 @@
           <td>{{ question.weight }}</td>
           <td>
             {% for option in question.options %}
-              <span class="badge bg-secondary">{{ option.value }} : {{ option.score if option.score is not none else "N/A" }}</span>
+              <span class="badge text-bg-secondary">{{ option.value }} : {{ option.score if option.score is not none else "N/A" }}</span>
             {% endfor %}
           </td>
           <td>

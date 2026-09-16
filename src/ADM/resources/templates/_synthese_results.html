@@ -56,7 +56,7 @@
             <td>{{ app.max_score or "N/A" }}</td>
             <td>
                 {% if app.percentage is not none %}
-                    <span class="badge {% if app.percentage > display_thresholds.score.critical %} bg-danger {% elif app.percentage > display_thresholds.score.warning %} bg-warning {% else %} bg-success {% endif %}">
+                    <span class="badge {% if app.percentage > display_thresholds.score.critical %} text-bg-danger {% elif app.percentage > display_thresholds.score.warning %} text-bg-warning {% else %} text-bg-success {% endif %}">
                         {{ app.percentage }}%
                     </span>
                 {% else %}
@@ -69,11 +69,11 @@
                 {% else %}
                     {% set risk = app.risque|round(0)|int %}
                     {% if risk > display_thresholds.risk.critical %}
-                        <span class="badge bg-danger">{{ risk }}</span>
+                        <span class="badge text-bg-danger">{{ risk }}</span>
                     {% elif risk > display_thresholds.risk.warning %}
-                        <span class="badge bg-warning">{{ risk }}</span>
+                        <span class="badge text-bg-warning">{{ risk }}</span>
                     {% else %}
-                        <span class="badge bg-success">{{ risk }}</span>
+                        <span class="badge text-bg-success">{{ risk }}</span>
                     {% endif %}
                 {% endif %}
             </td>

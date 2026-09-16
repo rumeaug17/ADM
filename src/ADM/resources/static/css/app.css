@@ -52,6 +52,12 @@
   --adm-warning: #ffc107;
   --adm-orange: #fd7e14;
   --adm-danger: #dc3545;
+  /* Texte sombre pour le contenu affiché sur --adm-warning/--adm-orange
+     (badges, cartes KPI) : le blanc n'y offre pas un contraste suffisant
+     (voir Phase 5, section « Badges DICP / Criticité » plus bas). Fixe,
+     indépendant du thème clair/sombre : ces deux fonds ne changent pas non
+     plus entre les thèmes. */
+  --adm-badge-text-dark: #3a2a00;
 
   --adm-bg: #f4f6fb;
   --adm-surface: #ffffff;
@@ -280,7 +286,16 @@ tr:hover {
   background-color: var(--adm-surface-2);
 }
 
-/* ---------- Badges DICP / Criticité (index.html, resume.html) ---------- */
+/* ---------- Badges DICP / Criticité (index.html, resume.html) ----------
+   Phase 5 (US4.1, audit de contraste) : le texte de `.badge` est blanc par
+   défaut (`--bs-badge-color` de Bootstrap), ce qui passe très bien sur les
+   fonds vert/rouge (`--adm-success`/`--adm-danger`, ratio ≈ 4,5:1) mais tombe
+   largement sous le minimum WCAG AA de 4,5:1 sur les fonds jaune/orange
+   (`--adm-warning` ≈ 1,6:1, `--adm-orange` ≈ 2,6:1 avec du texte blanc). Un
+   texte sombre (`--adm-badge-text-dark`, la même teinte que le texte des
+   cartes KPI jaunes) restaure un contraste confortable sur ces deux fonds
+   (≈ 8,5:1 sur le jaune, ≈ 5,4:1 sur l'orange) sans changer les couleurs de
+   fond elles-mêmes ni les libellés. */
 .badge-d1,
 .badge-i1,
 .badge-c1,
@@ -290,14 +305,18 @@ tr:hover {
 .badge-d2,
 .badge-i2,
 .badge-c2,
-.badge-p2 {
+.badge-p2,
+.badge-criticite3 {
   background-color: var(--adm-warning);
+  color: var(--adm-badge-text-dark);
 }
 .badge-d3,
 .badge-i3,
 .badge-c3,
-.badge-p3 {
+.badge-p3,
+.badge-criticite2 {
   background-color: var(--adm-orange);
+  color: var(--adm-badge-text-dark);
 }
 .badge-d4,
 .badge-i4,
@@ -307,12 +326,6 @@ tr:hover {
 }
 .badge-criticite1 {
   background-color: var(--adm-danger);
-}
-.badge-criticite2 {
-  background-color: var(--adm-orange);
-}
-.badge-criticite3 {
-  background-color: var(--adm-warning);
 }
 .badge-criticite4 {
   background-color: var(--adm-success);
@@ -439,7 +452,7 @@ tr:hover {
 }
 .kpi-warning {
   background: linear-gradient(135deg, #ffcd45, #d98c00);
-  color: #3a2a00;
+  color: var(--adm-badge-text-dark);
 }
 .kpi-warning .kpi-icon {
   background: rgba(0, 0, 0, 0.1);
@@ -493,4 +506,21 @@ tr.htmx-swapping {
 tr.htmx-settling {
   background-color: var(--adm-surface-2);
   transition: background-color 1s ease-out;
+}
+
+/* ---------- Finitions mode sombre (Phase 5, US4.1) ----------------------
+   Les graphiques radar (resume.html, synthese.html) sont des images PNG
+   rendues côté serveur par matplotlib (voir ADM.services), toujours sur
+   fond blanc : conservé tel quel (le fond dynamique est du ressort de la
+   Phase 6 optionnelle, graphiques interactifs). En thème sombre, sans
+   traitement, ces images flottaient en rectangle blanc brut sur la carte
+   sombre qui les contient. `.chart-surface` les encadre d'une plaque
+   blanche avec un léger espacement, pour que le contraste avec le thème
+   sombre paraisse voulu plutôt que subi. */
+.chart-surface {
+  display: inline-block;
+  max-width: 100%;
+  background: #ffffff;
+  padding: 0.75rem;
+  border-radius: var(--adm-radius);
 }
