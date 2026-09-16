@@ -58,6 +58,14 @@ function admRadarChartConfig(radarData) {
       // pleine largeur (resume.html) s'affiche démesurément plus grand que
       // le PNG qu'il remplace.
       aspectRatio: 1,
+      // Correctif (US4.1, post-Phase 6) : sans ceci, Chart.js anime le
+      // remplacement du PNG par le graphique interactif (l'échelle radiale
+      // grandit progressivement depuis le centre, ~1 seconde par défaut) —
+      // visuellement perçu comme une seconde image qui se superpose à la
+      // première avec un effet de zoom, plutôt qu'un simple remplacement.
+      // Désactiver l'animation rend ce remplacement instantané, une seule
+      // couche visible à la fois, comme avec le PNG qu'il remplace.
+      animation: false,
       scales: {
         r: {
           beginAtZero: true,

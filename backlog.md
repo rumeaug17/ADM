@@ -195,8 +195,19 @@ Les tâches réalisées sont retirées du fichier.
   pixels du PNG, jugé trop fragile (marge trop faible entre bleu et vert une
   fois mélangés au fond blanc). 312 tests passés (310 + 2 nouveaux),
   couverture 87,65 % maintenue (détail en section 23 de
-  `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de développement :
-  Phase 7 (validation et non-régression, à formaliser en fin de projet).
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Correctif du 2026-09-16 (signalé par
+  Guillaume Rumeau) : à l'ouverture du radar d'une application depuis la
+  synthèse, le graphique interactif Chart.js s'agrandissait progressivement
+  depuis le centre (animation de création par défaut, ~1 seconde), perçu
+  comme une seconde image se superposant au PNG plutôt qu'un simple
+  remplacement. Corrigé en désactivant cette animation (`animation: false`)
+  dans la configuration Chart.js commune aux trois radars interactifs de
+  l'application (résumé, moyenne de la synthèse, modale « Radar »), qui
+  s'affichent désormais instantanément dans leur état final. 313 tests
+  passés (312 + 1 nouveau), couverture 87,65 % maintenue (détail en
+  section 24 de `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de
+  développement : Phase 7 (validation et non-régression, à formaliser en fin
+  de projet).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

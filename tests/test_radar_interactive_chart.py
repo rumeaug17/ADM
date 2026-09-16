@@ -291,6 +291,18 @@ def test_radar_chart_config_forces_a_square_aspect_ratio() -> None:
     assert "aspectRatio: 1" in content
 
 
+def test_radar_chart_config_disables_the_default_creation_animation() -> None:
+    """Correctif (signalé le 2026-09-16 par Guillaume Rumeau) : sans
+    ``animation: false``, Chart.js anime le remplacement du PNG par le
+    graphique interactif (l'échelle radiale grandit progressivement depuis
+    le centre), perçu comme une seconde image se superposant à la première
+    avec un effet de zoom plutôt qu'un simple remplacement instantané."""
+    content = (STATIC / "radar_charts.js").read_text(encoding="utf-8")
+    config_start = content.index("function admRadarChartConfig(")
+    config_body = content[config_start : content.index("\n}", config_start)]
+    assert "animation: false" in config_body
+
+
 # ---------------------------------------------------------------------------
 # Correctif (post-Phase 6) : le radar de resume.html s'affichait bien plus
 # grand que le PNG qu'il remplaçait, dans une carte pleine largeur.

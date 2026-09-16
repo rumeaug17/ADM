@@ -1236,11 +1236,70 @@ ni commit créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 24. Prochaine étape immédiate
+## 24. Correctif — suppression de l'animation d'apparition du radar interactif
+
+Signalé le 2026-09-16 par Guillaume Rumeau : sur la page synthèse, à
+l'ouverture du radar d'une application (modale), « il y a une première
+image, puis une seconde qui se rajoute par-dessus avec un effet de
+transition (le radar s'agrandit progressivement) », jugé désagréable
+visuellement — demande de ne plus afficher qu'une seule couche d'image du
+radar.
+
+**Cause.** Sans configuration explicite, Chart.js anime la création de tout
+graphique (par défaut ~1 seconde, easing `easeOutQuart`) ; pour un radar,
+cela se traduit par l'échelle radiale qui grandit progressivement depuis le
+centre jusqu'à sa taille finale. Le PNG et le canvas ne se chevauchent
+jamais réellement (l'un est masqué par `d-none` avant que l'autre ne
+devienne visible, voir `admShowRadarChart`/le correctif de la section 22),
+mais l'enchaînement — PNG statique affiché, puis canvas qui apparaît et dont
+le contenu grandit sur une seconde — est perçu comme une seconde image qui
+se superpose à la première avec un effet de zoom, plutôt que comme un simple
+remplacement.
+
+**Correctif.** Ajout de `animation: false` à la configuration Chart.js
+commune (`admRadarChartConfig`, `static/radar_charts.js`), utilisée par les
+trois radars interactifs de l'application (résumé, moyenne de la synthèse,
+modale « Radar » d'une application). Le graphique s'affiche désormais
+instantanément, dans son état final, sans transition : une seule couche
+visible à la fois, comme pour le PNG qu'il remplace.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux phases
+précédentes, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 313
+tests passés (312 + 1 nouveau dans `tests/test_radar_interactive_chart.py`,
+qui vérifie la présence de `animation: false` dans `admRadarChartConfig`),
+couverture 87,65 % (seuil 86 % maintenu), résultat conforme aux correctifs
+précédents — aucune régression introduite. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec ce correctif.
+Comme pour les correctifs précédents, ce test ne peut pas exécuter de
+JavaScript ni piloter un vrai navigateur : un contrôle manuel reste
+nécessaire pour confirmer que l'effet visuel a bien disparu.
+
+**Ce qui reste à faire côté utilisateur.** Les 2 fichiers modifiés
+(`static/radar_charts.js`, `tests/test_radar_interactive_chart.py`) ont été
+déposés directement dans `C:\usr\ADM` via la liaison au poste, sans branche
+ni commit créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `fix/us4-1-radar-sans-animation`) et
+   vérifier le statut `git` pour confirmer la liste des fichiers modifiés
+   (les 2 ci-dessus, aucun autre).
+2. Relire le diff.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur et vérifier à l'œil, sur les
+   trois emplacements (résumé d'application, moyenne de la synthèse, modale
+   « Radar » d'une application depuis la synthèse), que le graphique
+   interactif apparaît instantanément dans sa forme finale, sans effet de
+   grossissement progressif.
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 25. Prochaine étape immédiate
 
 Après revue et merge de la Phase 5, du correctif d'homogénéisation des
-messages, de la Phase 6, du correctif d'affichage des radars et de ce
-correctif de couleur, ouvrir la Phase 7 (validation et
+messages, de la Phase 6, du correctif d'affichage des radars, du correctif
+de couleur et de ce correctif d'animation, ouvrir la Phase 7 (validation et
 non-régression en continu, déjà appliquée à chaque phase mais à formaliser
 en fin de projet : revue manuelle de chaque rôle sur desktop et mobile, avec
 captures d'écran avant/après).
