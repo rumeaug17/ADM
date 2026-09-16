@@ -5,67 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}ADM{% endblock %}</title>
 <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body {
-background-color: #f8f9fa;
-  margin: 0;
-  padding: 0;
-}
-.logo {
-height: 50px;
-margin-right: 15px;
-   }
-main.container {
-  margin-top: 30px;
-     min-height: 70vh;
- }
- footer {
-     background-color: #0d6efd;
-    padding: 10px 20px;
-  color: #fff;
-  text-align: center;
-  }
-  footer a {
-  color: #fff;
-  text-decoration: underline;
-  }
-  /* Composant d'aide contextuelle unique (Tâche 4.5) : icône "?" déclenchant
-     un popover Bootstrap natif, utilisée à l'identique sur toutes les pages
-     (score.html, add.html, edit.html) au lieu d'une infobulle maison avec une
-     largeur fixe différente par page. */
-  .info-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    margin-left: 5px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background-color: #0d6efd;
-    color: #fff;
-    font-size: 14px;
-    font-weight: bold;
-    line-height: 1;
-    cursor: pointer;
-  }
-  .info-icon:hover,
-  .info-icon:focus {
-    background-color: #0b5ed7;
-  }
-  /* Largeur réactive (jamais figée en pixels) : le popover ne dépasse ni la
-     largeur disponible sur mobile, ni une largeur confortable sur desktop.
-     640px est volontairement généreux : l'aide de "Criticité" (add.html/
-     edit.html) est un texte long avec des listes imbriquées sur plusieurs
-     niveaux, illisible si on la contraint à une largeur étroite ; les autres
-     aides, plus courtes, restent naturellement plus compactes (un popover
-     Bootstrap épouse son contenu, cette valeur n'est qu'un plafond). */
-  .popover {
-    max-width: min(90vw, 640px);
-  }
-</style>
+<link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
 {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -86,12 +28,12 @@ main.container {
           <a href="{{ url_for('applications.index') }}" class="btn btn-outline-light">Retour à l'index</a>
          {% endif %}
         {% if session.role == 'admin' %}
-          <a href="{{ url_for('settings.show_settings') }}" class="btn btn-outline-light">⚙️ Configuration</a>
-          <a href="{{ url_for('settings.list_questions') }}" class="btn btn-outline-light">❓ Questions</a>
-           <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-outline-light">👤 Comptes</a>
+          <a href="{{ url_for('settings.show_settings') }}" class="btn btn-outline-light"><i class="bi bi-gear" aria-hidden="true"></i> Configuration</a>
+          <a href="{{ url_for('settings.list_questions') }}" class="btn btn-outline-light"><i class="bi bi-question-circle" aria-hidden="true"></i> Questions</a>
+           <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-outline-light"><i class="bi bi-people" aria-hidden="true"></i> Comptes</a>
          {% endif %}
          {% if local_auth %}
-          <a href="{{ url_for('auth.change_own_password') }}" class="btn btn-outline-light">🔑 Mon mot de passe</a>
+          <a href="{{ url_for('auth.change_own_password') }}" class="btn btn-outline-light"><i class="bi bi-key" aria-hidden="true"></i> Mon mot de passe</a>
        {% endif %}
       <a href="/logout" class="btn btn-primary">Déconnexion</a>
       </div>
@@ -111,7 +53,7 @@ main.container {
 </p>
   </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script>
   // Initialisation unique des tooltips Bootstrap natifs (Tâche 4.5) : ce
   // script est le seul endroit qui instancie [data-bs-toggle="tooltip"],

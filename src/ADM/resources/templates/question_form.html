@@ -2,27 +2,6 @@
 
 {% block title %}ADM - {{ 'Modifier une question' if mode == 'edit' else 'Ajouter une question' }}{% endblock %}
 
-{% block extra_head %}
-  <style>
-    .card {
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .option-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .option-row input[type="text"] {
-      flex: 2;
-    }
-    .option-row input[type="number"] {
-      flex: 1;
-    }
-  </style>
-{% endblock %}
-
 {% block content %}
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -39,7 +18,11 @@
 {% endwith %}
 
 <h2 class="text-center text-primary mb-4">
-  {{ '✏️ Modifier la question' if mode == 'edit' else '➕ Ajouter une question' }}
+  {% if mode == 'edit' %}
+    <i class="bi bi-pencil-square" aria-hidden="true"></i> Modifier la question
+  {% else %}
+    <i class="bi bi-plus-circle" aria-hidden="true"></i> Ajouter une question
+  {% endif %}
 </h2>
 
 <div class="card p-4">
@@ -97,18 +80,18 @@
           <div class="option-row">
             <input type="text" name="option_value" class="form-control" value="{{ option.value }}" placeholder="Valeur de l'option">
             <input type="number" name="option_score" class="form-control" value="{{ option.score if option.score is not none else '' }}" placeholder="Score (vide = Non applicable)">
-            <button type="button" class="btn btn-sm btn-outline-danger remove-option" aria-label="Retirer cette option">✕</button>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-option" aria-label="Retirer cette option"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
           {% endfor %}
         {% else %}
           <div class="option-row">
             <input type="text" name="option_value" class="form-control" placeholder="Valeur de l'option">
             <input type="number" name="option_score" class="form-control" placeholder="Score (vide = Non applicable)">
-            <button type="button" class="btn btn-sm btn-outline-danger remove-option" aria-label="Retirer cette option">✕</button>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-option" aria-label="Retirer cette option"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
         {% endif %}
       </div>
-      <button type="button" id="addOption" class="btn btn-sm btn-outline-secondary mt-2">➕ Ajouter une option</button>
+      <button type="button" id="addOption" class="btn btn-sm btn-outline-secondary mt-2"><i class="bi bi-plus-circle" aria-hidden="true"></i> Ajouter une option</button>
       <div class="form-text">Laissez le score vide pour une option « Non applicable ».</div>
     </div>
 

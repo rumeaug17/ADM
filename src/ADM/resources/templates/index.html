@@ -2,40 +2,6 @@
 
 {% block title %}ADM{% endblock %}
 
-{% block extra_head %}
-<style>
-        .badge-d1, .badge-i1, .badge-c1, .badge-p1 { background-color: #198754; }  /* Vert */
-        .badge-d2, .badge-i2, .badge-c2, .badge-p2 { background-color: #ffc107; }  /* Jaune */
-        .badge-d3, .badge-i3, .badge-c3, .badge-p3 { background-color: #fd7e14; }  /* Orange */
-        .badge-d4, .badge-i4, .badge-c4, .badge-p4 { background-color: #dc3545; }  /* Rouge */
-		.badge-criticite1 { background-color: #dc3545; } /* Rouge pour Criticité Très Élevée */
-		.badge-criticite2 { background-color: #fd7e14; } /* Orange pour Criticité Élevée */
-		.badge-criticite3 { background-color: #ffc107; } /* Jaune pour Criticité Moyenne */
-		.badge-criticite4 { background-color: #198754; } /* Vert pour Criticité Faible */
-        table {
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        th {
-            background-color: #0d6efd;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-        .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-        }
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -50,14 +16,14 @@
     </div>
   {% endif %}
 {% endwith %}
-    <h2 class="text-center text-primary">📋 Catalogue des Applications</h2>
+    <h2 class="text-center text-primary"><i class="bi bi-journal-text" aria-hidden="true"></i> Catalogue des Applications</h2>
     <div class="d-flex justify-content-between my-3">
         {% if session.role != 'readonly' %}
-        <a href="/add" class="btn btn-primary">➕ Ajouter une application</a>
+        <a href="/add" class="btn btn-primary"><i class="bi bi-plus-circle" aria-hidden="true"></i> Ajouter une application</a>
         {% endif %}
-        <a href="/synthese" class="btn btn-outline-primary">📊 Voir Synthèse</a>
-	<a href="/export_csv" class="btn btn-outline-info">📥 Exporter CSV</a>
-	<a href="/export_all" class="btn btn-outline-secondary">📥 Exporter tout</a>
+        <a href="/synthese" class="btn btn-outline-primary"><i class="bi bi-bar-chart" aria-hidden="true"></i> Voir Synthèse</a>
+	<a href="/export_csv" class="btn btn-outline-info"><i class="bi bi-download" aria-hidden="true"></i> Exporter CSV</a>
+	<a href="/export_all" class="btn btn-outline-secondary"><i class="bi bi-download" aria-hidden="true"></i> Exporter tout</a>
 	{% if session.role != 'readonly' %}
 	<button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#reevaluateModal">
         	Tout réévaluer
@@ -156,13 +122,13 @@
                 <td>
 					<div class="d-flex flex-nowrap gap-2">
 					{% if session.role != 'readonly' %}
-                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application" aria-label="Évaluer l'application">✅</a>
+                    <a href="/score/{{ app.name }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Évaluer l'application" aria-label="Évaluer l'application"><i class="bi bi-check-circle" aria-hidden="true"></i></a>
 					<button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" title="Réinitialiser l'évaluation" aria-label="Réinitialiser l'évaluation" data-bs-target="#confirmResetModal" data-appname="{{ app.name }}">
-						♻️
+						<i class="bi bi-arrow-repeat" aria-hidden="true"></i>
 					</button>
-					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application" aria-label="Modifier l'application">✏️</a>
+					<a href="/edit/{{ app.name }}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Modifier l'application" aria-label="Modifier l'application"><i class="bi bi-pencil-square" aria-hidden="true"></i></a>
 					<button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" title="Supprimer l'application" aria-label="Supprimer l'application" data-bs-target="#confirmDeleteModal" data-appname="{{ app.name }}">
-						❌
+						<i class="bi bi-x-circle" aria-hidden="true"></i>
 					</button>
 					{% endif %}
 					</div>

@@ -2,15 +2,6 @@
 
 {% block title %}ADM - Ajouter une application{% endblock %}
 
-{% block extra_head %}
-<style>
-    .card {
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    </style>
-{% endblock %}
-
 {% block content %}
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -25,7 +16,7 @@
     </div>
   {% endif %}
 {% endwith %}    
-	<h2 class="text-center text-primary mb-4">➕ Ajouter une application</h2>
+	<h2 class="text-center text-primary mb-4"><i class="bi bi-plus-circle" aria-hidden="true"></i> Ajouter une application</h2>
     <div class="card p-4">
       <form method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

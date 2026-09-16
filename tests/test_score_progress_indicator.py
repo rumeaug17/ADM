@@ -23,6 +23,7 @@ from ADM.scoring import filter_questions_by_type
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = PROJECT_ROOT / "src" / "ADM" / "resources" / "templates"
+STATIC = PROJECT_ROOT / "src" / "ADM" / "resources" / "static"
 
 
 def _create_test_app(tmp_path: Path) -> Flask:
@@ -109,9 +110,15 @@ def test_score_template_has_progress_indicator_and_category_summary() -> None:
     # Sommaire d'ancres par catégorie.
     assert 'href="#category-' in score_html
     assert 'id="category-{{ loop.index }}"' in score_html
-    # Bouton d'actions persistant en bas d'écran.
+    # Bouton d'actions persistant en bas d'écran. Le style ".eval-actions"
+    # (position: sticky) a été déplacé depuis ce gabarit vers la feuille de
+    # style partagée static/css/app.css lors de la Phase 1 de US4.1 (voir
+    # docs/UI_MODERNIZATION_PROPOSAL.md) : seule la classe reste dans le
+    # gabarit, la règle CSS elle-même se vérifie désormais dans app.css.
     assert "eval-actions" in score_html
-    assert "position: sticky" in score_html
+    app_css = (STATIC / "css" / "app.css").read_text(encoding="utf-8")
+    assert ".eval-actions" in app_css
+    assert "position: sticky" in app_css
 
 
 def test_score_page_renders_progress_bar_and_category_anchors(tmp_path: Path) -> None:

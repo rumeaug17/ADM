@@ -1,0 +1,339 @@
+/* =========================================================================
+   ADM — static/css/app.css
+   Feuille de style unique de l'application, introduite par la Phase 1 (US4.1,
+   voir docs/UI_MODERNIZATION_PROPOSAL.md) : elle consolide les blocs
+   <style> précédemment dupliqués dans chaque gabarit Jinja2 (base.html,
+   index.html, resume.html, synthese.html, score.html, add.html, edit.html,
+   accounts.html, questions_settings.html, question_form.html) en un point
+   unique, et introduit les tokens de couleur/rayon/ombre du design system.
+
+   Palette de marque validée le 2026-09-16 (voir mockups/README.md et
+   mockups/assets/mockup.css, dont ce fichier reprend les tokens) : vert
+   forêt légèrement foncé (#0e6b5c / #0a4d42), volontairement distinct du
+   vert sémantique "succès" (#198754) utilisé par les badges DICP/criticité,
+   pour ne pas confondre couleur de marque et code couleur fonctionnel.
+
+   Cette Phase 1 ne change PAS la structure des gabarits ni leurs classes
+   testées (voir tests/test_*_responsive.py, test_help_widget.py,
+   test_score_progress_indicator.py, test_synthese_kpi_grid.py) : elle
+   déplace du CSS existant vers ce fichier et le retinte avec les tokens
+   ci-dessous. La refonte visuelle des pages (nouvelles classes .card-adm,
+   .table-adm, .kpi-card, menu d'actions du catalogue, etc., déjà
+   esquissées dans mockups/) est prévue en Phase 2.
+   ========================================================================= */
+
+:root {
+  --adm-primary: #0e6b5c;
+  --adm-primary-strong: #0a4d42;
+  --adm-primary-light: #3ddbb4;
+
+  /* Palette sémantique (criticité, DICP, seuils de score/risque) : un code
+     couleur fonctionnel (vert = bon, jaune/orange = attention, rouge =
+     critique), indépendant de la couleur de marque ci-dessus. */
+  --adm-success: #198754;
+  --adm-warning: #ffc107;
+  --adm-orange: #fd7e14;
+  --adm-danger: #dc3545;
+
+  --adm-bg: #f4f6fb;
+  --adm-surface: #ffffff;
+  --adm-surface-2: #f8f9fc;
+  --adm-border: rgba(15, 23, 42, 0.08);
+  --adm-text: #1c2430;
+  --adm-text-muted: #6b7583;
+
+  --adm-radius-lg: 16px;
+  --adm-radius: 12px;
+  --adm-radius-sm: 8px;
+  --adm-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+  --adm-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.05);
+
+  /* Retint des variables Bootstrap natives : les liens, .text-primary,
+     .bg-primary (donc le bandeau de navigation) sont pilotés par ces
+     variables CSS dans Bootstrap 5.3, les redéfinir suffit à retinter tout
+     ce qui en dépend, sans recompiler Bootstrap. */
+  --bs-primary: #0e6b5c;
+  --bs-primary-rgb: 14, 107, 92;
+  --bs-link-color: #0e6b5c;
+  --bs-link-color-rgb: 14, 107, 92;
+  --bs-link-hover-color: #0a4d42;
+  --bs-link-hover-color-rgb: 10, 77, 66;
+}
+
+[data-bs-theme="dark"] {
+  --adm-bg: #10141b;
+  --adm-surface: #1a2029;
+  --adm-surface-2: #151a22;
+  --adm-border: rgba(255, 255, 255, 0.08);
+  --adm-text: #e7eaf0;
+  --adm-text-muted: #99a3b3;
+  --adm-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --adm-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.35);
+
+  /* Vert de marque éclairci en thème sombre pour rester lisible sur fond
+     foncé (texte/liens/icônes .text-primary), sans changer les fonds pleins
+     (navbar, badges) qui restent lisibles avec du texte blanc quel que soit
+     le thème. */
+  --bs-primary: #3ddbb4;
+  --bs-primary-rgb: 61, 219, 180;
+  --bs-link-color: #3ddbb4;
+  --bs-link-color-rgb: 61, 219, 180;
+  --bs-link-hover-color: #6ee6c6;
+  --bs-link-hover-color-rgb: 110, 230, 198;
+}
+
+/* ---------- Boutons primaires ------------------------------------------
+   .btn-primary et .btn-outline-primary figent leurs couleurs dans des
+   variables locales à la classe (--bs-btn-*), pas dans --bs-primary : il
+   faut les redéfinir explicitement pour rester homogène avec le reste de
+   la palette. */
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #0e6b5c;
+  --bs-btn-border-color: #0e6b5c;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #0b5548;
+  --bs-btn-hover-border-color: #0a4d42;
+  --bs-btn-focus-shadow-rgb: 45, 138, 122;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #0a4d42;
+  --bs-btn-active-border-color: #09453b;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #0e6b5c;
+  --bs-btn-disabled-border-color: #0e6b5c;
+}
+.btn-outline-primary {
+  --bs-btn-color: #0e6b5c;
+  --bs-btn-border-color: #0e6b5c;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #0e6b5c;
+  --bs-btn-hover-border-color: #0e6b5c;
+  --bs-btn-focus-shadow-rgb: 14, 107, 92;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #0e6b5c;
+  --bs-btn-active-border-color: #0e6b5c;
+  --bs-btn-disabled-color: #0e6b5c;
+  --bs-btn-disabled-border-color: #0e6b5c;
+}
+[data-bs-theme="dark"] .btn-outline-primary {
+  --bs-btn-color: #3ddbb4;
+  --bs-btn-border-color: #3ddbb4;
+  --bs-btn-hover-color: #0a2420;
+  --bs-btn-hover-bg: #3ddbb4;
+  --bs-btn-hover-border-color: #3ddbb4;
+  --bs-btn-active-color: #0a2420;
+  --bs-btn-active-bg: #3ddbb4;
+  --bs-btn-active-border-color: #3ddbb4;
+  --bs-btn-disabled-color: #3ddbb4;
+  --bs-btn-disabled-border-color: #3ddbb4;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #6fc4b0;
+  box-shadow: 0 0 0 0.25rem rgba(14, 107, 92, 0.25);
+}
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus {
+  border-color: #3ddbb4;
+  box-shadow: 0 0 0 0.25rem rgba(61, 219, 180, 0.3);
+}
+
+/* ---------- Mise en page globale (ex <style> inline de base.html) ------ */
+body {
+  background-color: var(--adm-bg);
+  color: var(--adm-text);
+  margin: 0;
+  padding: 0;
+}
+.logo {
+  height: 50px;
+  margin-right: 15px;
+}
+main.container {
+  margin-top: 30px;
+  min-height: 70vh;
+}
+footer {
+  background-color: var(--adm-primary);
+  padding: 10px 20px;
+  color: #fff;
+  text-align: center;
+}
+footer a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* ---------- Aide contextuelle (Tâche 4.5) -------------------------------
+   Icône "?" déclenchant un popover Bootstrap natif, utilisée à l'identique
+   sur toutes les pages (score.html, add.html, edit.html). */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--adm-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+}
+.info-icon:hover,
+.info-icon:focus {
+  background-color: var(--adm-primary-strong);
+}
+/* Largeur réactive (jamais figée en pixels) : le popover ne dépasse ni la
+   largeur disponible sur mobile, ni une largeur confortable sur desktop.
+   640px est volontairement généreux : l'aide de "Criticité" (add.html/
+   edit.html) est un texte long avec des listes imbriquées sur plusieurs
+   niveaux, illisible si on la contraint à une largeur étroite ; les autres
+   aides, plus courtes, restent naturellement plus compactes (un popover
+   Bootstrap épouse son contenu, cette valeur n'est qu'un plafond). */
+.popover {
+  max-width: min(90vw, 640px);
+}
+
+/* ---------- Cartes -------------------------------------------------------
+   Règle commune à toutes les pages (add.html, edit.html, accounts.html,
+   questions_settings.html, settings.html, question_form.html, score.html,
+   resume.html, synthese.html). */
+.card {
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow-sm);
+  margin-bottom: 1rem;
+}
+/* Titres de section à l'intérieur d'une carte (score.html : "Progression",
+   "Évaluateur", nom de catégorie ; réutilisé par le tableau de comparaison
+   d'évaluations inclus dans resume.html). */
+.card h3 {
+  background-color: var(--adm-primary);
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+/* ---------- Tableaux ------------------------------------------------------
+   Règle commune (index.html, synthese.html, accounts.html,
+   questions_settings.html). */
+table,
+.table {
+  background-color: var(--adm-surface);
+  border-radius: var(--adm-radius);
+  overflow: hidden;
+  box-shadow: var(--adm-shadow-sm);
+}
+th {
+  background-color: var(--adm-primary);
+  color: #fff;
+}
+tr:hover {
+  background-color: var(--adm-surface-2);
+}
+
+/* ---------- Badges DICP / Criticité (index.html, resume.html) ---------- */
+.badge-d1,
+.badge-i1,
+.badge-c1,
+.badge-p1 {
+  background-color: var(--adm-success);
+}
+.badge-d2,
+.badge-i2,
+.badge-c2,
+.badge-p2 {
+  background-color: var(--adm-warning);
+}
+.badge-d3,
+.badge-i3,
+.badge-c3,
+.badge-p3 {
+  background-color: var(--adm-orange);
+}
+.badge-d4,
+.badge-i4,
+.badge-c4,
+.badge-p4 {
+  background-color: var(--adm-danger);
+}
+.badge-criticite1 {
+  background-color: var(--adm-danger);
+}
+.badge-criticite2 {
+  background-color: var(--adm-orange);
+}
+.badge-criticite3 {
+  background-color: var(--adm-warning);
+}
+.badge-criticite4 {
+  background-color: var(--adm-success);
+}
+.badge {
+  font-size: 1rem;
+  padding: 8px 12px;
+}
+.bg-score-high {
+  background-color: var(--adm-danger) !important;
+  color: #fff !important;
+}
+
+/* ---------- Flèches de tendance (resume.html) --------------------------- */
+.arrow {
+  font-size: 1.5rem;
+  font-weight: 1000;
+  display: inline-block;
+  margin-left: 5px;
+  background: transparent !important;
+  border: none !important;
+  line-height: 1;
+  font-family: Arial, sans-serif;
+}
+.arrow-down {
+  color: var(--adm-success);
+}
+.arrow-up {
+  color: var(--adm-orange);
+}
+.arrow-right {
+  color: var(--adm-primary);
+}
+
+/* ---------- Formulaire d'évaluation (score.html) ------------------------ */
+.form-select {
+  width: 100%;
+}
+.label {
+  font-weight: bold;
+  margin-top: 15px;
+}
+/* Tâche 4.8 : bouton de soumission persistant en bas d'écran pour un
+   formulaire potentiellement très long. */
+.eval-actions {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--adm-surface);
+  padding-top: 10px;
+  padding-bottom: 10px;
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+}
+
+/* ---------- Formulaire de question (question_form.html) ----------------- */
+.option-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.option-row input[type="text"] {
+  flex: 2;
+}
+.option-row input[type="number"] {
+  flex: 1;
+}

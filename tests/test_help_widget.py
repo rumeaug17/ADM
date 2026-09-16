@@ -163,13 +163,17 @@ def test_help_icons_render_as_accessible_popover_buttons(tmp_path: Path) -> None
 
 
 def test_popover_width_is_responsive_not_fixed_per_page() -> None:
-    """Une seule règle CSS ``.popover`` (dans base.html), avec une largeur
-    plafonnée relativement à la fenêtre (``vw``), remplace les largeurs
-    fixes dupliquées et divergentes de score.html (450px) et add.html
-    (1050px)."""
-    base_html = (TEMPLATES / "base.html").read_text(encoding="utf-8")
-    assert ".popover" in base_html
-    assert "vw" in base_html
+    """Une seule règle CSS ``.popover`` (dans static/css/app.css, chargée par
+    base.html sur toutes les pages), avec une largeur plafonnée relativement
+    à la fenêtre (``vw``), remplace les largeurs fixes dupliquées et
+    divergentes de score.html (450px) et add.html (1050px). Ce style vivait
+    à l'origine dans le bloc <style> inline de base.html ; il a été déplacé
+    vers app.css lors de la Phase 1 de US4.1 (voir
+    docs/UI_MODERNIZATION_PROPOSAL.md), qui consolide tous les styles
+    auparavant dupliqués par gabarit dans une feuille de style partagée."""
+    app_css = (STATIC / "css" / "app.css").read_text(encoding="utf-8")
+    assert ".popover" in app_css
+    assert "vw" in app_css
 
 
 def test_popover_desktop_width_is_wide_enough_for_the_longest_help_text() -> None:
@@ -177,9 +181,9 @@ def test_popover_desktop_width_is_wide_enough_for_the_longest_help_text() -> Non
     listes imbriquées sur plusieurs niveaux : un plafond de largeur trop
     étroit la rend illisible sur un écran d'ordinateur, même si le plafond
     est par ailleurs responsive (borné par ``vw`` sur mobile)."""
-    base_html = (TEMPLATES / "base.html").read_text(encoding="utf-8")
-    match = re.search(r"\.popover\s*\{[^}]*max-width:\s*min\(\s*[\d.]+vw\s*,\s*(\d+)px", base_html)
-    assert match, "règle .popover introuvable ou de forme inattendue dans base.html"
+    app_css = (STATIC / "css" / "app.css").read_text(encoding="utf-8")
+    match = re.search(r"\.popover\s*\{[^}]*max-width:\s*min\(\s*[\d.]+vw\s*,\s*(\d+)px", app_css)
+    assert match, "règle .popover introuvable ou de forme inattendue dans app.css"
     desktop_max_width = int(match.group(1))
     assert desktop_max_width >= 600
 

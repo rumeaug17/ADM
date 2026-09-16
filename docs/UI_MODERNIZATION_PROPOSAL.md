@@ -142,19 +142,21 @@ catalogue, formulaire d'évaluation, synthèse), clair et sombre, dans
 `mockups/` (voir section 9 pour le détail et les deux ajustements retenus
 avant de passer en Phase 1).
 
-**Phase 1 — Fondations du design system (2 à 3 jours).** Créer
-`src/ADM/resources/static/css/app.css` regroupant les tokens de couleur, les
-styles de badges, cartes, tableaux, navigation et pied de page aujourd'hui
-dupliqués ou inlinés. Supprimer les blocs `<style>` redondants de
-`index.html`, `resume.html`, `synthese.html`, `score.html`, `add.html`,
-`edit.html`, `accounts.html`, `questions_settings.html` et `settings.html`
-au profit de classes communes. Auto-héberger (« vendoriser ») Bootstrap
-CSS/JS et Bootstrap Icons dans `static/vendor/` à la place du CDN `jsdelivr`
-actuel, en préparation de la CSP stricte de la Tâche 6.6 et pour un
-fonctionnement sans dépendance réseau externe. Remplacer les émojis par des
-icônes Bootstrap Icons. Fichiers impactés : `base.html` et l'ensemble des
-gabarits cités, plus l'arborescence `static/`. Risque principal : les cinq
-tests de présentation cités en section 2, à faire tourner en continu.
+**Phase 1 — Fondations du design system (2 à 3 jours). Réalisée le
+2026-09-16 ; en attente de revue/merge côté utilisateur (voir section 10).**
+Créé `src/ADM/resources/static/css/app.css` regroupant les tokens de
+couleur, les styles de badges, cartes, tableaux, navigation et pied de page
+auparavant dupliqués ou inlinés. Supprimé les blocs `<style>` redondants de
+`base.html`, `index.html`, `resume.html`, `synthese.html`, `score.html`,
+`add.html`, `edit.html`, `accounts.html`, `questions_settings.html`,
+`settings.html` et `question_form.html` au profit de classes communes.
+Auto-hébergé (« vendorisé ») Bootstrap 5.3.3 CSS/JS et Bootstrap Icons 1.11.3
+dans `static/vendor/` à la place du CDN `jsdelivr` précédent, en préparation
+de la CSP stricte de la Tâche 6.6 et pour un fonctionnement sans dépendance
+réseau externe. Remplacé les émojis par des icônes Bootstrap Icons partout où
+ils servaient d'action ou de statut. Fichiers impactés : `base.html` et
+l'ensemble des gabarits cités, plus l'arborescence `static/`. Détail complet
+en section 10.
 
 **Phase 2 — Refonte visuelle des pages principales (3 à 4 jours).**
 Appliquer le nouveau design system aux pages les plus consultées :
@@ -258,11 +260,99 @@ Aucune autre remarque sur les pages ou le contenu : la direction visuelle
 (cartes, tableaux, badges, mode sombre, typographie, iconographie Bootstrap
 Icons) est validée telle quelle.
 
-## 10. Prochaine étape immédiate
+## 10. Suivi — Phase 1 réalisée
 
-Ouvrir la Phase 1 (fondations du design system) comme premier ticket de
-développement : créer `src/ADM/resources/static/css/app.css` à partir de
-`mockups/assets/mockup.css` (palette et menu d'actions inclus), vendoriser
-Bootstrap/Bootstrap Icons dans `static/vendor/`, et supprimer les blocs
-`<style>` dupliqués des gabarits listés en section 6. `backlog.md` a été mis
-à jour en conséquence sous US4.1 (Epic 4).
+Implémentée le 2026-09-16 depuis une session cloud liée au poste de
+Guillaume Rumeau (pas d'accès `git`/shell sur ce poste depuis cette session :
+voir « Ce qui reste à faire côté utilisateur » ci-dessous).
+
+**Ce qui a été fait.** `src/ADM/resources/static/css/app.css` regroupe
+désormais : les tokens de couleur (`--adm-*`) et le retint des variables
+Bootstrap natives (`--bs-primary` et équivalents) repris tels quels de
+`mockups/assets/mockup.css`, avec la même palette validée en Phase 0 ; la
+surcharge explicite de `.btn-primary`/`.btn-outline-primary`/`:focus` (non
+pilotés par `--bs-primary` dans Bootstrap 5.3) ; et tous les styles
+auparavant dupliqués par gabarit (badges DICP/criticité, cartes, tableaux,
+flèches de tendance, formulaire d'évaluation, ligne d'option du formulaire de
+question, aide contextuelle/popover, mise en page globale de `base.html`) —
+**sous les noms de classes réels de l'application** (`badge-d1`, `.info-icon`,
+`.eval-actions`, etc.), et non ceux, renommés, de la maquette
+(`.badge-dicp-1`, `.info-icon-adm`…), pour ne rien casser côté gabarits ou
+tests. Bootstrap 5.3.3 et Bootstrap Icons 1.11.3 sont vendorisés dans
+`static/vendor/` (CSS/JS minifiés + police d'icônes) et remplacent le CDN
+`jsdelivr` dans `base.html`. Les émojis ont été remplacés par des icônes
+Bootstrap Icons (`<i class="bi bi-...">`, `aria-hidden="true"`) dans tous les
+gabarits qui en contenaient encore.
+
+**Écarts volontaires par rapport à une reprise à l'identique de la
+maquette**, documentés ici pour la revue :
+- La refonte visuelle des gabarits (nouvelles classes `.card-adm`,
+  `.table-adm`, `.kpi-card`, menu d'actions `⋯` du catalogue, etc.) n'a
+  **pas** été reprise : elle est explicitement prévue en Phase 2. Cette
+  Phase 1 ne change ni la structure HTML des pages ni les classes testées,
+  seulement l'origine et la couleur du CSS, conformément à son objectif
+  (« fondations », pas « refonte »).
+- La règle `h3 { background-color: ...; }` de `score.html` (bannière bleue
+  appliquée à tout `<h3>` de la page) a été reprise sous la forme scopée
+  `.card h3`, pour ne pas déteindre globalement sur les `<h3>` d'autres pages
+  qui n'avaient jamais cette bannière (`synthese.html`, notamment). Elle
+  s'applique par ailleurs, en plus, au titre de catégorie de
+  `_evaluation_readonly.html` (inclus dans la modale de comparaison de
+  `resume.html`), qui vit lui aussi dans une `.card` : c'est un gain de
+  cohérence visuelle, pas une régression.
+- La règle `button { margin-top: 15px; }` de `score.html`, générique et non
+  scopée, n'a **pas** été reprise telle quelle : appliquée globalement via
+  `app.css`, elle aurait décalé tout bouton de toutes les pages (y compris le
+  bouton « afficher/masquer » du menu de navigation de `base.html`). Les
+  boutons concernés disposent déjà d'un espacement suffisant via les
+  utilitaires Bootstrap (`mt-2`, `w-100`, `gap-2`) présents dans le HTML.
+- `.card { margin-bottom: 1rem; }` a été rendu global (auparavant présent
+  uniquement dans le `<style>` de `resume.html`) : cela ajoute un espacement
+  vertical cohérent aux cartes des autres pages, qui n'avaient cette marge
+  qu'à cause d'une incohérence préexistante entre gabarits.
+- Deux tests qui vérifiaient jusqu'ici le texte brut d'un bloc `<style>`
+  déplacé vers `app.css` ont été adaptés pour lire ce nouveau fichier
+  (`tests/test_help_widget.py` : largeur du `.popover` ; et
+  `tests/test_score_progress_indicator.py` : `position: sticky` de
+  `.eval-actions`, nouvelle constante `STATIC`). Dans les deux cas, la même
+  garantie comportementale est vérifiée, seulement à son nouvel
+  emplacement — aucune assertion n'a été affaiblie ou supprimée.
+- `pyproject.toml` (`[tool.setuptools.package-data]`) est passé de
+  `resources/static/*` (non récursif) à `resources/static/**`, pour inclure
+  les nouveaux sous-répertoires `static/css/` et `static/vendor/` dans le
+  paquet distribué.
+
+**Vérifications effectuées** (environnement cloud isolé, dépôt complet
+copié) : `ruff check`, `ruff format --check` et `mypy --strict` (`src`,
+`main.py`) sans erreur ; `pytest --cov=ADM` : 275 tests passés, couverture
+87,81 % (seuil 86 % maintenu), pour un résultat rigoureusement identique à
+la mesure de référence avant modification. Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) sont un problème de
+fins de ligne CRLF propre au checkout Windows de ce poste, préexistant et
+sans rapport avec cette Phase 1 — non traités ici, hors périmètre.
+
+**Ce qui reste à faire côté utilisateur.** Cette session cloud n'a pas accès
+à `git`/un shell sur ce poste : les fichiers ont été déposés directement dans
+l'arborescence locale (`C:\usr\ADM`) via la liaison au poste, mais aucune
+branche ni commit n'a été créé. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `feature/us4-1-phase1-design-system`) et
+   vérifier le statut `git` pour confirmer la liste des fichiers modifiés.
+2. Relire le diff, en particulier les gabarits (suppression des `<style>`,
+   remplacement des émojis) et `static/css/app.css`.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur (clair et sombre) sur quelques
+   pages clés (catalogue, évaluation, synthèse, comptes) pour un contrôle
+   visuel rapide — cette Phase 1 ne change pas la mise en page, seulement les
+   couleurs et l'origine du CSS/des icônes.
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 11. Prochaine étape immédiate
+
+Après revue et merge de la Phase 1, ouvrir la Phase 2 (refonte visuelle des
+pages principales : nouvelles classes `.card-adm`/`.table-adm`/`.kpi-card`,
+menu d'actions `⋯` du catalogue, bandeau de navigation sticky) comme
+prochain ticket de développement, en s'appuyant sur `mockups/` pour le détail
+visuel déjà validé.

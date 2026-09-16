@@ -2,39 +2,9 @@
 
 {% block title %}ADM - Synthèse{% endblock %}
 
-{% block extra_head %}
-  <style>
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .badge {
-            font-size: 1rem;
-            padding: 8px 12px;
-        }
-		.bg-score-high {
-			background-color: red !important;
-			color: white !important;
-		}
-        .table {
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        th {
-            background-color: #0d6efd;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-  </style>
-{% endblock %}
-
 {% block content %}
 
-    <h2 class="text-center text-primary">📊 Synthèse des Applications</h2>
+    <h2 class="text-center text-primary"><i class="bi bi-bar-chart" aria-hidden="true"></i> Synthèse des Applications</h2>
     
     <!-- Section des KPI -->
     <!-- Tâche 4.10 : 5 cartes ne se divisent pas proprement en colonnes
@@ -46,13 +16,13 @@
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 my-4 text-center">
       <div class="col">
         <div class="card text-white bg-primary p-3 h-100">
-            <h4>📌 Nombre total d'applications</h4>
+            <h4><i class="bi bi-collection" aria-hidden="true"></i> Nombre total d'applications</h4>
             <h2>{{ total_apps }}</h2>
         </div>
       </div>
       <div class="col">
         <div class="card text-white bg-success p-3 h-100">
-            <h4>⭐ Score moyen</h4>
+            <h4><i class="bi bi-star" aria-hidden="true"></i> Score moyen</h4>
             <h2>{{ avg_score }}</h2>
         </div>
       </div>
@@ -74,13 +44,13 @@
       </div>
       <div class="col">
         <div class="card text-white bg-warning p-3 h-100">
-            <h4>✅ Applications &gt; {{ display_thresholds.score.warning|int }}%</h4>
+            <h4><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Applications &gt; {{ display_thresholds.score.warning|int }}%</h4>
             <h2>{{ apps_above_warning }}</h2>
         </div>
       </div>
       <div class="col">
         <div class="card text-white bg-score-high p-3 h-100">
-            <h4>🔥 Applications &gt; {{ display_thresholds.score.critical|int }}%</h4>
+            <h4><i class="bi bi-fire" aria-hidden="true"></i> Applications &gt; {{ display_thresholds.score.critical|int }}%</h4>
             <h2>{{ apps_above_critical }}</h2>
         </div>
       </div>

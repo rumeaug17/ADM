@@ -53,10 +53,21 @@ Les tâches réalisées sont retirées du fichier.
   marque en vert forêt légèrement foncé (`#0e6b5c` / `#0a4d42`, distincte du
   vert sémantique des badges DICP/criticité) plutôt que le bleu Bootstrap par
   défaut, et actions du catalogue regroupées dans un menu contextuel (`⋯`)
-  plutôt qu'une rangée de boutons. Prochaine étape : Phase 1 (fondations du
-  design system — `static/css/app.css` à partir de `mockups/assets/mockup.css`,
-  vendoring Bootstrap/Bootstrap Icons, remplacement des émojis), à ouvrir
-  comme prochain ticket de développement.
+  plutôt qu'une rangée de boutons. Phase 1 (fondations du design system)
+  réalisée le 2026-09-16 : `static/css/app.css` consolide tous les styles
+  auparavant dupliqués par gabarit sous les noms de classes réels de
+  l'application (avec la palette verte validée), Bootstrap 5.3.3 et
+  Bootstrap Icons 1.11.3 sont vendorisés dans `static/vendor/` (fin du CDN
+  `jsdelivr`), et les émojis ont été remplacés par des icônes Bootstrap
+  Icons ; aucun changement de structure HTML ni de classe testée (voir
+  section 10 de `docs/UI_MODERNIZATION_PROPOSAL.md` pour le détail complet
+  et les écarts volontaires). `ruff`/`mypy --strict`/`pytest --cov=ADM`
+  passent (275 tests, couverture 87,81 %, seuil 86 % maintenu), résultat
+  identique à la mesure de référence avant modification. Reste, côté
+  utilisateur (session cloud sans accès `git` sur ce poste) : créer une
+  branche, relire le diff, relancer les vérifications localement et
+  commiter (détail dans le document). Prochaine étape de développement :
+  Phase 2 (refonte visuelle des pages principales).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  
