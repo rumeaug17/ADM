@@ -804,7 +804,56 @@ Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 19. Prochaine étape immédiate
+## 19. Correctif — modal de confirmation resté ouvert après une action htmx
+
+Signalé le 2026-09-16 par Guillaume Rumeau après la Phase 5, en testant les
+interactions htmx introduites en Phase 4 : après confirmation d'une
+suppression ou d'une réinitialisation d'évaluation depuis le catalogue, la
+ligne concernée était bien mise à jour et un toast confirmait l'action, mais
+le modal de confirmation restait affiché à l'écran au lieu de se refermer.
+
+**Cause.** Avant la Phase 4, la soumission de ces formulaires provoquait un
+rechargement complet de la page (`redirect()`) : le modal, absent du nouveau
+DOM, disparaissait de fait, sans qu'aucun code n'ait jamais eu besoin de le
+fermer explicitement. La Phase 4 a remplacé ce rechargement par une requête
+htmx qui ne touche que la ligne concernée (voir section 16) : la page ne se
+recharge plus, et rien ne demandait plus à Bootstrap de fermer le modal —
+l'oubli n'était pas visible en revue de code, seulement à l'usage.
+
+**Correctif.** L'écouteur `htmx:afterRequest` de `base.html` (déjà en place
+pour afficher le toast à partir de l'en-tête `HX-Trigger`, voir section 16)
+recherche désormais, pour toute requête htmx réussie
+(`event.detail.successful`), un modal Bootstrap ancêtre de l'élément
+déclencheur (`event.detail.elt.closest('.modal')`) et le referme via
+l'instance `bootstrap.Modal` déjà créée par son ouverture
+(`bootstrap.Modal.getInstance(modalEl).hide()`). Ce correctif est générique :
+il s'applique à tout formulaire htmx placé dans un modal, actuel ou futur,
+sans coder en dur les ids `confirmDeleteModal`/`confirmResetModal`, et
+s'exécute avant tout `return` anticipé du traitement du toast (donc y
+compris pour la suppression, dont la réponse n'a pas de corps et peut ne pas
+porter de toast si l'en-tête venait à manquer).
+
+**Vérifications effectuées** : `ruff check`, `ruff format --check` et
+`mypy --strict` sans erreur ; `pytest --cov=ADM` : 285 tests passés (282 + 3
+nouveaux, `tests/test_htmx_modal_dismissal.py`), couverture 87,55 % (seuil
+86 % maintenu). Les nouveaux tests vérifient, sur le gabarit réellement
+servi, que le correctif est bien dans l'écouteur `htmx:afterRequest`
+existant (pas un second écouteur séparé, plus facile à perdre), qu'il
+s'exécute avant tout retour anticipé, et que les deux formulaires concernés
+sont bien des descendants d'un `.modal` (condition nécessaire à
+`closest('.modal')`) — ils ne peuvent pas exécuter de JavaScript ni piloter
+un vrai navigateur, donc ne remplacent pas un test manuel à l'œil.
+
+**Ce qui reste à faire côté utilisateur.** Le seul fichier modifié
+(`templates/base.html`) et le nouveau fichier de tests
+(`tests/test_htmx_modal_dismissal.py`) ont été déposés dans `C:\usr\ADM` via
+la liaison au poste. Vérifier à l'œil, en clair comme en sombre : supprimer
+une application depuis le catalogue (modal fermé, ligne retirée, toast
+affiché) et réinitialiser une évaluation (modal fermé, ligne mise à jour,
+toast affiché), puis inclure ce correctif dans la même branche/revue que la
+Phase 5 (ou une branche dédiée si la Phase 5 est déjà mergée).
+
+## 20. Prochaine étape immédiate
 
 Après revue et merge de la Phase 5, ouvrir la Phase 6 optionnelle
 (graphiques interactifs : remplacer les images radar statiques par un

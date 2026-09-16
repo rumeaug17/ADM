@@ -111,6 +111,24 @@
   // nous-mêmes l'en-tête, pour rester indépendants des détails de version de
   // htmx sur ce comportement.
   document.body.addEventListener('htmx:afterRequest', function (event) {
+    // Correctif (US4.1, post-Phase 4) : les formulaires de confirmation
+    // (suppression/réinitialisation d'une application, voir index.html)
+    // vivent dans un modal Bootstrap. Avant htmx, leur soumission rechargeait
+    // toute la page, ce qui fermait le modal de facto. Avec htmx, la page ne
+    // se recharge plus : sans ce correctif, le modal restait ouvert après une
+    // action réussie, alors même que la ligne concernée avait bien été mise
+    // à jour/retirée en arrière-plan et qu'un toast confirmait l'action.
+    if (event.detail && event.detail.successful) {
+      var triggerEl = event.detail.elt;
+      var modalEl = triggerEl && triggerEl.closest && triggerEl.closest('.modal');
+      if (modalEl) {
+        var modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      }
+    }
+
     var xhr = event.detail && event.detail.xhr;
     var header = xhr && xhr.getResponseHeader && xhr.getResponseHeader('HX-Trigger');
     if (!header) {

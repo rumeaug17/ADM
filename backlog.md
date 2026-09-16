@@ -130,10 +130,20 @@ Les tâches réalisées sont retirées du fichier.
   côté utilisateur (session cloud sans accès `git` sur ce poste) : créer une
   branche, relire le diff, relancer les vérifications localement, vérifier
   visuellement (badges, thème sombre, lecteur d'écran/inspecteur
-  d'accessibilité) et commiter (détail dans le document). Prochaine étape de
-  développement : Phase 6 optionnelle (graphiques interactifs) ou, à
-  défaut, Phase 7 (validation et non-régression, à formaliser en fin de
-  projet).
+  d'accessibilité) et commiter (détail dans le document). Correctif du
+  2026-09-16 (signalé par Guillaume Rumeau) : après une suppression ou une
+  réinitialisation d'évaluation depuis le catalogue, le modal de
+  confirmation restait ouvert alors que l'action était bien effectuée
+  (toast affiché, ligne mise à jour/retirée) — la Phase 4 avait remplacé le
+  rechargement de page qui fermait le modal de facto par une requête htmx,
+  sans rien pour fermer le modal explicitement. Corrigé dans `base.html`
+  (l'écouteur `htmx:afterRequest` existant referme désormais tout modal
+  ancêtre de l'élément déclencheur après une requête réussie, correctif
+  générique à tout formulaire htmx en modal, voir section 19 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). 285 tests passés (282 + 3 nouveaux),
+  couverture 87,55 % maintenue. Prochaine étape de développement : Phase 6
+  optionnelle (graphiques interactifs) ou, à défaut, Phase 7 (validation et
+  non-régression, à formaliser en fin de projet).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  
