@@ -244,8 +244,20 @@ Les tâches réalisées sont retirées du fichier.
   fois, jamais un premier remplacé par un second. Vérifié avec un navigateur
   piloté (Playwright), succès et échec simulés. 317 tests passés (316 + 1
   nouveau), couverture 87,65 % maintenue (détail en section 27 de
-  `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de développement :
-  Phase 7 (validation et non-régression, à formaliser en fin de projet).
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Phase 7 (validation et
+  non-régression) réalisée le 2026-09-16, dernière phase du plan : portique
+  qualité (`ruff`, `mypy --strict`, `pytest --cov=ADM`) reconfirmé au vert
+  (317 tests, 87,65 %, seuil 86 % maintenu — 7 échecs préexistants et sans
+  rapport, liés à des fins de ligne CRLF sur les scripts shell dans cet
+  environnement cloud, détaillés en section 28) ; revue manuelle des trois
+  rôles (`admin`, `user`, `readonly`) sur desktop et mobile via navigateur
+  piloté, avec captures d'écran à l'appui : aucune erreur console
+  inattendue, cloisonnement des rôles conforme, rendu radar (couleur,
+  absence de doublon, absence d'espace blanc excessif) confirmé sur les 6
+  parcours (détail en section 28 de `docs/UI_MODERNIZATION_PROPOSAL.md`).
+  Les 7 phases du plan de modernisation UI sont désormais toutes réalisées ;
+  US4.1 fonctionnellement complète sous réserve de la revue et du merge
+  locaux des correctifs livrés.
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

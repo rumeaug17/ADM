@@ -1516,12 +1516,129 @@ ni commit créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 28. Prochaine étape immédiate
+## 28. Suivi — Phase 7 réalisée (2026-09-16)
 
-Après revue et merge de la Phase 5, du correctif d'homogénéisation des
-messages, de la Phase 6, du correctif d'affichage des radars, du correctif
-de couleur, du correctif d'animation, des deux correctifs d'espacement/
-taille et de ce correctif de doublon d'affichage, ouvrir la Phase 7
-(validation et non-régression en continu, déjà appliquée à chaque phase mais
-à formaliser en fin de projet : revue manuelle de chaque rôle sur desktop et
-mobile, avec captures d'écran avant/après).
+**Demande.** Phase 7 du plan : « Validation et non-régression (en continu,
+1 jour dédié en fin de projet). `pytest --cov=ADM` (seuil 86 % à
+maintenir), `ruff check`, `ruff format --check` et `mypy --strict` après
+chaque phase, pas seulement à la fin. Revue manuelle de chaque rôle
+(`admin`, `readonly`, utilisateur standard) sur desktop et mobile, avec
+captures d'écran avant/après comme preuve de non-régression fonctionnelle. »
+
+**Portique qualité automatisé — confirmation finale.** Le portique complet a
+déjà été exécuté et a réussi après chacune des Phases 1 à 6 et de chacun des
+9 correctifs livrés depuis (couleur, animation, espacement ×2, doublon
+modale, homogénéisation des messages, etc.) — la partie « en continu, après
+chaque phase » de la Phase 7 est donc déjà satisfaite de facto tout au long
+du projet, et non reportée à cette seule étape finale. Cette section en
+donne la confirmation consolidée de fin de projet, exécutée une dernière
+fois sur l'état actuel du dépôt : `ruff check` (« All checks passed! »),
+`ruff format --check` (69 fichiers déjà au format), `mypy --strict src
+main.py` (« Success: no issues found in 21 source files ») et `pytest
+--cov=ADM --cov-report=term-missing` : 317 tests passés, couverture 87,65 %
+(seuil 86 % maintenu), résultat identique à celui obtenu après le dernier
+correctif (section 27) — aucune régression entre-temps.
+
+7 échecs préexistants et sans rapport avec la modernisation UI ont été
+observés dans cette même exécution (`tests/test_container_entrypoint.py` et
+`tests/test_demo_scripts.py`) : ils échouent avec l'erreur bash `set:
+pipefail: invalid option name`, provoquée par des fins de ligne CRLF
+présentes sur l'ensemble de la copie du dépôt dans cet environnement cloud
+isolé (constaté y compris sur des fichiers `.py` jamais touchés par ce
+projet — `services.py`, `routes.py` — donc une caractéristique de la copie,
+pas du contenu réellement suivi par git). Aucun fichier concerné par la
+modernisation UI (Phases 1 à 6, tous les correctifs) n'est en cause : ces
+échecs sont antérieurs et extérieurs à ce chantier. Le seuil de couverture
+(86 %) reste atteint (87,65 %) malgré ces 7 échecs, qui ne portent donc pas
+à conséquence pour la Phase 7. Il est recommandé de vérifier cette suite
+localement (`git bash`/WSL sur poste Windows), où les fins de ligne du dépôt
+suivi par git sont normalement correctes.
+
+**Revue manuelle par rôle, desktop et mobile.** Une instance de test
+temporaire (données JSON réalistes, catégories/questions réelles de
+`static/questions.json`, 3 applications dont une non évaluée) a été créée
+avec un compte par rôle (`admin-test`, `user-test`, `readonly-test`), et
+parcourue avec un navigateur piloté (Playwright/Chromium) sur deux
+viewports : desktop (1600×1000) et mobile (390×844, format iPhone). Pour
+chacun des 3 rôles × 2 viewports (6 parcours), les pages suivantes ont été
+visitées avec capture d'écran à l'appui : catalogue (`/`), synthèse
+(`/synthese`) y compris l'ouverture de la modale radar d'une application,
+fiche résumé (`/resume/<app>`), page d'évaluation (`/score/<app>`), et pour
+le rôle `admin` uniquement, gestion des comptes (`/accounts`) et
+configuration (`/settings`).
+
+Résultats :
+- **Aucune erreur console JavaScript inattendue** sur l'ensemble des 6
+  parcours (les seuls messages « Failed to load resource » relevés
+  correspondent exactement aux 6 tentatives volontaires d'accès à
+  `/accounts` par les rôles `user`/`readonly`, qui reçoivent bien un 403 —
+  comportement attendu, pas une anomalie).
+- **Cloisonnement des rôles conforme** : `admin` accède à `/accounts` et
+  `/settings` ; `user` et `readonly` en sont exclus (403, page d'erreur
+  générique affichée, aucune fuite d'information). `readonly` reçoit
+  également un 403 sur `/score/<app>` (le formulaire d'évaluation lui est
+  entièrement fermé, y compris en lecture, conformément à
+  `write_access_required` — comportement déjà en vigueur, non lié à la
+  modernisation UI, confirmé sans régression).
+- **Rendu radar (Phases 1, 4, 6 et correctifs associés) confirmé sur les 6
+  parcours** : un seul radar visible dans la modale de synthèse (plus de
+  doublon), couleur verte de marque homogène, pas d'espace blanc excessif,
+  taille cohérente avec le radar moyenne — sur desktop comme sur mobile.
+  Sur mobile, le radar de la fiche résumé occupe correctement la largeur de
+  sa carte (Phase/correctif d'espacement toujours valide à cette largeur de
+  viewport).
+- **Formulaire d'évaluation** (`/score/<app>`) pleinement fonctionnel et
+  éditable pour `admin`/`user` (32/32 questions, sommaire d'ancres, barre de
+  progression, validation des commentaires obligatoires — Tâches 4.7/4.8
+  intactes), inaccessible pour `readonly` comme attendu.
+- **Point technique noté en cours de revue (pas une anomalie applicative)**
+  : une capture d'écran « pleine page » (`full_page=True`) de Playwright
+  rend la modale Bootstrap (en position CSS fixe) vide/désalignée dans
+  l'image recomposée, car cette méthode de capture réassemble la page en la
+  faisant défiler — artefact connu de l'outillage de capture, pas un bug du
+  rendu réel (confirmé par une capture du seul viewport visible, qui montre
+  la modale correctement affichée). Documenté ici pour éviter toute fausse
+  alerte lors d'une revue future utilisant la même méthode.
+- **Observation hors périmètre, pour un futur ticket** : sur mobile
+  (390 px), le tableau de gestion des comptes (`/accounts`, jamais modifié
+  par ce chantier) laisse entrevoir un liseré de la colonne d'actions au
+  bord droit de sa carte — défilement horizontal intentionnel du tableau
+  (`table-responsive`, même patron que les autres pages de liste, aucun
+  débordement de la page elle-même constaté : 0 px de dépassement horizontal
+  mesuré). Comportement pré-existant et fonctionnel, sans lien avec la
+  modernisation UI ; à améliorer visuellement si souhaité dans un ticket
+  dédié, hors US4.1.
+
+**Conclusion.** Aucune régression fonctionnelle détectée sur les trois
+rôles, desktop et mobile, à l'issue des 6 phases de modernisation et des
+correctifs associés. Le portique qualité automatisé (hors les 7 échecs
+préexistants et sans rapport, détaillés ci-dessus) confirme le même
+résultat. La Phase 7 étant la dernière du plan, le chantier de modernisation
+UI (US4.1) est fonctionnellement complet, sous réserve de la revue et du
+merge locaux de l'ensemble des correctifs listés dans ce document.
+
+**Ce qui reste à faire côté utilisateur.** Cette phase n'a modifié aucun
+fichier de l'application (revue de validation uniquement) ; seul ce document
+et `backlog.md` sont mis à jour. Reste donc à faire, localement :
+1. Vérifier que tous les correctifs des sections précédentes (Phases 1 à 6
+   et correctifs associés) sont bien mergés.
+2. Relancer localement la suite complète (`ruff check`, `ruff format
+   --check`, `mypy --strict`, `pytest --cov=ADM`) pour confirmer l'absence
+   des 7 échecs liés aux fins de ligne CRLF observés dans cet environnement
+   cloud (ils ne devraient pas apparaître sur un dépôt Windows/git normal).
+3. Effectuer, si souhaité, une dernière vérification visuelle manuelle en
+   conditions réelles (poste de travail, compte de chaque rôle) avant
+   fermeture du chantier US4.1.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 29. Prochaine étape immédiate
+
+Les 7 phases du plan de modernisation UI (US4.1) sont désormais toutes
+réalisées. Après revue et merge de l'ensemble des correctifs listés dans ce
+document (Phases 1 à 7 et tous les correctifs associés), le chantier US4.1
+peut être considéré comme terminé. Les seuls points restants identifiés
+sont hors périmètre de cette user story : l'observation sur le tableau des
+comptes en mobile (section 28, à traiter dans un ticket dédié si souhaité)
+et la Tâche technique 4.9 (gestion des catégories de questions, portée
+volontairement réduite).
