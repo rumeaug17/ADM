@@ -5,6 +5,14 @@ réponse à l'US4.1 du backlog (« Améliorer le design / Moderniser
 l'affichage », Epic 4). Aucun code n'a été modifié à ce stade : ce document
 sert de base à une future session d'implémentation, phase par phase.
 
+> **Statut (2026-09-16) : US4.1 terminée.** Les 7 phases décrites ci-dessous
+> ont toutes été réalisées et validées (Phase 7, section 28 : revue des
+> trois rôles sur desktop et mobile, aucune régression). US4.1 a été retirée
+> de `backlog.md`, conformément à la convention de ce fichier (les tâches
+> réalisées y sont retirées, pas seulement cochées) ; ce document reste
+> l'historique complet du chantier (cadrage, 7 phases, correctifs) et n'est
+> donc plus mis à jour au fil de nouvelles phases.
+
 ## 1. Objectif et périmètre
 
 Moderniser l'apparence de l'application (catalogue d'applications, fiche
@@ -1632,13 +1640,26 @@ et `backlog.md` sont mis à jour. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 29. Prochaine étape immédiate
+## 29. Clôture du chantier (2026-09-16)
 
 Les 7 phases du plan de modernisation UI (US4.1) sont désormais toutes
-réalisées. Après revue et merge de l'ensemble des correctifs listés dans ce
-document (Phases 1 à 7 et tous les correctifs associés), le chantier US4.1
-peut être considéré comme terminé. Les seuls points restants identifiés
-sont hors périmètre de cette user story : l'observation sur le tableau des
-comptes en mobile (section 28, à traiter dans un ticket dédié si souhaité)
-et la Tâche technique 4.9 (gestion des catégories de questions, portée
-volontairement réduite).
+réalisées et validées (Phase 7). US4.1 est en conséquence retirée de
+`backlog.md`, conformément à la convention du fichier (« Les tâches
+réalisées sont retirées du fichier. ») — ce document en reste l'historique
+complet et détaillé (cadrage, 7 phases, tous les correctifs livrés en cours
+de route) et n'a plus vocation à être complété par de nouvelles phases.
+
+Les fichiers déposés dans le dossier `Claude outputs` du poste (`C:\usr\ADM
+\Claude outputs`, captures d'écran de maquettes et de revue produites au fil
+des différentes phases de cette session) sont devenus obsolètes maintenant
+que le chantier est clos et doivent être supprimés par l'utilisateur ; cette
+session cloud n'a pas les droits nécessaires pour les supprimer elle-même
+(liaison au poste en lecture/écriture de fichiers uniquement, sans exécution
+de commandes ni suppression sur ce poste).
+
+Les seuls points restants identifiés lors de ce chantier sont hors périmètre
+de cette user story et restent au backlog séparément : l'observation sur le
+tableau des comptes en mobile (section 28, à traiter dans un ticket dédié si
+souhaité — jamais formalisée en tâche technique numérotée) et la Tâche
+technique 4.9 (gestion des catégories de questions, portée volontairement
+réduite, toujours au backlog sous Epic 4).
