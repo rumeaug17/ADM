@@ -123,13 +123,23 @@
     </div>
 
 	<!-- Modal pour afficher le graphique radar d'une application -->
-<!-- Phase 6 (US4.1) : le PNG (/radar/<name>, inchangé) reste le premier
-     affiché à l'ouverture — il ne dépend que d'une navigation image
-     classique, pas d'un fetch() — puis cède la place au graphique
-     interactif Chart.js dès que ses données JSON arrivent
-     (/radar/<name>/data). Si ce second appel échoue pour une raison
-     quelconque (réseau, etc.), le PNG déjà affiché reste en place : aucune
-     régression par rapport au comportement d'avant cette phase. -->
+<!-- Correctif (US4.1, signalé le 2026-09-16 par Guillaume Rumeau, vidéo à
+     l'appui) : contrairement à resume.html et au radar moyenne de cette
+     page (de vraies pages, utilisables sans JavaScript), cette modale ne
+     s'ouvre que via le composant Modal de Bootstrap, qui exige déjà
+     JavaScript pour fonctionner — y poser le PNG immédiatement (avant même
+     de savoir si le graphique interactif va réussir à se charger), comme le
+     faisait la Phase 6, ne sert donc aucun usage réel sans JavaScript. Ce
+     n'était qu'un habillage "PNG puis remplacement" qui, une fois le fetch
+     résolu (quelques centaines de ms sur un réseau normal), faisait
+     apparaître un second radar par-dessus le premier — visuellement un
+     "doublon" plutôt qu'un simple chargement, confirmé image par image sur
+     la vidéo fournie. La modale n'affiche donc plus qu'un indicateur de
+     chargement neutre le temps de la requête JSON (/radar/<name>/data),
+     puis directement la représentation finale : le graphique interactif en
+     cas de succès, ou le PNG (/radar/<name>, inchangé) seulement si ce
+     dernier échoue pour une raison quelconque (réseau, Chart.js non
+     chargé...) — un seul radar visible à la fois, jamais deux. -->
 <div class="modal fade" id="radarModal" tabindex="-1" aria-labelledby="radarModalLabel" aria-hidden="true">
   <!-- Correctif (US4.1, post-Phase 6) : modal de taille par défaut (~500px)
        plutôt que "modal-lg" (~800px) — le radar lui-même est plafonné par
@@ -153,7 +163,15 @@
                   aria-label="Graphique radar de l'application sélectionnée"
                   width="400" height="400"></canvas>
         </div>
-        <img id="radarChartImg" src="" alt="Radar Chart" class="img-fluid chart-surface">
+        <img id="radarChartImg" src="" alt="Radar Chart" class="d-none img-fluid chart-surface">
+        <!-- Correctif (US4.1, signalé le 2026-09-16) : seul élément visible
+             pendant la requête /radar/<name>/data, à la place du PNG posé
+             immédiatement auparavant (voir commentaire au-dessus du modal). -->
+        <div id="radarChartLoading" class="chart-surface d-inline-block">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement du radar…</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -179,14 +197,32 @@
   var radarModal = document.getElementById('radarModal');
   var radarModalChart = null;
   var pendingRadarData = null;
+  var pendingRadarAppName = null;
 
-  function resetRadarModalDisplay() {
+  // Correctif (US4.1, signalé le 2026-09-16) : état de départ — indicateur
+  // de chargement seul, canvas et PNG masqués tous les deux — utilisé à
+  // l'ouverture de la modale (avant de savoir laquelle des deux
+  // représentations sera finalement affichée) et à sa fermeture.
+  function showRadarModalLoading() {
     if (radarModalChart) {
       radarModalChart.destroy();
       radarModalChart = null;
     }
     document.getElementById('radarChartCanvas').classList.add('d-none');
-    document.getElementById('radarChartImg').classList.remove('d-none');
+    document.getElementById('radarChartImg').classList.add('d-none');
+    document.getElementById('radarChartLoading').classList.remove('d-none');
+  }
+
+  // Repli PNG : appelé uniquement si le graphique interactif ne peut pas
+  // être affiché (requête /data en échec, réponse invalide, ou Chart.js
+  // indisponible), jamais de façon systématique — c'est ce qui élimine le
+  // "doublon" (PNG posé puis remplacé) signalé par Guillaume Rumeau.
+  function showRadarModalPngFallback(appName) {
+    document.getElementById('radarChartLoading').classList.add('d-none');
+    document.getElementById('radarChartCanvas').classList.add('d-none');
+    var image = document.getElementById('radarChartImg');
+    image.src = "/radar/" + encodeURIComponent(appName);
+    image.classList.remove('d-none');
   }
 
   radarModal.addEventListener('show.bs.modal', function (event) {
@@ -195,14 +231,10 @@
     var appName = button.getAttribute('data-appname');
     // Mettre à jour le titre du modal
     document.getElementById('modalAppName').textContent = appName;
-    resetRadarModalDisplay();
-    // Repli PNG (comportement historique, avant Phase 6) : posé
-    // immédiatement, remplacé par le graphique interactif une fois le modal
-    // réellement affiché (voir "shown.bs.modal" ci-dessous).
-    document.getElementById('radarChartImg').src = "/radar/" + encodeURIComponent(appName);
-    // Correctif (US4.1, post-Phase 6) : la requête démarre dès maintenant
-    // (pas besoin d'attendre pour ça), mais son résultat n'est exploité
-    // qu'après "shown.bs.modal".
+    pendingRadarAppName = appName;
+    showRadarModalLoading();
+    // La requête démarre dès maintenant (pas besoin d'attendre pour ça),
+    // mais son résultat n'est exploité qu'après "shown.bs.modal".
     pendingRadarData = fetch("/radar/" + encodeURIComponent(appName) + "/data")
       .then(function (response) {
         if (!response.ok) {
@@ -224,24 +256,26 @@
     if (!pendingRadarData) {
       return;
     }
+    var appName = pendingRadarAppName;
     pendingRadarData
       .then(function (radarData) {
         var canvas = document.getElementById('radarChartCanvas');
+        document.getElementById('radarChartLoading').classList.add('d-none');
         canvas.classList.remove('d-none');
-        document.getElementById('radarChartImg').classList.add('d-none');
         radarModalChart = admRenderRadarChart(canvas, radarData);
         if (!radarModalChart) {
-          resetRadarModalDisplay();
+          showRadarModalPngFallback(appName);
         }
       })
       .catch(function () {
-        // Le PNG déjà posé ci-dessus reste affiché : aucune régression.
+        showRadarModalPngFallback(appName);
       });
   });
 
   radarModal.addEventListener('hidden.bs.modal', function () {
     pendingRadarData = null;
-    resetRadarModalDisplay();
+    pendingRadarAppName = null;
+    showRadarModalLoading();
   });
 </script>
 {% endblock %}

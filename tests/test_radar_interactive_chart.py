@@ -458,20 +458,43 @@ def test_synthese_html_keeps_the_png_image_and_adds_an_interactive_canvas() -> N
 
 
 def test_synthese_html_modal_fetches_json_and_falls_back_to_the_png_on_failure() -> None:
-    """La modale continue de poser le PNG (``/radar/<name>``, comportement
-    historique) avant même de tenter le graphique interactif : en cas
-    d'échec du ``fetch`` JSON, le PNG déjà affiché reste en place, sans
-    canvas vide ni radar manquant."""
+    """En cas d'échec du ``fetch`` JSON (réseau, Chart.js indisponible...),
+    la modale doit basculer sur le PNG (``/radar/<name>``) plutôt que de
+    laisser un canvas vide ou un indicateur de chargement bloqué."""
     synthese_html = (TEMPLATES / "synthese.html").read_text(encoding="utf-8")
 
     assert 'id="radarChartCanvas" class="d-none chart-surface"' in synthese_html
-    assert (
-        "document.getElementById('radarChartImg').src = \"/radar/\" + encodeURIComponent(appName);"
-        in (synthese_html)
-    )
+    assert 'image.src = "/radar/" + encodeURIComponent(appName);' in synthese_html
     assert '"/radar/" + encodeURIComponent(appName) + "/data"' in synthese_html
     assert "pendingRadarData = null;" in synthese_html
-    assert "resetRadarModalDisplay();" in synthese_html
+    assert "showRadarModalPngFallback(appName)" in synthese_html
+
+
+def test_synthese_html_modal_never_shows_the_png_immediately_on_open() -> None:
+    """Correctif (signalé le 2026-09-16 par Guillaume Rumeau, vidéo à
+    l'appui) : contrairement à ce que faisait la Phase 6, la modale ne pose
+    plus le PNG dès l'ouverture puis ne le remplace par le graphique
+    interactif une fois les données arrivées — cet enchaînement, confirmé
+    image par image sur la vidéo fournie, se voyait comme un second radar
+    apparaissant par-dessus le premier. Seul un indicateur de chargement
+    neutre doit s'afficher pendant la requête ; le PNG n'apparaît que dans
+    le repli (``showRadarModalPngFallback``, voir le test précédent)."""
+    synthese_html = (TEMPLATES / "synthese.html").read_text(encoding="utf-8")
+
+    show_start = synthese_html.index("addEventListener('show.bs.modal'")
+    shown_start = synthese_html.index("addEventListener('shown.bs.modal'")
+    show_handler_body = synthese_html[show_start:shown_start]
+
+    assert "showRadarModalPngFallback(" not in show_handler_body
+    assert 'radarChartImg").src' not in show_handler_body
+    assert "getElementById('radarChartImg').src" not in show_handler_body
+    # L'image du PNG est masquée par défaut dans le balisage : elle ne doit
+    # être révélée que par showRadarModalPngFallback, jamais d'emblée.
+    assert (
+        '<img id="radarChartImg" src="" alt="Radar Chart" class="d-none img-fluid chart-surface">'
+        in synthese_html
+    )
+    assert 'id="radarChartLoading"' in synthese_html
 
 
 def test_synthese_html_modal_renders_the_chart_only_after_shown_not_show() -> None:

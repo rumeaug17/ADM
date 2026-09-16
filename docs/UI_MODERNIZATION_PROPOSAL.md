@@ -1427,11 +1427,101 @@ commit créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 27. Prochaine étape immédiate
+## 27. Correctif — doublon d'affichage du radar dans la modale de la synthèse
+
+Signalé le 2026-09-16 par Guillaume Rumeau, avec deux niveaux de vérification
+successifs. D'abord un doute (« il y a toujours un double affichage du
+radar sur la modale ») : une instance temporaire de l'application a été
+montée dans l'environnement cloud isolé et pilotée par un vrai navigateur
+(Playwright/Chromium), avec inspection de l'état calculé (`display`,
+dimensions) du PNG et du canvas à chaque dizaine de millisecondes après un
+clic sur « Radar », y compris en rouvrant rapidement la modale pour une
+autre application sur un réseau ralenti — aucune coexistence simultanée
+trouvée : le code, tel qu'issu du correctif de la section 22, alternait
+strictement entre les deux, jamais les deux affichés en même temps. Ce
+constat a été communiqué à l'utilisateur avec l'hypothèse la plus probable
+(gabarits ou fichiers statiques non rechargés par le serveur applicatif).
+
+Après redémarrage du serveur et vidage du cache navigateur, confirmation que
+le problème persistait, avec une vidéo déposée dans le dossier « Claude
+outputs » du dépôt. L'analyse image par image de cette vidéo (`ffmpeg`, 30
+images/seconde autour du clic) a permis de RECTIFIER le diagnostic : il n'y
+a jamais eu de coexistence simultanée des deux représentations (le code
+alternait bien strictement entre les deux, comme confirmé plus haut), mais
+un remplacement visible et net d'un radar par un autre, quelques centaines
+de millisecondes après l'ouverture — le PNG matplotlib (sans marqueurs de
+points, graduations tous les 0,5) apparaissant d'abord, puis cédant
+instantanément la place au graphique Chart.js (marqueurs de points ronds,
+graduations entières). Visuellement, ce remplacement se lit comme
+l'apparition d'un second radar par-dessus le premier, d'où le terme
+« doublon » employé par l'utilisateur — une lecture légitime du
+comportement, même sans bug de coexistence au sens strict.
+
+**Cause de fond.** Ce PNG-puis-remplacement était le comportement voulu
+depuis la Phase 6, pensé comme une amélioration progressive pour les pages
+qui fonctionnent sans JavaScript (`resume.html`, radar moyenne de
+`synthese.html`) : le PNG y sert de repli réel, utile sans JavaScript. Mais
+la modale radar de la synthèse, elle, ne s'ouvre que via le composant Modal
+de Bootstrap, qui exige déjà JavaScript pour fonctionner — y poser le PNG
+avant même de savoir si le graphique interactif va réussir à se charger ne
+sert donc aucun usage réel sans JavaScript : ce n'était qu'un habillage sans
+justification fonctionnelle, qui produisait ce remplacement visible.
+
+**Correctif.** La modale n'affiche plus le PNG dès l'ouverture. Elle affiche
+seulement un indicateur de chargement neutre (`spinner-border` Bootstrap,
+dans la couleur de marque) le temps de la requête JSON
+(`/radar/<name>/data`), puis directement la représentation finale : le
+graphique interactif en cas de succès, ou le PNG (`/radar/<name>`, route
+inchangée) seulement si ce dernier échoue pour une raison quelconque
+(réseau, réponse invalide, Chart.js indisponible) — un seul radar visible à
+la fois, sans jamais passer par un premier radar provisoire. Le repli PNG
+reste entièrement fonctionnel, simplement affiché seulement quand il est
+réellement nécessaire plutôt que systématiquement en amont.
+
+**Vérifications effectuées.** Après correction, la même instance de test a
+été revérifiée avec Playwright : l'indicateur de chargement s'affiche seul
+pendant la requête, puis le graphique interactif s'affiche seul, sans jamais
+passer par le PNG (captures et relevés d'état à l'appui) ; un test
+supplémentaire a simulé l'échec de la requête JSON (route interceptée et
+annulée) pour confirmer que le repli PNG s'affiche alors correctement, seul
+également. Côté suite automatisée (même environnement cloud isolé, dépôt
+complet copié) : `ruff check`, `ruff format --check` et `mypy --strict`
+(`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 317 tests passés
+(316 + 1 nouveau dans `tests/test_radar_interactive_chart.py`, qui vérifie
+que le gestionnaire `show.bs.modal` ne pose plus le PNG et que celui-ci
+reste masqué par défaut dans le balisage), couverture 87,65 % (seuil 86 %
+maintenu), résultat conforme aux correctifs précédents — aucune régression
+introduite. Les 7 échecs restants (`test_container_entrypoint.py`,
+`test_demo_scripts.py`) restent le même problème de fins de ligne CRLF
+préexistant, sans rapport avec ce correctif.
+
+**Ce qui reste à faire côté utilisateur.** Les 2 fichiers modifiés
+(`templates/synthese.html`, `tests/test_radar_interactive_chart.py`) ont été
+déposés directement dans `C:\usr\ADM` via la liaison au poste, sans branche
+ni commit créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `fix/us4-1-radar-modale-doublon`) et
+   vérifier le statut `git` pour confirmer la liste des fichiers modifiés
+   (les 2 ci-dessus, aucun autre).
+2. Relire le diff.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. **Redémarrer le serveur applicatif** (les gabarits Jinja2 restent en
+   mémoire tant que le processus tourne, sans rechargement automatique hors
+   mode `--debug`) et vider le cache du navigateur avant de tester.
+5. Ouvrir la modale « Radar » d'une application depuis la synthèse et
+   vérifier à l'œil qu'un seul radar s'affiche, sans remplacement visible
+   (un bref indicateur de chargement peut apparaître selon la vitesse du
+   réseau, ce qui est attendu).
+6. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 28. Prochaine étape immédiate
 
 Après revue et merge de la Phase 5, du correctif d'homogénéisation des
 messages, de la Phase 6, du correctif d'affichage des radars, du correctif
-de couleur, du correctif d'animation et des deux correctifs d'espacement/
-taille, ouvrir la Phase 7 (validation et non-régression en continu, déjà
-appliquée à chaque phase mais à formaliser en fin de projet : revue manuelle
-de chaque rôle sur desktop et mobile, avec captures d'écran avant/après).
+de couleur, du correctif d'animation, des deux correctifs d'espacement/
+taille et de ce correctif de doublon d'affichage, ouvrir la Phase 7
+(validation et non-régression en continu, déjà appliquée à chaque phase mais
+à formaliser en fin de projet : revue manuelle de chaque rôle sur desktop et
+mobile, avec captures d'écran avant/après).

@@ -230,6 +230,20 @@ Les tâches réalisées sont retirées du fichier.
   le PNG. 316 tests passés (315 + 1 nouveau, qui mesure le PNG produit avec
   les vraies catégories et garde le plafond au moins aussi large), couverture
   87,65 % maintenue (détail en section 26 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Correctif du 2026-09-16 (signalé par
+  Guillaume Rumeau, confirmé par une vidéo déposée dans « Claude outputs » et
+  analysée image par image) : la modale « Radar » de la synthèse affichait
+  le PNG dès l'ouverture puis le remplaçait, quelques centaines de
+  millisecondes plus tard, par le graphique interactif — un remplacement net
+  perçu comme un doublon. Ce PNG-puis-remplacement, hérité de la Phase 6, ne
+  servait aucun usage sans JavaScript dans cette modale précise (elle
+  n'existe que via le Modal Bootstrap, déjà dépendant de JavaScript).
+  Corrigé en n'affichant plus qu'un indicateur de chargement neutre pendant
+  la requête JSON, puis directement la représentation finale (graphique
+  interactif, ou PNG seulement en cas d'échec) — un seul radar visible à la
+  fois, jamais un premier remplacé par un second. Vérifié avec un navigateur
+  piloté (Playwright), succès et échec simulés. 317 tests passés (316 + 1
+  nouveau), couverture 87,65 % maintenue (détail en section 27 de
   `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de développement :
   Phase 7 (validation et non-régression, à formaliser en fin de projet).
 
