@@ -205,9 +205,20 @@ Les tâches réalisées sont retirées du fichier.
   l'application (résumé, moyenne de la synthèse, modale « Radar »), qui
   s'affichent désormais instantanément dans leur état final. 313 tests
   passés (312 + 1 nouveau), couverture 87,65 % maintenue (détail en
-  section 24 de `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de
-  développement : Phase 7 (validation et non-régression, à formaliser en fin
-  de projet).
+  section 24 de `docs/UI_MODERNIZATION_PROPOSAL.md`). Correctif du
+  2026-09-16 (signalé par Guillaume Rumeau) : le blanc autour du radar de
+  chaque application (page résumé, modale de la synthèse) était plus
+  important qu'autour du radar moyenne de la synthèse — le radar est
+  plafonné à 480px sur les trois emplacements, mais ses conteneurs (carte
+  pleine largeur sur le résumé, modal `modal-lg` ~800px sur la synthèse)
+  étaient bien plus larges que la carte `col-md-6` du radar moyenne. Corrigé
+  en resserrant ces conteneurs à une largeur proche de celle du radar
+  (`resume.html` : carte replacée dans une colonne `col-md-6` ; `synthese.
+  html` : modale radar passée à la taille par défaut de Bootstrap, ~500px),
+  sans toucher au radar lui-même. 315 tests passés (313 + 2 nouveaux),
+  couverture 87,65 % maintenue (détail en section 25 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de développement :
+  Phase 7 (validation et non-régression, à formaliser en fin de projet).
 
 ### Tâches Techniques
 - **Tâche 4.9** : *Gestion des catégories de questions*  

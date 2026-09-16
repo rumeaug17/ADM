@@ -1295,11 +1295,78 @@ ni commit créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 25. Prochaine étape immédiate
+## 25. Correctif — réduction du blanc autour des radars par application
+
+Signalé le 2026-09-16 par Guillaume Rumeau : sur les radars de chaque
+application (page résumé, et modale « Radar » de la synthèse), « le blanc
+autour du radar est plus important que sur le radar moyenne globale » —
+demande d'aligner ce rendu sur celui du radar moyenne.
+
+**Cause.** Le radar lui-même (PNG ou graphique interactif Chart.js) est
+plafonné à 480px par `.radar-chart-wrapper` sur les trois emplacements
+(résumé, moyenne de la synthèse, modale), voir le correctif de la
+section 22. Mais le conteneur qui l'entoure diffère fortement en largeur
+selon l'emplacement :
+- le radar moyenne (`synthese.html`) est dans une carte `col-md-6`, une
+  colonne dont la largeur (~450-560px selon la taille d'écran) est déjà
+  proche des 480px du radar : peu de blanc résiduel ;
+- le radar de la page résumé (`resume.html`) était dans une carte **pleine
+  largeur** (`<div class="card mb-4">`, sans colonne), potentiellement bien
+  plus large que 480px sur un écran large : l'écart se traduisait par un
+  bandeau blanc de carte nettement plus visible autour du radar ;
+- la modale « Radar » de la synthèse (`synthese.html`) utilisait
+  `modal-lg` (~800px), pour la même raison en plus prononcé.
+
+**Correctif.** Aucun changement sur `.radar-chart-wrapper` ni sur le radar
+lui-même (déjà correctement dimensionné) : seuls les conteneurs qui
+l'entourent sont resserrés pour se rapprocher de sa largeur, comme sur la
+synthèse.
+- `resume.html` : la carte « Graphique Radar » est désormais placée dans une
+  colonne `col-md-6` centrée (`row g-4 mb-4 justify-content-center`), au
+  lieu d'une carte pleine largeur — structure identique à celle du radar
+  moyenne de la synthèse.
+- `synthese.html` : la modale radar (`#radarModal`) passe de `modal-lg` à la
+  taille par défaut de Bootstrap (~500px, sans classe de taille), déjà très
+  proche des 480px du radar.
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux phases
+précédentes, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 315
+tests passés (313 + 2 nouveaux dans `tests/test_radar_interactive_chart.py`,
+qui vérifient que la carte du radar de `resume.html` est bien dans une
+colonne `col-md-6` et que la modale radar de la synthèse n'utilise plus
+`modal-lg`/`modal-xl`), couverture 87,65 % (seuil 86 % maintenu), résultat
+conforme aux correctifs précédents — aucune régression introduite. Les 7
+échecs restants (`test_container_entrypoint.py`, `test_demo_scripts.py`)
+restent le même problème de fins de ligne CRLF préexistant, sans rapport
+avec ce correctif. Comme pour les correctifs précédents, ces tests
+vérifient le balisage servi, pas le rendu visuel lui-même : un contrôle
+manuel reste nécessaire pour confirmer que le blanc autour des trois radars
+est désormais visuellement comparable.
+
+**Ce qui reste à faire côté utilisateur.** Les 3 fichiers modifiés
+(`templates/resume.html`, `templates/synthese.html`,
+`tests/test_radar_interactive_chart.py`) ont été déposés directement dans
+`C:\usr\ADM` via la liaison au poste, sans branche ni commit créés. Reste
+donc à faire, localement :
+1. Créer une branche dédiée (ex. `fix/us4-1-radar-espacement`) et vérifier
+   le statut `git` pour confirmer la liste des fichiers modifiés (les 3
+   ci-dessus, aucun autre).
+2. Relire le diff.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur et vérifier à l'œil que le blanc
+   autour du radar de la page résumé et de la modale de la synthèse est
+   désormais comparable à celui du radar moyenne de la synthèse.
+5. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 26. Prochaine étape immédiate
 
 Après revue et merge de la Phase 5, du correctif d'homogénéisation des
 messages, de la Phase 6, du correctif d'affichage des radars, du correctif
-de couleur et de ce correctif d'animation, ouvrir la Phase 7 (validation et
-non-régression en continu, déjà appliquée à chaque phase mais à formaliser
-en fin de projet : revue manuelle de chaque rôle sur desktop et mobile, avec
-captures d'écran avant/après).
+de couleur, du correctif d'animation et de ce correctif d'espacement, ouvrir
+la Phase 7 (validation et non-régression en continu, déjà appliquée à
+chaque phase mais à formaliser en fin de projet : revue manuelle de chaque
+rôle sur desktop et mobile, avec captures d'écran avant/après).

@@ -131,7 +131,13 @@
      quelconque (réseau, etc.), le PNG déjà affiché reste en place : aucune
      régression par rapport au comportement d'avant cette phase. -->
 <div class="modal fade" id="radarModal" tabindex="-1" aria-labelledby="radarModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <!-- Correctif (US4.1, post-Phase 6) : modal de taille par défaut (~500px)
+       plutôt que "modal-lg" (~800px) — le radar lui-même est plafonné à
+       480px par .radar-chart-wrapper (voir plus bas et app.css), un modal
+       bien plus large que ça ne faisait qu'ajouter du blanc superflu autour,
+       plus visible que sur le radar moyenne de cette même page (dont la
+       carte col-md-6 est déjà proche de cette largeur). -->
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="radarModalLabel">Radar de l'application : <span id="modalAppName"></span></h5>
