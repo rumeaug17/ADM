@@ -59,6 +59,7 @@ from ADM.services import (
     build_evaluation_submission,
     category_sums,
     evaluation_to_dict,
+    radar_chart_data,
     summarize_catalogue,
     to_dicts_with_metrics,
     update_app_metrics,
@@ -733,6 +734,25 @@ def radar_chart(name: str) -> ResponseReturnValue:
         session_db.close()
 
 
+# --- Phase 6 (US4.1) : même donnée que /radar/<name>, au format JSON ---
+@route(evaluations, "/radar/<name>/data")
+@login_required
+def radar_chart_json(name: str) -> ResponseReturnValue:
+    """Alimente le graphique radar interactif (Chart.js) de la modale de la
+    synthèse : contrairement au PNG ci-dessus (mis en cache, coûteux à
+    régénérer), ces scores ne nécessitent aucun calcul matplotlib, donc
+    aucune mise en cache n'est nécessaire ici. Route additive : ``/radar/
+    <name>`` continue de renvoyer le PNG inchangé, conservé comme repli sans
+    JavaScript (voir ``_synthese_results.html``)."""
+    session_db = session_factory()()
+    try:
+        app_obj = require_app_by_name(name, session_db)
+        avg_axis_scores = calculate_axis_scores([{"responses": app_obj.responses}])
+        return jsonify(radar_chart_data(avg_axis_scores))
+    finally:
+        session_db.close()
+
+
 # --- Nouvelle route : Synthèse ---
 @route(evaluations, "/synthese")
 @login_required
@@ -802,6 +822,10 @@ def synthese() -> ResponseReturnValue:
             filter_score=filter_score,
             avg_axis_scores=avg_axis_scores,
             chart_data=chart_data,
+            # Phase 6 (US4.1) : mêmes scores que ``chart_data`` (PNG,
+            # conservé comme repli sans JavaScript), au format attendu par le
+            # graphique radar interactif Chart.js.
+            radar_chart_json=radar_chart_data(avg_axis_scores),
             global_risk=summary.global_risk,
             best_grouped=best_grouped,
         )
@@ -910,12 +934,16 @@ def resume(name: str) -> ResponseReturnValue:
             previous_category_sums = {}
 
         current_axis_scores = calculate_axis_scores([{"responses": app_item.get("responses", {})}])
-        radar_chart_data = radar_chart_cache().get_or_generate(current_axis_scores)
+        radar_chart_png = radar_chart_cache().get_or_generate(current_axis_scores)
 
         return render_template(
             "resume.html",
             app=app_item,
-            radar_chart=radar_chart_data,
+            radar_chart=radar_chart_png,
+            # Phase 6 (US4.1) : mêmes scores que ``radar_chart`` (PNG,
+            # conservé comme repli sans JavaScript), au format attendu par le
+            # graphique radar interactif Chart.js.
+            radar_chart_json=radar_chart_data(current_axis_scores),
             category_sums=current_category_sums,
             previous_category_sums=previous_category_sums,
             questions=questions(),

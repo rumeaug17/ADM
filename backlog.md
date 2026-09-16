@@ -155,8 +155,24 @@ Les tâches réalisées sont retirées du fichier.
   auparavant dupliquée dans l'écouteur `htmx:afterRequest` (voir section 20
   de `docs/UI_MODERNIZATION_PROPOSAL.md`). 292 tests passés (285 + 7
   nouveaux dans `tests/test_flash_messages_as_toasts.py`), couverture
-  87,55 % maintenue, aucune route Flask modifiée. Prochaine étape de
-  développement : Phase 6 optionnelle (graphiques interactifs) ou, à défaut,
+  87,55 % maintenue, aucune route Flask modifiée. Phase 6 optionnelle
+  (graphiques interactifs) réalisée le 2026-09-16 : les radars matplotlib
+  (résumé d'application, moyenne de la synthèse, radar d'une application
+  choisie depuis la modale de la synthèse) sont désormais aussi affichés en
+  graphique interactif Chart.js 4.5.1 (vendorisé, pas de CDN ; survol d'un
+  axe pour lire sa valeur exacte), sans jamais supprimer le PNG existant :
+  chaque page l'affiche par défaut et ne bascule sur le graphique interactif
+  qu'une fois celui-ci rendu avec succès, avec retour automatique au PNG en
+  cas d'échec (Chart.js non chargé, erreur réseau sur la modale) — jamais de
+  régression possible par rapport au comportement d'avant cette phase.
+  `ADM.services` gagne `radar_chart_data` (mêmes catégories/scores/échelle
+  que le PNG, via un calcul interne désormais partagé,
+  `_radar_chart_bounds`) et `ADM.routes` une route sœur JSON,
+  `/radar/<name>/data`, à côté de `/radar/<name>` (PNG, strictement
+  inchangée). 304 tests passés (292 + 12 nouveaux dans
+  `tests/test_radar_interactive_chart.py`), couverture 87,65 % maintenue
+  (détail et écarts volontaires en section 21 de
+  `docs/UI_MODERNIZATION_PROPOSAL.md`). Prochaine étape de développement :
   Phase 7 (validation et non-régression, à formaliser en fin de projet).
 
 ### Tâches Techniques

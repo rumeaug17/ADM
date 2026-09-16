@@ -305,10 +305,23 @@ def axis_scores(
     return {key: round(sum(items) / len(items), 2) if items else 0 for key, items in values.items()}
 
 
+def _radar_chart_bounds(scores_by_axis: Mapping[str, float]) -> tuple[list[str], list[float], int]:
+    """Calcule les catégories, les scores et la borne maximale d'échelle
+    (arrondie au supérieur, au moins 1) communes aux deux représentations du
+    radar chart : le PNG matplotlib (``generate_radar_chart``, conservé
+    comme repli sans JavaScript et pour l'impression/l'export) et les
+    données JSON du graphique interactif Chart.js (``radar_chart_data``,
+    Phase 6). Factoriser ce calcul garantit que les deux affichent
+    rigoureusement la même échelle, sans jamais pouvoir diverger."""
+    categories = list(scores_by_axis)
+    scores = list(scores_by_axis.values())
+    maximum = max(1, math.ceil(max(scores))) if scores else 3
+    return categories, scores, maximum
+
+
 def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     """Produit un graphique radar PNG encodé en base64."""
-    categories, scores = list(scores_by_axis), list(scores_by_axis.values())
-    maximum = max(1, math.ceil(max(scores))) if scores else 3
+    categories, scores, maximum = _radar_chart_bounds(scores_by_axis)
     scores += scores[:1]
     angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     angles += angles[:1]
@@ -325,6 +338,20 @@ def generate_radar_chart(scores_by_axis: dict[str, float]) -> str:
     buffer = io.BytesIO()
     figure.savefig(buffer, format="png", bbox_inches="tight")
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
+def radar_chart_data(scores_by_axis: Mapping[str, float]) -> JsonData:
+    """Produit la même information que ``generate_radar_chart``, au format
+    attendu par le graphique radar interactif Chart.js côté client (Phase 6,
+    US4.1) : mêmes catégories (``labels``), mêmes scores (``scores``) et même
+    borne maximale d'échelle (``max``, voir ``_radar_chart_bounds``) que le
+    PNG, pour que les deux représentations restent visuellement cohérentes.
+    Exposée à la fois via une route JSON dédiée (comparaison d'une
+    application depuis la synthèse) et directement intégrée aux pages qui
+    calculent déjà ces scores pour leur propre rendu (résumé d'application,
+    radar moyen de la synthèse), sans aller-retour réseau supplémentaire."""
+    categories, scores, maximum = _radar_chart_bounds(scores_by_axis)
+    return {"labels": categories, "scores": scores, "max": maximum}
 
 
 class RadarChartCache:

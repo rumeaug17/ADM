@@ -202,14 +202,23 @@
   </div>
   
   <!-- Graphique Radar -->
+  <!-- Phase 6 (US4.1) : le radar PNG (matplotlib) reste affiché par défaut
+       (repli sans JavaScript, ou si Chart.js échoue à se charger) ; le
+       script de extra_scripts le remplace par un graphique interactif
+       Chart.js dès que celui-ci est prêt, sans changer les scores affichés
+       (mêmes données, voir ADM.services.radar_chart_data). -->
   <div class="card mb-4">
     <div class="card-header text-center">
       <i class="bi bi-graph-up" aria-hidden="true"></i> Graphique Radar
     </div>
-    <div class="card-body text-center">
+    <div class="card-body text-center" id="resumeRadarCard">
+      <canvas id="resumeRadarChart" class="d-none chart-surface" role="img"
+              aria-label="Graphique radar des scores par dimension de l'évaluation courante"
+              width="400" height="400"></canvas>
       <img src="data:image/png;base64,{{ radar_chart }}" alt="Radar Chart" class="img-fluid chart-surface">
     </div>
   </div>
+  <script type="application/json" id="resumeRadarData">{{ radar_chart_json|tojson }}</script>
 
 <!-- Modal pour l'évaluation précédente en lecture seule -->
 <div class="modal fade" id="previousEvalModal" tabindex="-1" aria-labelledby="previousEvalModalLabel" aria-hidden="true">
@@ -235,4 +244,17 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Phase 6 (US4.1) : Chart.js vendorisé (pas de CDN, comme
+     Bootstrap/htmx/Alpine.js), suivi de la logique de rendu partagée avec
+     synthese.html (voir static/radar_charts.js). -->
+<script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='radar_charts.js') }}"></script>
+<script>
+  admShowRadarChart('resumeRadarChart', '#resumeRadarCard img[alt="Radar Chart"]', function () {
+    return admRenderRadarChartFromElement('resumeRadarChart', 'resumeRadarData');
+  });
+</script>
 {% endblock %}

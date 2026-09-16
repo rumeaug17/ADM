@@ -64,8 +64,15 @@
 <!-- Affichage côte à côte du graphique radar et du tableau des meilleurs scores par catégorie -->
 <div class="row my-4">
   <!-- Colonne du graphique radar -->
+  <!-- Phase 6 (US4.1) : PNG matplotlib affiché par défaut (repli sans
+       JavaScript, ou si Chart.js échoue à se charger), remplacé par un
+       graphique interactif Chart.js dès que possible (mêmes scores, voir
+       static/radar_charts.js et le bloc extra_scripts en bas de page). -->
   <div class="col-md-6 text-center">
-    <div class="card p-2 p-md-3 h-100">
+    <div class="card p-2 p-md-3 h-100" id="syntheseRadarCard">
+      <canvas id="syntheseRadarChart" class="d-none chart-surface" role="img"
+              aria-label="Graphique radar des scores moyens par dimension, toutes applications confondues"
+              width="400" height="400"></canvas>
       <img src="data:image/png;base64,{{ chart_data }}" alt="Graphique en étoile des notes moyennes" class="img-fluid chart-surface">
     </div>
   </div>
@@ -111,6 +118,13 @@
     </div>
 
 	<!-- Modal pour afficher le graphique radar d'une application -->
+<!-- Phase 6 (US4.1) : le PNG (/radar/<name>, inchangé) reste le premier
+     affiché à l'ouverture — il ne dépend que d'une navigation image
+     classique, pas d'un fetch() — puis cède la place au graphique
+     interactif Chart.js dès que ses données JSON arrivent
+     (/radar/<name>/data). Si ce second appel échoue pour une raison
+     quelconque (réseau, etc.), le PNG déjà affiché reste en place : aucune
+     régression par rapport au comportement d'avant cette phase. -->
 <div class="modal fade" id="radarModal" tabindex="-1" aria-labelledby="radarModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
@@ -119,27 +133,76 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body text-center">
+        <canvas id="radarChartCanvas" class="d-none chart-surface" role="img"
+                aria-label="Graphique radar de l'application sélectionnée"
+                width="400" height="400"></canvas>
         <img id="radarChartImg" src="" alt="Radar Chart" class="img-fluid chart-surface">
       </div>
     </div>
   </div>
 </div>
 
-	<!-- Inclusion des scripts Bootstrap -->
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Phase 6 (US4.1) : Chart.js vendorisé (pas de CDN, comme
+     Bootstrap/htmx/Alpine.js), suivi de la logique de rendu partagée avec
+     resume.html (voir static/radar_charts.js). -->
+<script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='radar_charts.js') }}"></script>
+<script>
+  admShowRadarChart('syntheseRadarChart', '#syntheseRadarCard img[alt="Graphique en étoile des notes moyennes"]', function () {
+    return admRenderRadarChartFromElement('syntheseRadarChart', 'syntheseRadarData');
+  });
+</script>
+<script type="application/json" id="syntheseRadarData">{{ radar_chart_json|tojson }}</script>
 <script>
   // Lorsque le modal de radar est sur le point d'être affiché,
   // mettre à jour son contenu en fonction de l'application sélectionnée.
   var radarModal = document.getElementById('radarModal');
-  radarModal.addEventListener('show.bs.modal', function(event) {
+  var radarModalChart = null;
+
+  function resetRadarModalDisplay() {
+    if (radarModalChart) {
+      radarModalChart.destroy();
+      radarModalChart = null;
+    }
+    document.getElementById('radarChartCanvas').classList.add('d-none');
+    document.getElementById('radarChartImg').classList.remove('d-none');
+  }
+
+  radarModal.addEventListener('show.bs.modal', function (event) {
     // Bouton qui a déclenché l'ouverture du modal
     var button = event.relatedTarget;
     var appName = button.getAttribute('data-appname');
     // Mettre à jour le titre du modal
     document.getElementById('modalAppName').textContent = appName;
-    // Définir la source de l'image avec l'endpoint qui génère le graphique radar pour l'application
-    // Par exemple, si vous avez créé une route /radar/<app_name> qui renvoie l'image en PNG.
+    resetRadarModalDisplay();
+    // Repli PNG (comportement historique, avant Phase 6) : posé
+    // immédiatement, remplacé par le graphique interactif dès que ses
+    // données JSON arrivent.
     document.getElementById('radarChartImg').src = "/radar/" + encodeURIComponent(appName);
+    fetch("/radar/" + encodeURIComponent(appName) + "/data")
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("radar data request failed");
+        }
+        return response.json();
+      })
+      .then(function (radarData) {
+        var canvas = document.getElementById('radarChartCanvas');
+        canvas.classList.remove('d-none');
+        document.getElementById('radarChartImg').classList.add('d-none');
+        radarModalChart = admRenderRadarChart(canvas, radarData);
+        if (!radarModalChart) {
+          resetRadarModalDisplay();
+        }
+      })
+      .catch(function () {
+        // Le PNG déjà posé ci-dessus reste affiché : aucune régression.
+      });
   });
-</script>
 
-{% endblock %}	
+  radarModal.addEventListener('hidden.bs.modal', resetRadarModalDisplay);
+</script>
+{% endblock %}

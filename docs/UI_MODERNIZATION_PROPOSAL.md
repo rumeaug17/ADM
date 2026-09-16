@@ -961,15 +961,129 @@ poste, sans branche ni commit créés. Reste donc à faire, localement :
 
 `backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
 
-## 21. Prochaine étape immédiate
+## 21. Suivi — Phase 6 réalisée (optionnelle)
 
-Après revue et merge de la Phase 5 et de ce correctif, ouvrir la Phase 6
-optionnelle (graphiques interactifs : remplacer les images radar statiques
-par un graphique interactif Chart.js, vendorisé, sans CDN, affichant les
-mêmes données — touche `ADM.services` et les routes concernées pour exposer
-les scores en JSON en plus du PNG actuel, à arbitrer séparément des phases 1
-à 5 puisqu'elle est plus proche du fonctionnel que du seul habillage) ou, si
-cette phase optionnelle n'est pas retenue, la Phase 7 (validation et
+Implémentée le 2026-09-16, depuis la même session cloud liée au poste de
+Guillaume Rumeau (toujours pas d'accès `git`/shell sur ce poste depuis cette
+session : voir « Ce qui reste à faire côté utilisateur » ci-dessous). Cette
+phase optionnelle (section 6) a été retenue par Guillaume Rumeau plutôt que
+la Phase 7.
+
+**Ce qui a été fait.** Chart.js 4.5.1 est vendorisé (`static/vendor/chartjs/
+chart.umd.min.js`, build UMD complet, auto-enregistré — pas de CDN, dans le
+même esprit que Bootstrap/htmx/Alpine.js) : les radars matplotlib (résumé
+d'une application, moyenne de la synthèse, radar d'une application choisie
+depuis la modale de la synthèse) sont désormais aussi affichés sous forme de
+graphique interactif (survol d'un axe pour lire sa valeur exacte), sans
+supprimer le PNG existant. Conformément au plan initial (section 6),
+`ADM.services` gagne une fonction `radar_chart_data`, qui produit exactement
+les mêmes catégories/scores/échelle que `generate_radar_chart` (les deux
+s'appuient désormais sur un même calcul interne, `_radar_chart_bounds`, pour
+ne jamais pouvoir diverger), au format attendu par Chart.js
+(`{labels, scores, max}`) plutôt qu'en PNG. `ADM.routes` gagne une route
+`/radar/<name>/data`, sœur JSON de `/radar/<name>` (PNG, strictement
+inchangée), qui alimente la modale de la synthèse ; `resume()` et
+`synthese()` transmettent en plus cette même donnée à leur template
+(`radar_chart_json`), puisqu'ils calculent déjà les scores d'axes pour leur
+propre rendu — sans aller-retour réseau supplémentaire. Une nouvelle fonction
+JavaScript partagée (`static/radar_charts.js` : `admRadarChartConfig`,
+`admRenderRadarChart`, `admRenderRadarChartFromElement`,
+`admShowRadarChart`) construit et affiche le graphique, avec la couleur de
+marque validée en Phase 0 (`#0e6b5c`).
+
+**Le PNG n'est jamais supprimé, conformément au plan** (« exposer les scores
+en JSON... en plus du PNG actuel ») : `resume.html` et `synthese.html`
+affichent le PNG par défaut et le remplacent par le canvas Chart.js
+seulement une fois celui-ci rendu avec succès (`admShowRadarChart` rend
+d'abord le `<canvas>` visible et masque l'image, puis tente le rendu ; en cas
+d'échec — Chart.js non chargé, donnée invalide — il revient au PNG plutôt que
+de laisser un graphique vide à l'écran). La modale de la synthèse suit le
+même principe côté réseau : le PNG (`/radar/<name>`) est posé en premier, de
+façon synchrone, puis remplacé par le graphique interactif dès que
+`/radar/<name>/data` répond ; si ce second appel échoue, le PNG déjà affiché
+reste en place. Dans les trois cas, le comportement ne peut donc jamais être
+pire qu'avant cette phase, seulement meilleur quand Chart.js se charge
+correctement.
+
+**Écarts volontaires par rapport au plan initial, documentés ici pour la
+revue** :
+- Le plan (section 6) ne précisait pas si le PNG resterait affiché par
+  défaut ou serait un simple repli caché : l'option retenue (PNG visible par
+  défaut, canvas affiché seulement après un rendu Chart.js réussi) a été
+  préférée à un `<noscript>` pur, qui n'aurait protégé que contre
+  l'absence de JavaScript, pas contre un échec silencieux de Chart.js
+  lui-même (script bloqué, erreur de rendu) — un risque jugé plus probable
+  en pratique qu'un navigateur sans JavaScript sur cette application interne.
+- Pour le résumé d'application et la moyenne de la synthèse, les données
+  radar sont intégrées directement au rendu de la page (``<script
+  type="application/json">``) plutôt qu'exposées via une route JSON dédiée :
+  ces deux pages calculent déjà ces scores pour leur propre rendu (PNG), et
+  une route séparée n'aurait fait qu'ajouter un aller-retour réseau évitable.
+  Seule la modale de la synthèse (radar d'une application choisie
+  dynamiquement, dont le nom n'est connu que côté client au moment du clic)
+  utilise la nouvelle route `/radar/<name>/data`.
+- Le cache de PNG (`RadarChartCache`, Tâche 3.7) n'a pas d'équivalent pour la
+  donnée JSON : contrairement au rendu matplotlib, construire
+  `{labels, scores, max}` est une opération triviale (aucun calcul
+  matplotlib), sans coût à amortir.
+- Les cinq cartes KPI de la synthèse ne sont toujours pas concernées par
+  cette phase (déjà exclues du rafraîchissement htmx en Phase 4 pour la même
+  raison : elles ne dépendent pas du filtre ni du radar).
+
+**Vérifications effectuées** (même environnement cloud isolé qu'aux phases
+précédentes, dépôt complet copié) : `ruff check`, `ruff format --check` et
+`mypy --strict` (`src`, `main.py`) sans erreur ; `pytest --cov=ADM` : 304
+tests passés (292 + 12 nouveaux, `tests/test_radar_interactive_chart.py`),
+couverture 87,65 % (seuil 86 % maintenu), résultat conforme aux phases
+précédentes — aucune régression introduite, notamment sur
+`tests/test_routes_applications.py` (route PNG `/radar/<name>` strictement
+inchangée) et `tests/test_resume_radar_responsive.py` (l'image PNG de
+`resume.html`, avec sa classe `img-fluid chart-surface`, reste exactement la
+même chaîne littérale qu'avant cette phase). Les 7 échecs restants
+(`test_container_entrypoint.py`, `test_demo_scripts.py`) restent le même
+problème de fins de ligne CRLF préexistant, sans rapport avec cette Phase 6.
+Ces tests ne pouvant pas exécuter de JavaScript ni piloter un vrai
+navigateur, ils vérifient la donnée exposée côté serveur et la
+présence/structure du balisage et des scripts attendus, pas le rendu visuel
+du graphique lui-même (survol, redimensionnement) : un contrôle manuel dans
+un navigateur reste nécessaire pour ça, voir ci-dessous.
+
+**Ce qui reste à faire côté utilisateur.** Les 7 fichiers modifiés ou créés
+(`src/ADM/services.py`, `src/ADM/routes.py`, `templates/resume.html`,
+`templates/synthese.html`, `static/radar_charts.js` (nouveau),
+`static/vendor/chartjs/chart.umd.min.js` (nouveau),
+`tests/test_radar_interactive_chart.py` (nouveau)) ont été déposés
+directement dans `C:\usr\ADM` via la liaison au poste, sans branche ni commit
+créés. Reste donc à faire, localement :
+1. Créer une branche dédiée (ex. `feature/us4-1-phase6-radar-interactif`) et
+   vérifier le statut `git` pour confirmer la liste des fichiers modifiés/
+   créés (les 7 ci-dessus, aucun autre).
+2. Relire le diff, en particulier la nouvelle route `/radar/<name>/data`
+   dans `ADM.routes` et la factorisation `_radar_chart_bounds` dans
+   `ADM.services`.
+3. Relancer localement `ruff check`, `ruff format --check`, `mypy --strict`
+   et `pytest --cov=ADM` pour confirmer le résultat obtenu côté cloud.
+4. Ouvrir l'application dans un navigateur (clair et sombre) et vérifier à
+   l'œil, sur la fiche résumé d'une application évaluée et sur la synthèse :
+   que le radar s'affiche bien sous forme de graphique interactif (et non
+   plus l'image statique), que le survol d'un axe affiche une infobulle avec
+   sa valeur exacte, que le graphique reste lisible en thème sombre (plaque
+   blanche `chart-surface`, comme le PNG avant lui), et que cliquer sur
+   « Radar » dans le tableau de la synthèse affiche bien le graphique
+   interactif de l'application choisie dans la modale.
+5. Vérifier qu'aucun message d'erreur JavaScript n'apparaît dans la console
+   du navigateur pendant ces actions, et que la page reste utilisable si
+   Chart.js est bloqué (couper temporairement `static/vendor/chartjs/` ou
+   simuler une erreur réseau dans les outils de développement du navigateur :
+   le PNG doit rester affiché).
+6. Commiter et ouvrir la revue habituelle.
+
+`backlog.md` a été mis à jour en conséquence sous US4.1 (Epic 4).
+
+## 22. Prochaine étape immédiate
+
+Après revue et merge de la Phase 5, du correctif d'homogénéisation des
+messages et de cette Phase 6, ouvrir la Phase 7 (validation et
 non-régression en continu, déjà appliquée à chaque phase mais à formaliser
 en fin de projet : revue manuelle de chaque rôle sur desktop et mobile, avec
 captures d'écran avant/après).
