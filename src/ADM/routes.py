@@ -9,6 +9,7 @@ from datetime import datetime
 from functools import wraps
 from pathlib import Path
 from typing import ParamSpec, TypeVar, cast
+from urllib.parse import urlsplit, urlunsplit
 
 from flask import (
     Blueprint,
@@ -141,6 +142,31 @@ def radar_chart_cache() -> RadarChartCache:
 def app_config() -> AppConfig:
     """Retourne la configuration chargée au démarrage (accès en lecture seule)."""
     return cast(AppConfig, current_app.extensions["adm_app_config"])
+
+
+def db_backend_in_use() -> str:
+    """Retourne le backend de données réellement utilisé par cette instance.
+
+    Peut différer de ``app_config().db_backend`` (valeur lue dans ``config.json``) :
+    ``ADM_DB_BACKEND``/``DB_BACKEND`` la supplantent au démarrage (voir
+    ``ADM.app.create_app``). C'est cette valeur réellement retenue, et non celle du
+    fichier, qui doit être affichée sur la page de configuration.
+    """
+    return cast(str, current_app.extensions["adm_db_backend"])
+
+
+def db_connection_in_use() -> str:
+    """Retourne la chaîne de connexion réellement utilisée par cette instance.
+
+    Même raisonnement que ``db_backend_in_use`` : ``ADM_DATABASE_URL`` peut
+    supplanter la valeur de ``config.json`` (``json_connection_url``).
+    """
+    return cast(str, current_app.extensions["adm_db_connection"])
+
+
+def config_path() -> Path:
+    """Retourne le chemin persistant résolu de ``config.json`` (US4.2)."""
+    return Path(str(current_app.config["CONFIG"]))
 
 
 def auth_provider() -> AuthProvider:
@@ -1007,15 +1033,53 @@ def import_data() -> ResponseReturnValue:
     return render_template("import_data.html")
 
 
+def _redact_connection_string(value: str) -> str:
+    """Masque un éventuel identifiant/mot de passe porté par une chaîne de connexion.
+
+    ``ADM_DATABASE_URL`` peut contenir des identifiants en clair pour le backend
+    MySQL (``mysql+pymysql://user:motdepasse@hote:3306/base``). La page de
+    configuration reste réservée au rôle ``admin``, mais rien n'empêche une capture
+    d'écran ou un partage involontaire : le mot de passe est donc remplacé par
+    ``***`` avant affichage. Un chemin de fichier (backend JSON/SQLite, sans
+    identifiants) traverse cette fonction inchangé.
+    """
+    parsed = urlsplit(value)
+    if not parsed.username and not parsed.password:
+        return value
+    netloc = parsed.hostname or ""
+    if parsed.port:
+        netloc = f"{netloc}:{parsed.port}"
+    credentials = parsed.username or ""
+    if parsed.password:
+        credentials = f"{credentials}:***"
+    return urlunsplit((parsed.scheme, f"{credentials}@{netloc}", parsed.path, parsed.query, ""))
+
+
+def _deployment_settings_context() -> dict[str, object]:
+    """Rassemble les chemins et valeurs réellement chargés par cette instance.
+
+    Ces valeurs peuvent différer de celles de ``config.json`` lorsque les
+    variables d'environnement dédiées (``ADM_DB_BACKEND``, ``ADM_DATABASE_URL``,
+    ``ADM_CONFIG_PATH``, ``ADM_QUESTIONS_PATH``, ``ADM_INFO_TEXTS_PATH``) les
+    supplantent au démarrage : afficher la valeur du fichier plutôt que celle
+    réellement en service induirait l'administrateur en erreur au diagnostic.
+    """
+    return {
+        "db_backend": db_backend_in_use(),
+        "db_connection": _redact_connection_string(db_connection_in_use()),
+        "config_path": str(config_path().resolve()),
+        "questions_path": str(questions_path().resolve()),
+        "info_texts_path": str(info_texts_path().resolve()),
+    }
+
+
 @route(settings, "/settings", methods=["GET", "POST"])
 @role_required("admin")
 def show_settings() -> ResponseReturnValue:
     """Affiche et met à jour les seuils d'affichage du score et du risque (US4.2)."""
-    config = app_config()
     context = {
         "thresholds": display_thresholds(),
-        "db_backend": config.db_backend,
-        "json_connection_url": config.json_connection_url if config.db_backend == "json" else None,
+        **_deployment_settings_context(),
     }
     if request.method == "POST":
         try:
@@ -1024,9 +1088,8 @@ def show_settings() -> ResponseReturnValue:
             flash(str(error), "danger")
             return render_template("settings.html", **context), 400
 
-        config_path = Path(str(current_app.config["CONFIG"]))
         try:
-            save_display_thresholds(config_path, thresholds)
+            save_display_thresholds(config_path(), thresholds)
         except ValueError:
             current_app.logger.warning("Echec d'enregistrement de la configuration.")
             flash("La configuration n'a pas pu être enregistrée.", "danger")

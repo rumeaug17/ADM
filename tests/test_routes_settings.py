@@ -288,3 +288,105 @@ def test_update_settings_rejects_invalid_thresholds_without_persisting(tmp_path:
     assert response.status_code == 400
     saved = json.loads(config_path.read_text(encoding="utf-8"))
     assert saved["display_thresholds"]["score"]["warning"] == 30  # inchangé
+
+
+# --- Tests : chemins/valeurs réellement chargés, bloc "Paramètres de déploiement" ---
+
+
+def test_show_settings_displays_real_deployment_values_over_stale_config_file(
+    tmp_path: Path,
+) -> None:
+    """La page doit refléter ce que l'application a réellement chargé au
+    démarrage, pas uniquement la valeur écrite dans config.json : ADM_DB_BACKEND/
+    ADM_DATABASE_URL (ici simulés via DB_BACKEND/DB_CONNECTION, le mécanisme de
+    test habituel de create_app) peuvent la supplanter, exactement comme en
+    production. Vérifie aussi que les chemins réels de questions.json et
+    info_texts.json (US4.3), absents jusqu'ici du bloc, sont désormais affichés."""
+    from ADM.app import create_app
+
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "db_backend": "mysql",
+                "json_connection_url": "applications.json",
+                "display_thresholds": {
+                    "score": {"warning": 30, "critical": 60},
+                    "risk": {"warning": 100, "critical": 350},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    catalogue_path = tmp_path / "catalogue.json"
+    questions_target = tmp_path / "questions.json"
+    info_texts_target = tmp_path / "info_texts.json"
+    accounts_path = _seed_admin_account(tmp_path)
+    application = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(catalogue_path),
+            "CONFIG": str(config_path),
+            "ACCOUNTS_CONNECTION": str(accounts_path),
+            "QUESTIONS_PATH": str(questions_target),
+            "INFO_TEXTS_PATH": str(info_texts_target),
+        }
+    )
+    client = application.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["username"] = "alice"
+        sess["role"] = "admin"
+        sess["auth_generation"] = 0
+
+    response = client.get("/settings")
+    body = response.data.decode("utf-8")
+
+    assert response.status_code == 200
+    # Le backend réellement démarré (JSON, via DB_BACKEND) doit être affiché,
+    # jamais celui, obsolète, de config.json ("mysql").
+    assert "mysql" not in body
+    assert str(catalogue_path) in body
+    assert str(config_path.resolve()) in body
+    assert str(questions_target.resolve()) in body
+    assert str(info_texts_target.resolve()) in body
+
+
+def test_show_settings_redacts_credentials_from_connection_string(tmp_path: Path) -> None:
+    """Un identifiant/mot de passe éventuellement présent dans la chaîne de
+    connexion réelle (``ADM_DATABASE_URL`` pour un backend MySQL) ne doit jamais
+    apparaître en clair sur la page, même réservée au rôle admin."""
+    from ADM.app import create_app
+
+    application = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(tmp_path / "catalogue.json"),
+            "CONFIG": str(_config_path(tmp_path)),
+            "ACCOUNTS_CONNECTION": str(_seed_admin_account(tmp_path)),
+        }
+    )
+    # Simule après coup un backend MySQL avec identifiants en clair, comme le
+    # ferait ADM_DATABASE_URL en production (pas besoin d'un vrai serveur MySQL
+    # pour vérifier l'affichage : adm_db_backend/adm_db_connection sont lus à la
+    # requête, voir ADM.routes.db_backend_in_use/db_connection_in_use).
+    application.extensions["adm_db_backend"] = "mysql"
+    application.extensions["adm_db_connection"] = (
+        "mysql+pymysql://adm_user:s3cr3t-mdp@db.internal:3306/adm"
+    )
+    client = application.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["username"] = "alice"
+        sess["role"] = "admin"
+        sess["auth_generation"] = 0
+
+    response = client.get("/settings")
+
+    assert response.status_code == 200
+    assert b"s3cr3t-mdp" not in response.data
+    assert b"adm_user:***@db.internal:3306" in response.data

@@ -183,6 +183,13 @@ def create_app(test_config: Mapping[str, object] | None = None) -> Flask:
         raise ValueError("Configuration du backend incorrecte.")
     engine = init_db(str(connection))
     app.extensions["adm_session_factory"] = get_session_factory(engine)
+    # Valeurs réellement retenues (potentiellement différentes de config.json si
+    # ADM_DB_BACKEND/ADM_DATABASE_URL les supplantent ci-dessus) : conservées telles
+    # quelles pour être affichées sur /settings, plutôt que de refaire ce calcul ou de
+    # laisser la page réafficher la valeur du fichier sans tenir compte des variables
+    # d'environnement (voir ADM.routes.db_backend_in_use/db_connection_in_use).
+    app.extensions["adm_db_backend"] = backend
+    app.extensions["adm_db_connection"] = str(connection)
     app.extensions["adm_questions"] = questions
     app.extensions["adm_scoring_map"] = compute_scoring_map(questions)
     app.extensions["adm_categories"] = compute_categories(questions)
