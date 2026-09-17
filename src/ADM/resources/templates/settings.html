@@ -8,14 +8,21 @@
 
 <div class="card p-4 mb-4">
   <h5 class="mb-3"><i class="bi bi-hdd-stack" aria-hidden="true"></i> Paramètres de déploiement</h5>
-  <p class="mb-1"><strong>Backend de données :</strong> {{ db_backend }}</p>
-  {% if json_connection_url %}
-    <p class="mb-1"><strong>Fichier de données :</strong> {{ json_connection_url }}</p>
-  {% endif %}
-  <p class="text-muted small mb-0">
+
+  <h6 class="text-uppercase text-muted small mb-2">Backend de données</h6>
+  <p class="mb-1"><strong>Backend :</strong> {{ db_backend }}</p>
+  <p class="mb-3"><strong>Connexion :</strong> <code>{{ db_connection }}</code></p>
+
+  <h6 class="text-uppercase text-muted small mb-2">Fichiers de configuration chargés</h6>
+  <p class="mb-1"><strong>Configuration (seuils) :</strong> <code>{{ config_path }}</code></p>
+  <p class="mb-1"><strong>Questionnaire :</strong> <code>{{ questions_path }}</code></p>
+  <p class="mb-1"><strong>Textes d'aide :</strong> <code>{{ info_texts_path }}</code></p>
+
+  <p class="text-muted small mb-0 mt-3">
     Ces paramètres se modifient via les variables d'environnement
-    (<code>ADM_DB_BACKEND</code>, <code>ADM_DATABASE_URL</code>) et nécessitent
-    un redémarrage de l'application.
+    (<code>ADM_DB_BACKEND</code>, <code>ADM_DATABASE_URL</code>, <code>ADM_CONFIG_PATH</code>,
+    <code>ADM_QUESTIONS_PATH</code>, <code>ADM_INFO_TEXTS_PATH</code>) et nécessitent un
+    redémarrage de l'application.
   </p>
 </div>
 
