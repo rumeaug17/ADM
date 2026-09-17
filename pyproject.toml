@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adm-catalogue"
-version = "2.0.0"
+version = "2.0.1"
 description = "Catalogue d'applications et évaluation de leur dette technique"
 authors = [
     { name = "Guillaume Rumeau" }
