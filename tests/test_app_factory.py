@@ -126,6 +126,40 @@ def test_create_app_uses_sqlite_for_catalogue_and_accounts(tmp_path: Path) -> No
     assert database_path.exists()
 
 
+def test_create_app_exposes_the_actually_used_backend_and_connection(
+    tmp_path: Path,
+) -> None:
+    """``adm_db_backend``/``adm_db_connection`` doivent porter la valeur
+    réellement retenue au démarrage, y compris quand ``DB_BACKEND``/
+    ``DB_CONNECTION`` (comme ``ADM_DB_BACKEND``/``ADM_DATABASE_URL`` en
+    production) supplantent ``config.json`` : c'est cette valeur que la page de
+    configuration doit afficher, pas celle, potentiellement obsolète, du
+    fichier (voir ``ADM.routes.db_backend_in_use``/``db_connection_in_use``)."""
+    import json
+
+    from ADM.app import create_app
+
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps({"db_backend": "mysql", "json_connection_url": "applications.json"}),
+        encoding="utf-8",
+    )
+    catalogue_path = tmp_path / "catalogue.json"
+
+    application = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "cle-factice-reservee-aux-tests",
+            "DB_BACKEND": "json",
+            "DB_CONNECTION": str(catalogue_path),
+            "CONFIG": str(config_path),
+        }
+    )
+
+    assert application.extensions["adm_db_backend"] == "json"
+    assert application.extensions["adm_db_connection"] == str(catalogue_path)
+
+
 def test_create_app_requires_database_url_for_sqlite(monkeypatch: pytest.MonkeyPatch) -> None:
     from ADM.app import create_app
 
