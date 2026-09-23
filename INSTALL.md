@@ -429,7 +429,9 @@ Dans l'onglet **Web** :
 5. ajoutez ensuite le code suivant ;
 6. configurez le mapping statique `/static/` vers
    `/home/<utilisateur>/ADM/src/ADM/resources/static` ;
-7. rechargez l'application depuis l'onglet Web.
+7. Configurer le mapping `/config/`
+   vers `/home/<utilisateur>/adm-data/` ou équivalent ;
+9. rechargez l'application depuis l'onglet Web.
 
 ```python
 from ADM.app import create_app
