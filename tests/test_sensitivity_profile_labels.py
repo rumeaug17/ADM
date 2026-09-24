@@ -123,31 +123,37 @@ def test_sensitivity_display_code_handles_none() -> None:
     assert sensitivity_display_code(None) == ""
 
 
-def test_catalogue_separates_sensitivity_from_perennite_and_renames_risk(
+def test_catalogue_groups_the_four_criteria_under_dicpe_and_renames_risk(
     tmp_path: Path,
 ) -> None:
+    """Les quatre pastilles restent côte à côte dans une seule colonne,
+    renommée « Sensibilité DICPé » pour lever l'ambiguïté avec le DICP de
+    l'analyse de risques (P = Preuve)."""
     client = _logged_in_client(_create_test_app(tmp_path))
 
     html = client.get("/").get_data(as_text=True)
 
     assert "Classification (DICP)" not in html
-    assert "Sensibilité D·I·C</th>" in html
-    assert "Pérennité attendue</th>" in html
+    assert "Sensibilité DICPé</th>" in html
+    assert "Pérennité attendue</th>" not in html
     assert ">Pé3</span>" in html
     assert ">P3</span>" not in html
+    # Les quatre pastilles sont dans le même groupe, dans l'ordre D, I, C, Pé.
+    group = html.split('<div class="d-flex flex-nowrap gap-2">', 1)[1].split("</div>", 1)[0]
+    positions = [group.index(f">{code}</span>") for code in ("D2", "I3", "C1", "Pé3")]
+    assert positions == sorted(positions)
     assert "Exposition dette" in html
     assert ">Risque <i" not in html
 
 
-def test_catalogue_sort_columns_follow_the_new_perennite_column() -> None:
-    """La colonne Pérennité ajoutée décale d'un rang les colonnes triables
-    suivantes : chaque ``data-sort-col`` doit rester unique et le libellé de
-    l'exposition doit pointer sur son nouvel index."""
+def test_catalogue_sort_columns_match_the_single_sensitivity_column() -> None:
+    """Une seule colonne de sensibilité : les index ``data-sort-col`` restent
+    uniques et l'exposition dette est la 8e colonne (index 7)."""
     index_html = (TEMPLATES / "index.html").read_text(encoding="utf-8")
-    for index in range(11):
+    for index in range(10):
         assert index_html.count(f'data-sort-col="{index}"') <= 1
-    assert 'data-sort-col="8" data-sort-type="number">Exposition dette' in index_html
-    assert 'colspan="12"' in index_html
+    assert 'data-sort-col="7" data-sort-type="number">Exposition dette' in index_html
+    assert 'colspan="11"' in index_html
 
 
 @pytest.mark.parametrize("path", ["/add", f"/edit/{APP_NAME}"])
@@ -159,23 +165,25 @@ def test_application_forms_present_an_estimated_sensitivity_profile(
     html = client.get(path).get_data(as_text=True)
 
     assert "Classification de sécurité" not in html
-    assert "Profil de sensibilité (estimation ADM)" in html
+    assert "Criticité et sensibilité DICPé (estimation ADM)" in html
     assert DISCLAIMER in html
-    assert "Pérennité attendue :" in html
+    assert "DICPé : Disponibilité, Intégrité, Confidentialité, Pérennité attendue" in html
+    assert "Pérennité attendue (Pé) :" in html
     # Les valeurs soumises restent les codes stockés historiques.
     assert 'value="P3"' in html
 
 
-def test_resume_shows_perennite_apart_and_the_disclaimer(tmp_path: Path) -> None:
+def test_resume_groups_the_four_criteria_and_shows_the_disclaimer(tmp_path: Path) -> None:
     client = _logged_in_client(_create_test_app(tmp_path))
 
     html = client.get(f"/resume/{APP_NAME}").get_data(as_text=True)
 
     assert "Classification (DICP)" not in html
-    assert "Sensibilité D·I·C (estimation ADM)" in html
-    assert "Pérennité attendue :" in html
-    assert ">Pé3</span>" in html
-    assert "ne remplace pas la classification DICP" in html
+    line = html.split("<strong>Sensibilité DICPé (estimation ADM) :</strong>", 1)[1]
+    line = line.split("</p>", 1)[0]
+    for code in ("D2", "I3", "C1", "Pé3"):
+        assert f">{code}</span>" in line, code
+    assert "remplace pas la classification DICP" in html
     assert "Exposition dette :" in html
     assert "<strong>Risque :</strong>" not in html
 
@@ -203,10 +211,10 @@ def test_csv_export_headers_mark_the_values_as_estimates(tmp_path: Path) -> None
         "Type",
         "RDA",
         "Criticité",
-        "Sensibilité D (estimation)",
-        "Sensibilité I (estimation)",
-        "Sensibilité C (estimation)",
-        "Pérennité attendue",
+        "DICPé - Disponibilité",
+        "DICPé - Intégrité",
+        "DICPé - Confidentialité",
+        "DICPé - Pérennité attendue",
         "Score",
         "Max Score",
         "Pourcentage",

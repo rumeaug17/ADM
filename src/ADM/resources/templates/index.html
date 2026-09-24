@@ -46,13 +46,12 @@
                 <th class="table-sort-th" data-sort-col="1" data-sort-type="text">type <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
 				<th class="table-sort-th" data-sort-col="2" data-sort-type="text">RDA <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
 				<th class="table-sort-th" data-sort-col="3" data-sort-type="number">Criticité <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
-                <th title="Estimation ADM utilisée pour pondérer la dette ; ne remplace pas la classification DICP de l'analyse de risques">Sensibilité D·I·C</th>
-                <th title="Estimation ADM, distincte du critère Preuve de l'analyse de risques DICP">Pérennité attendue</th>
-                <th class="table-sort-th" data-sort-col="6" data-sort-type="number">Score <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
-                <th class="table-sort-th" data-sort-col="7" data-sort-type="number">% <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
-                <th class="table-sort-th" data-sort-col="8" data-sort-type="number">Exposition dette <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
-                <th class="table-sort-th" data-sort-col="9" data-sort-type="text">Dernière évaluation <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
-				<th class="table-sort-th" data-sort-col="10" data-sort-type="text">Évaluateur <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+                <th title="Sensibilité estimée dans ADM : Disponibilité, Intégrité, Confidentialité, Pérennité attendue (Pé). Ne remplace pas la classification DICP de l'analyse de risques, dont le P est la Preuve.">Sensibilité DICPé</th>
+                <th class="table-sort-th" data-sort-col="5" data-sort-type="number">Score <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+                <th class="table-sort-th" data-sort-col="6" data-sort-type="number">% <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+                <th class="table-sort-th" data-sort-col="7" data-sort-type="number">Exposition dette <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+                <th class="table-sort-th" data-sort-col="8" data-sort-type="text">Dernière évaluation <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
+				<th class="table-sort-th" data-sort-col="9" data-sort-type="text">Évaluateur <i class="bi bi-arrow-down-up" aria-hidden="true"></i></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -62,7 +61,7 @@
               {% include "_application_row.html" %}
             {% endfor %}
             <tr id="catalogueNoResultsRow" style="display: none;">
-              <td colspan="12" class="text-muted py-4">Aucune application ne correspond à la recherche.</td>
+              <td colspan="11" class="text-muted py-4">Aucune application ne correspond à la recherche.</td>
             </tr>
         </tbody>
     </table>

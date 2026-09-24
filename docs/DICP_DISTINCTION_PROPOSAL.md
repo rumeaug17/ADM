@@ -159,3 +159,39 @@ codes stockés (`D1`…`P4`), formule, import/export JSON et schéma inchangés.
   eux, s'affichent dans tous les cas.
 - Prévenir les consommateurs éventuels de l'export CSV du changement
   d'en-têtes.
+
+## 7. Suivi — Ajustement après retour utilisateurs (sensibilité « DICPé »)
+
+2026-09-24. Les utilisateurs n'ont pas apprécié la séparation de la pérennité
+dans une colonne à part : ils veulent retrouver les quatre pastilles
+regroupées côte à côte, comme avant le lot 1. L'ambiguïté est désormais levée
+par le nom plutôt que par la mise en page.
+
+**Nommage retenu : « Sensibilité DICPé ».** Le sigle reste familier (lecture
+immédiate des quatre critères dans l'ordre habituel), mais le « é » final le
+rend visiblement différent du DICP de l'analyse de risques et renvoie
+directement à la pastille `Pé`. Alternatives écartées : « D·I·C·Pé » (plus
+explicite mais lourd en en-tête de colonne), « Profil ADM » (perd le lien
+avec les quatre critères que les utilisateurs connaissent).
+
+**Ce qui change par rapport au lot 1.**
+- Catalogue : une seule colonne « Sensibilité DICPé » avec les pastilles
+  `D` `I` `C` `Pé` côte à côte (infobulle d'en-tête expliquant le sigle et la
+  différence avec le DICP officiel) ; la colonne « Pérennité attendue » est
+  supprimée, les index `data-sort-col` et le `colspan` reviennent à leurs
+  valeurs d'avant le lot 1.
+- Résumé : une seule ligne « Sensibilité DICPé (estimation ADM) » avec les
+  quatre pastilles ; l'avertissement commence par « DICPé : Disponibilité,
+  Intégrité, Confidentialité, Pérennité attendue ».
+- Formulaires : section « Criticité et sensibilité DICPé (estimation ADM) »,
+  même définition du sigle dans l'avertissement, champ « Pérennité attendue
+  (Pé) ».
+- Export CSV : « DICPé - Disponibilité », « DICPé - Intégrité »,
+  « DICPé - Confidentialité », « DICPé - Pérennité attendue ».
+- Aide en ligne de la pérennité : mention du sigle « DICPé ».
+- Inchangé : affichage `Pé1`…`Pé4`, libellé « Exposition dette », codes
+  stockés, formule, import/export JSON.
+- Tests (`tests/test_sensitivity_profile_labels.py`) et documentation
+  (`docs/BUSINESS_RULES.md`, `README.md`) mis à jour. Contrôles `ruff`,
+  `mypy` et `pytest` (350 tests, couverture 87,8 %) passants ; rendu vérifié
+  par capture.

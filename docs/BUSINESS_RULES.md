@@ -53,7 +53,8 @@ nul, mais restent comptabilisées dans le nombre total d'applications.
 
 Chaque application porte quatre niveaux de 1 à 4 — disponibilité (`D`),
 intégrité (`I`), confidentialité (`C`) et pérennité attendue (`P`) — ainsi
-qu'une criticité. Ce **profil de sensibilité** est une estimation déclarative,
+qu'une criticité. Cette **sensibilité DICPé** (le « é » signale que le 4ᵉ
+critère est la Pérennité) est une estimation déclarative,
 saisie dans ADM par les utilisateurs habilités à modifier une fiche, et sert
 uniquement à pondérer la dette technique (voir « Exposition dette » ci-dessous).
 
@@ -66,12 +67,14 @@ risques de l'organisation (RSSI, EBIOS RM / ISO 27005) :
 - les définitions des niveaux sont propres à ADM (`info_texts.json`) et ne
   sont pas synchronisées avec l'analyse officielle.
 
-L'interface le rend explicite : section « Profil de sensibilité (estimation
-ADM) » dans les formulaires, colonnes « Sensibilité D·I·C » et « Pérennité
-attendue » séparées, pérennité affichée `Pé1`…`Pé4` (le code stocké reste
-`P1`…`P4`), avertissement dans les formulaires, le résumé et l'aide en ligne,
-en-têtes de l'export CSV renommés (« Sensibilité D (estimation) »…,
-« Pérennité attendue », « Exposition dette »). Les clés techniques
+L'interface le rend explicite : section « Criticité et sensibilité DICPé
+(estimation ADM) » dans les formulaires, colonne « Sensibilité DICPé » du
+catalogue et ligne « Sensibilité DICPé (estimation ADM) » du résumé, où les
+quatre pastilles restent regroupées côte à côte (`D3` `I1` `C2` `Pé4`), la
+pérennité étant affichée `Pé1`…`Pé4` (le code stocké reste `P1`…`P4`) ;
+avertissement dans les formulaires, le résumé et l'aide en ligne ; en-têtes
+de l'export CSV renommés (« DICPé - Disponibilité »… « DICPé - Pérennité
+attendue », « Exposition dette »). Les clés techniques
 (`disponibilite`…`perennite`), les codes stockés, l'import/export JSON et le
 schéma de base sont inchangés.
 
@@ -82,7 +85,7 @@ plus critique, le niveau `4` le moins critique. L'aide en ligne le rappelle.
 
 L'exposition dette (clé technique `risque`, libellée « Exposition dette » dans
 l'interface et l'export CSV, « Exposition globale » pour la moyenne du
-catalogue) combine le score, les quatre niveaux du profil de sensibilité et la
+catalogue) combine le score, les quatre niveaux de la sensibilité DICPé et la
 criticité. Ce n'est pas un risque de sécurité au sens de l'analyse de risques :
 
 ```text

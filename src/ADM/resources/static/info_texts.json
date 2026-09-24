@@ -62,7 +62,7 @@
     "</ul>"
   ],
   "app-perennite": [
-    "<p class=\"mb-2\"><em>Critère propre à ADM : ce « P » n’est pas le critère Preuve (traçabilité) de la classification DICP issue de l’analyse de risques (RSSI). Il est affiché « Pé » pour les distinguer.</em></p>",
+    "<p class=\"mb-2\"><em>Critère propre à ADM : ce « P » n’est pas le critère Preuve (traçabilité) de la classification DICP issue de l’analyse de risques (RSSI). Il est affiché « Pé » (sensibilité « DICPé ») pour les distinguer.</em></p>",
     "<strong>Pérennité attendue : représente la nécessité de conserver l’application et ses données sur le long terme.</strong>",
     "<ul><li><strong>P1 - Faible : </strong>Cycle de vie court, remplacement fréquent.</li>",
     "<li><strong>P2 - Moyenne : </strong>Maintien souhaitable sur quelques années, mais évolution probable.</li>",
