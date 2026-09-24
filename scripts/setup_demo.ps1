@@ -180,6 +180,20 @@ print(json.dumps({"username": demo_username, "password": demo_password}))
         ADM_SECRET_KEY            = $env:ADM_SECRET_KEY
         ADM_ACCOUNTS_URL          = $env:ADM_ACCOUNTS_URL
         ADM_SESSION_COOKIE_SECURE = $env:ADM_SESSION_COOKIE_SECURE
+        # Optionnelles : si l'appelant les a définies avant setup_demo.ps1 (pour
+        # stocker config.json/questions.json/info_texts.json hors du paquet
+        # installé, comme en production -- voir INSTALL.md section 5 et
+        # ADM.persistent_paths), elles sont reprises telles quelles afin que
+        # run_demo.ps1 les restaure aussi. Sans cela, ces trois variables
+        # n'étaient jamais persistées : relancer la démo depuis une nouvelle
+        # console (l'usage documenté, voir README.md) perdait silencieusement
+        # l'intention de l'appelant, et les modifications faites depuis
+        # /settings ou /settings/questions finissaient par réécrire le
+        # config.json/questions.json/info_texts.json du paquet installé au lieu
+        # de l'emplacement persistant voulu.
+        ADM_CONFIG_PATH           = $env:ADM_CONFIG_PATH
+        ADM_QUESTIONS_PATH        = $env:ADM_QUESTIONS_PATH
+        ADM_INFO_TEXTS_PATH       = $env:ADM_INFO_TEXTS_PATH
         DemoUsername              = $demoCredentials.username
         DemoPassword              = $demoCredentials.password
     }

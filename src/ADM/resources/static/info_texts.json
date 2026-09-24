@@ -1,6 +1,7 @@
 {
   "_comment_": "Adéquation Fonctionnelle",
   "app-criticite": [
+    "<p class=\"mb-2\"><em>Attention : l’échelle de criticité est inverse de celle du profil de sensibilité — le niveau 1 est le plus critique, le niveau 4 le moins critique.</em></p>",
     "Une <strong>solution critique</strong> pour le système d’information (SI) est une composante (application, infrastructure, ou brique technologique) dont ",
     "la disponibilité, la performance, ou la sécurité est essentielle au bon fonctionnement des activités de l’entreprise.",
     "Une solution est considérée comme critique si son dysfonctionnement ou son indisponibilité peut entraîner des impacts majeurs, tels que :",
@@ -34,6 +35,7 @@
     ""
   ],
   "app-disponibilite": [
+    "<p class=\"mb-2\"><em>Estimation propre à ADM, utilisée uniquement pour pondérer la dette technique. Elle ne remplace pas la classification DICP issue de l’analyse de risques (RSSI).</em></p>",
     "<strong>Définit le niveau d’accessibilité requis pour l’application afin d’assurer la continuité des opérations.</strong>",
     "<ul><li><strong>D1 - Faible : </strong>Interruption acceptable sans impact significatif (ex. applications non critiques, reporting non temps réel).</li>",
     "<li><strong>D2 - Moyenne : </strong>Disponibilité requise pendant les heures ouvrées avec tolérance à une interruption limitée.</li>",
@@ -42,6 +44,7 @@
     "</ul>"
   ],
   "app-integrite": [
+    "<p class=\"mb-2\"><em>Estimation propre à ADM, utilisée uniquement pour pondérer la dette technique. Elle ne remplace pas la classification DICP issue de l’analyse de risques (RSSI).</em></p>",
     "<strong>Évalue la nécessité de garantir l’exactitude et la fiabilité des données manipulées.</strong>",
     "<ul><li><strong>I1 - Faible : </strong>Légère tolérance aux erreurs, impact faible en cas d’inexactitude.</li>",
     "<li><strong>I2 - Moyenne : </strong>Données importantes mais corrigeables sans impact majeur.</li>",
@@ -50,6 +53,7 @@
     "</ul>"
   ],
   "app-confidentialite": [
+    "<p class=\"mb-2\"><em>Estimation propre à ADM, utilisée uniquement pour pondérer la dette technique. Elle ne remplace pas la classification DICP issue de l’analyse de risques (RSSI).</em></p>",
     "<strong>Mesure la sensibilité des informations traitées et les restrictions d’accès nécessaires.</strong>",
     "<ul><li><strong>C1 - Faible : </strong>Données publiques ou peu sensibles.</li>",
     "<li><strong>C2 - Moyenne : </strong>Informations internes nécessitant un accès restreint.</li>",
@@ -58,7 +62,8 @@
     "</ul>"
   ],
   "app-perennite": [
-    "<strong>Représente la nécessité de conserver l’application et ses données sur le long terme.</strong>",
+    "<p class=\"mb-2\"><em>Critère propre à ADM : ce « P » n’est pas le critère Preuve (traçabilité) de la classification DICP issue de l’analyse de risques (RSSI). Il est affiché « Pé » (sensibilité « DICPé ») pour les distinguer.</em></p>",
+    "<strong>Pérennité attendue : représente la nécessité de conserver l’application et ses données sur le long terme.</strong>",
     "<ul><li><strong>P1 - Faible : </strong>Cycle de vie court, remplacement fréquent.</li>",
     "<li><strong>P2 - Moyenne : </strong>Maintien souhaitable sur quelques années, mais évolution probable.</li>",
     "<li><strong>P3 - Élevée : </strong>Longévité requise avec nécessité de maintenir l’accès aux données historiques.</li>",

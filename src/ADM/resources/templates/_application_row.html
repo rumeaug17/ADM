@@ -40,7 +40,7 @@
         {% set confidentialite_label = app.confidentialite|dicp_label %}
         <span class="badge badge-{{ app.confidentialite.lower() }}"{% if confidentialite_label %} title="Confidentialité : {{ confidentialite_label }}"{% endif %}>{{ app.confidentialite }}</span>
         {% set perennite_label = app.perennite|dicp_label %}
-        <span class="badge badge-{{ app.perennite.lower() }}"{% if perennite_label %} title="Pérennité : {{ perennite_label }}"{% endif %}>{{ app.perennite }}</span>
+        <span class="badge badge-{{ app.perennite.lower() }}"{% if perennite_label %} title="Pérennité attendue : {{ perennite_label }}"{% endif %}>{{ app.perennite|sensitivity_code }}</span>
         </div>
     </td>
     <td data-sort-value="{{ app.score if app.score is not none else -1 }}">

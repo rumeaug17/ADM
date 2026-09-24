@@ -17,7 +17,7 @@ from ADM.persistent_paths import resolve_persistent_path
 from ADM.routes import accounts, applications, auth, evaluations, exports, settings, supervision
 from ADM.schemas import AppConfig, parse_questions
 from ADM.scoring import compute_categories, compute_scoring_map
-from ADM.services import RadarChartCache, dicp_level_label
+from ADM.services import RadarChartCache, dicp_level_label, sensitivity_display_code
 
 PACKAGE_RESOURCES = Path(__file__).resolve().parent / "resources"
 
@@ -237,6 +237,10 @@ def _register_web_components(app: Flask) -> None:
     # (ex. "D1") en libellé humain, réutilisé en infobulle par les templates
     # qui affichent encore le code brut (`index.html`, `resume.html`).
     app.jinja_env.filters["dicp_label"] = dicp_level_label
+    # Code affiché d'un critère du profil de sensibilité : la pérennité
+    # apparaît « Pé3 » plutôt que « P3 », pour ne pas être confondue avec le
+    # critère Preuve de l'analyse de risques DICP.
+    app.jinja_env.filters["sensitivity_code"] = sensitivity_display_code
 
     def protect_posts() -> None:
         if request.method == "POST":

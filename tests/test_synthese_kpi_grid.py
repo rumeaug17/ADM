@@ -129,4 +129,5 @@ def test_synthese_page_renders_kpi_grid_without_legacy_spacers(tmp_path: Path) -
     # Les 5 indicateurs sont toujours bien présents et rendus.
     assert "Nombre total d'applications" in synthese_html
     assert "Score moyen" in synthese_html
-    assert "Risque global" in synthese_html
+    assert "Exposition globale" in synthese_html
+    assert "Risque global" not in synthese_html

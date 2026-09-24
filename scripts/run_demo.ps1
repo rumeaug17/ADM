@@ -33,6 +33,24 @@ foreach ($variableName in $requiredVariables) {
     [Environment]::SetEnvironmentVariable($variableName, $value, "Process")
 }
 
+# Optionnelles : contrairement aux variables ci-dessus, l'application fonctionne
+# très bien sans elles (repli sur config.json/questions.json/info_texts.json du
+# paquet installé, voir ADM.app._resolve_config_path et consorts) -- absentes de
+# la configuration de démonstration, on ne les positionne simplement pas, sans
+# lever d'erreur (compatible avec un .adm-demo.json généré par une version
+# antérieure de setup_demo.ps1, qui ne les connaissait pas encore).
+$optionalVariables = @(
+    "ADM_CONFIG_PATH",
+    "ADM_QUESTIONS_PATH",
+    "ADM_INFO_TEXTS_PATH"
+)
+foreach ($variableName in $optionalVariables) {
+    $value = $configuration.$variableName
+    if ($value -is [string] -and -not [string]::IsNullOrWhiteSpace($value)) {
+        [Environment]::SetEnvironmentVariable($variableName, $value, "Process")
+    }
+}
+
 if ($configuration.DemoUsername) {
     Write-Host "Compte de démonstration : $($configuration.DemoUsername)"
     Write-Host "Mot de passe : voir le fichier protégé $ConfigFile (accès restreint, non versionné)."

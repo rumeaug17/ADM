@@ -51,7 +51,14 @@
   </div>
 
   <div class="card p-4 my-3">
-    <h3><i class="bi bi-shield-check" aria-hidden="true"></i> Classification de sécurité</h3>
+    <h3><i class="bi bi-sliders" aria-hidden="true"></i> Criticité et sensibilité DICPé (estimation ADM)</h3>
+    <p class="form-text sensitivity-disclaimer mb-0">
+      <i class="bi bi-info-circle" aria-hidden="true"></i>
+      DICPé : Disponibilité, Intégrité, Confidentialité, Pérennité attendue.
+      Estimation utilisée uniquement pour pondérer la dette technique dans ADM :
+      elle ne remplace pas la classification DICP issue de l'analyse de risques
+      (RSSI), dont le 4<sup>e</sup> critère est la Preuve et non la Pérennité.
+    </p>
     <div class="row g-3 mt-1">
       <div class="col-md-6 col-lg-4">
         <label class="form-label">Criticité :
@@ -98,8 +105,8 @@
         </select>
       </div>
       <div class="col-md-6 col-lg-4">
-        <label class="form-label">Pérennité :
-          <button type="button" class="info-icon" data-key="app-perennite" aria-label="Aide pour Pérennité">?</button>
+        <label class="form-label">Pérennité attendue (Pé) :
+          <button type="button" class="info-icon" data-key="app-perennite" aria-label="Aide pour Pérennité attendue">?</button>
         </label>
         <select name="perennite" class="form-select">
           <option value="P1">Faible</option>

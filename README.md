@@ -10,14 +10,23 @@ et présente une synthèse destinée à faciliter la priorisation des actions.
 
 ## Fonctionnalités
 
-- gestion d'un catalogue d'applications et de leurs caractéristiques de criticité ;
+- gestion d'un catalogue d'applications, de leur criticité et d'un profil de
+  sensibilité estimé, la « sensibilité DICPé » (disponibilité, intégrité,
+  confidentialité et pérennité attendue) ;
 - questionnaire configurable selon le type d'application et son hébergement ;
-- calcul du score de dette, des axes de risque et d'indicateurs de synthèse ;
+- calcul du score de dette, de l'exposition de la dette (score pondéré par la
+  sensibilité et la criticité) et d'indicateurs de synthèse ;
 - historique des évaluations et génération de graphiques radar ;
 - import et export atomiques du catalogue au format JSON (réimportation totale
   réservée au rôle administrateur) ;
 - persistance locale dans un fichier JSON ou SQLite, ou dans MySQL via SQLAlchemy ;
 - validation des entrées, protection CSRF et limitation des imports à 5 Mio.
+
+La sensibilité DICPé saisie dans ADM est une estimation servant uniquement à
+pondérer la dette : il ne remplace pas la classification DICP issue de
+l'analyse de risques de l'organisation, dont le 4ᵉ critère est la Preuve et non
+la Pérennité (voir « Profil de sensibilité et analyse de risques » dans
+[`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md)).
 
 Les règles du questionnaire et du calcul sont détaillées dans
 [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md). La liste des questions par
@@ -124,7 +133,8 @@ variables d'environnement :
 Les seuils de couleur et de filtrage des affichages sont définis dans
 `src/ADM/resources/config.json` (ou dans le fichier pointé par `ADM_CONFIG_PATH`
 si elle est définie), sous `display_thresholds`. Les valeurs `score` sont
-des pourcentages et les valeurs `risk` utilisent l'unité du risque calculé. Pour chaque indicateur,
+des pourcentages et les valeurs `risk` utilisent l'unité de l'exposition dette calculée
+(libellée « Exposition dette » dans l'interface). Pour chaque indicateur,
 `warning` doit être positif ou nul et strictement inférieur à `critical`.
 
 Ces seuils sont également modifiables depuis l'interface, à l'adresse `/settings`. Comme
