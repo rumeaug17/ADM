@@ -58,7 +58,12 @@
     </fieldset>
 
     <fieldset class="mb-3">
-      <legend class="fs-6 fw-bold">Risque</legend>
+      <legend class="fs-6 fw-bold">Exposition dette</legend>
+      <p class="form-text mt-0">
+        Exposition de la dette technique, pondérée par le profil de sensibilité
+        et la criticité : score × (((D × I × C × P) / 4 / criticité) / 2).
+        Ce n'est pas un risque de sécurité au sens de l'analyse de risques.
+      </p>
       <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">Seuil d'alerte</label>
@@ -77,4 +82,4 @@
   </form>
 </div>
 
-{% endblock %}
+{% endblock %}

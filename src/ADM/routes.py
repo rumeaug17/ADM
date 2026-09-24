@@ -874,16 +874,16 @@ def export_csv() -> ResponseReturnValue:
             "Type",
             "RDA",
             "Criticité",
-            "Disponibilité",
-            "Intégrité",
-            "Confidentialité",
-            "Pérennité",
+            "Sensibilité D (estimation)",
+            "Sensibilité I (estimation)",
+            "Sensibilité C (estimation)",
+            "Pérennité attendue",
             "Score",
             "Max Score",
             "Pourcentage",
             "Dernière évaluation",
             "Évaluateur",
-            "Risque",
+            "Exposition dette",
         ]
         writer.writerow(header)
         for app_item in apps:

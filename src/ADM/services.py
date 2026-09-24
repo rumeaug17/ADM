@@ -51,6 +51,18 @@ _DICP_LEVEL_LABELS: Final[Mapping[str, str]] = {
     "4": "Critique",
 }
 
+# Préfixe affiché pour chaque critère du profil de sensibilité. Le code stocké
+# reste inchangé (`P3`), mais la pérennité est affichée `Pé3` pour ne pas être
+# confondue avec le critère « Preuve » de la classification DICP issue de
+# l'analyse de risques (voir docs/BUSINESS_RULES.md, « Profil de sensibilité
+# et analyse de risques »).
+_SENSITIVITY_DISPLAY_PREFIXES: Final[Mapping[str, str]] = {
+    "D": "D",
+    "I": "I",
+    "C": "C",
+    "P": "Pé",
+}
+
 
 @dataclass(frozen=True)
 class EvaluationSubmission:
@@ -175,6 +187,21 @@ def dicp_level_label(value: object) -> str | None:
     if not isinstance(value, str) or len(value) != 2:
         return None
     return _DICP_LEVEL_LABELS.get(value[1:])
+
+
+def sensitivity_display_code(value: object) -> str:
+    """Retourne le code affiché d'un critère du profil de sensibilité.
+
+    Seule la pérennité change d'apparence (``"P3"`` devient ``"Pé3"``), pour la
+    distinguer du critère « Preuve » de l'analyse de risques DICP. Une valeur
+    qui n'est pas un code valide est restituée telle quelle, sans tentative
+    d'interprétation, comme le faisaient les gabarits avant ce filtre.
+    """
+    text = "" if value is None else str(value)
+    if len(text) != 2 or text[1] not in _DICP_LEVELS:
+        return text
+    prefix = _SENSITIVITY_DISPLAY_PREFIXES.get(text[0])
+    return text if prefix is None else f"{prefix}{text[1]}"
 
 
 def calculate_risk(application: JsonData) -> float | None:

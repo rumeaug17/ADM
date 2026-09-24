@@ -39,9 +39,11 @@
         <span class="badge badge-{{ app.integrite.lower() }}"{% if integrite_label %} title="Intégrité : {{ integrite_label }}"{% endif %}>{{ app.integrite }}</span>
         {% set confidentialite_label = app.confidentialite|dicp_label %}
         <span class="badge badge-{{ app.confidentialite.lower() }}"{% if confidentialite_label %} title="Confidentialité : {{ confidentialite_label }}"{% endif %}>{{ app.confidentialite }}</span>
-        {% set perennite_label = app.perennite|dicp_label %}
-        <span class="badge badge-{{ app.perennite.lower() }}"{% if perennite_label %} title="Pérennité : {{ perennite_label }}"{% endif %}>{{ app.perennite }}</span>
         </div>
+    </td>
+    <td>
+        {% set perennite_label = app.perennite|dicp_label %}
+        <span class="badge badge-{{ app.perennite.lower() }}"{% if perennite_label %} title="Pérennité attendue : {{ perennite_label }}"{% endif %}>{{ app.perennite|sensitivity_code }}</span>
     </td>
     <td data-sort-value="{{ app.score if app.score is not none else -1 }}">
         <div class="d-flex flex-nowrap gap-2">

@@ -49,9 +49,41 @@ La moyenne globale du catalogue porte uniquement sur les applications évaluées
 Les applications dont le score est absent ne sont donc pas assimilées à un score
 nul, mais restent comptabilisées dans le nombre total d'applications.
 
-## Risque
+## Profil de sensibilité et analyse de risques
 
-Le risque combine le score, les quatre niveaux DICP/P et la criticité :
+Chaque application porte quatre niveaux de 1 à 4 — disponibilité (`D`),
+intégrité (`I`), confidentialité (`C`) et pérennité attendue (`P`) — ainsi
+qu'une criticité. Ce **profil de sensibilité** est une estimation déclarative,
+saisie dans ADM par les utilisateurs habilités à modifier une fiche, et sert
+uniquement à pondérer la dette technique (voir « Exposition dette » ci-dessous).
+
+Il ne doit pas être confondu avec la classification DICP issue de l'analyse de
+risques de l'organisation (RSSI, EBIOS RM / ISO 27005) :
+
+- le 4ᵉ critère d'ADM est la **Pérennité** (conservation de l'application et
+  de ses données sur le long terme), alors que celui de l'analyse de risques
+  est généralement la **Preuve** (traçabilité) ;
+- les définitions des niveaux sont propres à ADM (`info_texts.json`) et ne
+  sont pas synchronisées avec l'analyse officielle.
+
+L'interface le rend explicite : section « Profil de sensibilité (estimation
+ADM) » dans les formulaires, colonnes « Sensibilité D·I·C » et « Pérennité
+attendue » séparées, pérennité affichée `Pé1`…`Pé4` (le code stocké reste
+`P1`…`P4`), avertissement dans les formulaires, le résumé et l'aide en ligne,
+en-têtes de l'export CSV renommés (« Sensibilité D (estimation) »…,
+« Pérennité attendue », « Exposition dette »). Les clés techniques
+(`disponibilite`…`perennite`), les codes stockés, l'import/export JSON et le
+schéma de base sont inchangés.
+
+L'échelle de criticité est inverse de celle du profil : le niveau `1` est le
+plus critique, le niveau `4` le moins critique. L'aide en ligne le rappelle.
+
+## Exposition dette
+
+L'exposition dette (clé technique `risque`, libellée « Exposition dette » dans
+l'interface et l'export CSV, « Exposition globale » pour la moyenne du
+catalogue) combine le score, les quatre niveaux du profil de sensibilité et la
+criticité. Ce n'est pas un risque de sécurité au sens de l'analyse de risques :
 
 ```text
 risque = score × (((D × I × C × P) / 4 / criticité) / 2)

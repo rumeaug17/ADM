@@ -11,6 +11,18 @@ Les tâches réalisées sont retirées du fichier.
 - **US1.3** : *Ajouter un score de dette global*  
   Ajouter un score de dette correspondant aux applications non évaluées. Par exemple 30 points par application non évaluées.
   Le nombre total d'application dans le SI est un paramètre de configuration (?)
+- **US1.4** : *Lien avec l'analyse de risques DICP* (à valider avec le RSSI)  
+  Suite du lot 1 de `docs/DICP_DISTINCTION_PROPOSAL.md` (libellés et affichage, livré) : ajouter
+  sur la fiche application des champs optionnels « DICP officiel » (D/I/C/P au sens de l'analyse de
+  risques, P = Preuve), « Référence de l'analyse » et « Date de validation » (migration Alembic,
+  import/export JSON) ; signaler les écarts avec le profil de sensibilité estimé et filtrer les
+  applications sans analyse. Option : utiliser le D·I·C officiel dans le calcul de l'exposition
+  dette lorsqu'il est renseigné.
+- **US1.5** : *Réaligner l'échelle de criticité*  
+  La criticité va de 1 (très élevée) à 4 (faible), à l'inverse du profil de sensibilité
+  (4 = critique), ce qui provoque des erreurs de saisie. L'aide en ligne le signale depuis le lot 1
+  de `docs/DICP_DISTINCTION_PROPOSAL.md` ; inverser l'échelle suppose de modifier la formule de
+  l'exposition dette et de migrer les données existantes.
 
 ## Epic 3 : Amélioration de la Qualité du Code, Tests et Exploitation
 

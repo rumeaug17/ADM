@@ -31,7 +31,7 @@
       <div class="col">
         <div class="kpi-card kpi-primary p-3 h-100">
             <div class="kpi-icon"><i class="bi bi-shield-exclamation" aria-hidden="true"></i></div>
-            <div class="kpi-label">Risque global</div>
+            <div class="kpi-label">Exposition globale</div>
 		{% if global_risk is not none %}
 		    {% if global_risk > display_thresholds.risk.critical %}
 		        <h2><span class="badge text-bg-danger">{{ global_risk }}</span></h2>

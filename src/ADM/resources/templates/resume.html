@@ -37,17 +37,25 @@
           N/A
         {% endif %}
       </p>
-      <p><strong>Classification (DICP) :</strong>
+      <p><strong>Sensibilité D·I·C (estimation ADM) :</strong>
         {% set disponibilite_label = app.disponibilite|dicp_label %}
         <span class="badge badge-{{ app.disponibilite|lower }}"{% if disponibilite_label %} title="Disponibilité : {{ disponibilite_label }}"{% endif %}>{{ app.disponibilite }}</span>
         {% set integrite_label = app.integrite|dicp_label %}
         <span class="badge badge-{{ app.integrite|lower }}"{% if integrite_label %} title="Intégrité : {{ integrite_label }}"{% endif %}>{{ app.integrite }}</span>
         {% set confidentialite_label = app.confidentialite|dicp_label %}
         <span class="badge badge-{{ app.confidentialite|lower }}"{% if confidentialite_label %} title="Confidentialité : {{ confidentialite_label }}"{% endif %}>{{ app.confidentialite }}</span>
-        {% set perennite_label = app.perennite|dicp_label %}
-        <span class="badge badge-{{ app.perennite|lower }}"{% if perennite_label %} title="Pérennité : {{ perennite_label }}"{% endif %}>{{ app.perennite }}</span>
       </p>
-      <p><strong>Risque :</strong>
+      <p><strong>Pérennité attendue :</strong>
+        {% set perennite_label = app.perennite|dicp_label %}
+        <span class="badge badge-{{ app.perennite|lower }}"{% if perennite_label %} title="Pérennité attendue : {{ perennite_label }}"{% endif %}>{{ app.perennite|sensitivity_code }}</span>
+      </p>
+      <p class="form-text sensitivity-disclaimer">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        Profil de sensibilité estimé dans ADM pour pondérer la dette technique :
+        il ne remplace pas la classification DICP issue de l'analyse de risques
+        (RSSI), dont le 4<sup>e</sup> critère est la Preuve et non la Pérennité.
+      </p>
+      <p><strong>Exposition dette :</strong>
         {% if app.risque is not defined or app.risque is none %}
           Non évaluée
         {% else %}
