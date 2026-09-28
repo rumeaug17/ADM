@@ -62,12 +62,12 @@
     "</ul>"
   ],
   "app-perennite": [
-    "<p class=\"mb-2\"><em>Critère propre à ADM : ce « P » n’est pas le critère Preuve (traçabilité) de la classification DICP issue de l’analyse de risques (RSSI). Il est affiché « Pé » (sensibilité « DICPé ») pour les distinguer.</em></p>",
-    "<strong>Pérennité attendue : représente la nécessité de conserver l’application et ses données sur le long terme.</strong>",
-    "<ul><li><strong>P1 - Faible : </strong>Cycle de vie court, remplacement fréquent.</li>",
-    "<li><strong>P2 - Moyenne : </strong>Maintien souhaitable sur quelques années, mais évolution probable.</li>",
-    "<li><strong>P3 - Élevée : </strong>Longévité requise avec nécessité de maintenir l’accès aux données historiques.</li>",
-    "<li><strong>P4 - Critique : </strong>Pérennité impérative, conservation des données à très long terme (ex. archives réglementaires, historiques médicaux).</li>",
+    "<p class=\"mb-2\"><em>Critère propre à ADM, affiché « L » (sensibilité « DICL ») : il ne correspond ni au critère Preuve (P) ni au critère Traçabilité (T) des classifications DICP/DICT issues de l’analyse de risques (RSSI).</em></p>",
+    "<strong>Longévité attendue : représente la nécessité de conserver l’application et ses données sur le long terme.</strong>",
+    "<ul><li><strong>L1 - Faible : </strong>Cycle de vie court, remplacement fréquent.</li>",
+    "<li><strong>L2 - Moyenne : </strong>Maintien souhaitable sur quelques années, mais évolution probable.</li>",
+    "<li><strong>L3 - Élevée : </strong>Longévité requise avec nécessité de maintenir l’accès aux données historiques.</li>",
+    "<li><strong>L4 - Critique : </strong>Longévité impérative, conservation des données à très long terme (ex. archives réglementaires, historiques médicaux).</li>",
     "</ul>"
   ],
   "api": [

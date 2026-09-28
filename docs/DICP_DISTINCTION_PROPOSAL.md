@@ -195,3 +195,35 @@ avec les quatre critères que les utilisateurs connaissent).
   (`docs/BUSINESS_RULES.md`, `README.md`) mis à jour. Contrôles `ruff`,
   `mypy` et `pytest` (350 tests, couverture 87,8 %) passants ; rendu vérifié
   par capture.
+
+## 8. Suivi — Remplacement de « Pé » par « L » (sensibilité « DICL »)
+
+2026-09-28. Le code affiché `Pé` restait trop proche du `P` (Preuve) du DICP,
+et une alternative en `T` aurait rappelé la Traçabilité du DICT. Le 4ᵉ
+critère devient la **Longévité attendue**, affichée `L1`…`L4`, et le sigle
+de la sensibilité devient **« DICL »**. Alternatives écartées : `H` (Horizon
+de vie, moins parlant), `V` (Durée de vie, évoque « Valeur » ou
+« Vulnérabilité »), `S` (Stabilité, souvent lu « Sécurité »).
+
+**Ce qui change.**
+- Filtre `sensitivity_code` (`services.sensitivity_display_code`) : `P3`
+  s'affiche désormais `L3`.
+- Catalogue, résumé et formulaires : « Sensibilité DICL », « Criticité et
+  sensibilité DICL (estimation ADM) », champ « Longévité attendue (L) »,
+  infobulles « Longévité attendue : … », avertissement « DICL : Disponibilité,
+  Intégrité, Confidentialité, Longévité attendue ».
+- Export CSV : « DICL - Disponibilité », « DICL - Intégrité »,
+  « DICL - Confidentialité », « DICL - Longévité attendue » (valeurs
+  exportées inchangées : codes stockés `P1`…`P4`).
+- Aide en ligne (`app-perennite`) : libellé « Longévité attendue », niveaux
+  `L1`…`L4`, mention des critères Preuve (P) et Traçabilité (T).
+- Documentation (`README.md`, `docs/BUSINESS_RULES.md`) et tests
+  (`tests/test_sensitivity_profile_labels.py`) mis à jour.
+- Inchangé : clés techniques (`perennite`, `app-perennite`), codes stockés
+  `P1`…`P4`, classes CSS `badge-p1`…`badge-p4`, formule, import/export JSON,
+  schéma de base.
+
+**Point d'attention au déploiement.** Comme pour le lot 1, une copie
+persistante d'`info_texts.json` (`ADM_INFO_TEXTS_PATH`) n'est pas mise à jour
+automatiquement : reporter l'aide `app-perennite`. Prévenir les
+consommateurs éventuels de l'export CSV du changement d'en-têtes.

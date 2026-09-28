@@ -52,28 +52,29 @@ nul, mais restent comptabilisées dans le nombre total d'applications.
 ## Profil de sensibilité et analyse de risques
 
 Chaque application porte quatre niveaux de 1 à 4 — disponibilité (`D`),
-intégrité (`I`), confidentialité (`C`) et pérennité attendue (`P`) — ainsi
-qu'une criticité. Cette **sensibilité DICPé** (le « é » signale que le 4ᵉ
-critère est la Pérennité) est une estimation déclarative,
+intégrité (`I`), confidentialité (`C`) et longévité attendue (`L`, code stocké `P`) —
+ainsi qu'une criticité. Cette **sensibilité DICL** (la lettre `L`, distincte
+de `P` et de `T`, signale que le 4ᵉ critère est la Longévité) est une
+estimation déclarative,
 saisie dans ADM par les utilisateurs habilités à modifier une fiche, et sert
 uniquement à pondérer la dette technique (voir « Exposition dette » ci-dessous).
 
 Il ne doit pas être confondu avec la classification DICP issue de l'analyse de
 risques de l'organisation (RSSI, EBIOS RM / ISO 27005) :
 
-- le 4ᵉ critère d'ADM est la **Pérennité** (conservation de l'application et
+- le 4ᵉ critère d'ADM est la **Longévité attendue** (conservation de l'application et
   de ses données sur le long terme), alors que celui de l'analyse de risques
-  est généralement la **Preuve** (traçabilité) ;
+  est généralement la **Preuve** (DICP) ou la **Traçabilité** (DICT) ;
 - les définitions des niveaux sont propres à ADM (`info_texts.json`) et ne
   sont pas synchronisées avec l'analyse officielle.
 
-L'interface le rend explicite : section « Criticité et sensibilité DICPé
-(estimation ADM) » dans les formulaires, colonne « Sensibilité DICPé » du
-catalogue et ligne « Sensibilité DICPé (estimation ADM) » du résumé, où les
-quatre pastilles restent regroupées côte à côte (`D3` `I1` `C2` `Pé4`), la
-pérennité étant affichée `Pé1`…`Pé4` (le code stocké reste `P1`…`P4`) ;
+L'interface le rend explicite : section « Criticité et sensibilité DICL
+(estimation ADM) » dans les formulaires, colonne « Sensibilité DICL » du
+catalogue et ligne « Sensibilité DICL (estimation ADM) » du résumé, où les
+quatre pastilles restent regroupées côte à côte (`D3` `I1` `C2` `L4`), la
+longévité étant affichée `L1`…`L4` (le code stocké reste `P1`…`P4`) ;
 avertissement dans les formulaires, le résumé et l'aide en ligne ; en-têtes
-de l'export CSV renommés (« DICPé - Disponibilité »… « DICPé - Pérennité
+de l'export CSV renommés (« DICL - Disponibilité »… « DICL - Longévité
 attendue », « Exposition dette »). Les clés techniques
 (`disponibilite`…`perennite`), les codes stockés, l'import/export JSON et le
 schéma de base sont inchangés.
@@ -85,7 +86,7 @@ plus critique, le niveau `4` le moins critique. L'aide en ligne le rappelle.
 
 L'exposition dette (clé technique `risque`, libellée « Exposition dette » dans
 l'interface et l'export CSV, « Exposition globale » pour la moyenne du
-catalogue) combine le score, les quatre niveaux de la sensibilité DICPé et la
+catalogue) combine le score, les quatre niveaux de la sensibilité DICL et la
 criticité. Ce n'est pas un risque de sécurité au sens de l'analyse de risques :
 
 ```text

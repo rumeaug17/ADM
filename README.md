@@ -11,8 +11,8 @@ et présente une synthèse destinée à faciliter la priorisation des actions.
 ## Fonctionnalités
 
 - gestion d'un catalogue d'applications, de leur criticité et d'un profil de
-  sensibilité estimé, la « sensibilité DICPé » (disponibilité, intégrité,
-  confidentialité et pérennité attendue) ;
+  sensibilité estimé, la « sensibilité DICL » (disponibilité, intégrité,
+  confidentialité et longévité attendue) ;
 - questionnaire configurable selon le type d'application et son hébergement ;
 - calcul du score de dette, de l'exposition de la dette (score pondéré par la
   sensibilité et la criticité) et d'indicateurs de synthèse ;
@@ -22,10 +22,10 @@ et présente une synthèse destinée à faciliter la priorisation des actions.
 - persistance locale dans un fichier JSON ou SQLite, ou dans MySQL via SQLAlchemy ;
 - validation des entrées, protection CSRF et limitation des imports à 5 Mio.
 
-La sensibilité DICPé saisie dans ADM est une estimation servant uniquement à
+La sensibilité DICL saisie dans ADM est une estimation servant uniquement à
 pondérer la dette : il ne remplace pas la classification DICP issue de
 l'analyse de risques de l'organisation, dont le 4ᵉ critère est la Preuve et non
-la Pérennité (voir « Profil de sensibilité et analyse de risques » dans
+la Longévité (voir « Profil de sensibilité et analyse de risques » dans
 [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md)).
 
 Les règles du questionnaire et du calcul sont détaillées dans
