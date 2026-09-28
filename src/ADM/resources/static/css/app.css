@@ -482,6 +482,37 @@ tr:hover {
   opacity: 1;
 }
 
+/* ---------- Tableau du catalogue compact (index.html) ------------------
+   L'ajout des colonnes « Sensibilité DICPé » (4 badges côte à côte),
+   « Exposition dette » et « Évaluateur » avait élargi le tableau au-delà
+   de la largeur du conteneur, d'où un ascenseur horizontal même sur un
+   écran de bureau. Ces règles, limitées au catalogue via `.catalogue-card`
+   (le tableau et son enveloppe `table-responsive` gardent leurs classes
+   exactes, protégées par les tests), resserrent le tableau pour qu'il
+   tienne dans la largeur disponible : texte et badges plus compacts,
+   cellules moins rembourrées et en-têtes autorisés à passer sur deux
+   lignes. `table-responsive` reste en place comme filet de sécurité sur
+   petit écran. */
+.catalogue-card .table {
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+.catalogue-card .table > :not(caption) > * > * {
+  padding: 0.4rem 0.45rem;
+  vertical-align: middle;
+}
+.catalogue-card .table-sort-th {
+  white-space: normal;
+}
+.catalogue-card .badge {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+.catalogue-card td > .d-flex.flex-nowrap {
+  gap: 0.25rem !important;
+  justify-content: center;
+}
+
 /* ---------- Fiche résumé (resume.html, Phase 2) -------------------------
    Sections plus aérées : en-têtes de carte plus marqués, sans changer la
    structure (mêmes `.card`/`.card-header`/`.card-body` Bootstrap). */
