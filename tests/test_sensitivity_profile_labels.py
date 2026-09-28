@@ -1,9 +1,10 @@
 """Distinction entre le profil de sensibilité ADM et l'analyse de risques DICP.
 
-Les niveaux D/I/C/P saisis dans ADM ne sont qu'une estimation servant à
+Les niveaux D/I/C/L (codes stockés D/I/C/P) saisis dans ADM ne sont qu'une estimation servant à
 pondérer la dette technique. Leur présentation ne doit pas laisser croire
 qu'il s'agit de la classification DICP issue de l'analyse de risques (RSSI),
-dont le 4e critère est la Preuve et non la Pérennité (voir
+dont le 4e critère est la Preuve (ou la Traçabilité en DICT) et non la
+Longévité attendue d'ADM, affichée « L » (voir
 ``docs/BUSINESS_RULES.md``, « Profil de sensibilité et analyse de risques »).
 
 Seuls les libellés et l'affichage changent : les clés techniques, les codes
@@ -107,9 +108,9 @@ def _logged_in_client(application: Flask) -> FlaskClient:
 
 @pytest.mark.parametrize(
     ("stored", "displayed"),
-    [("D2", "D2"), ("I3", "I3"), ("C4", "C4"), ("P1", "Pé1"), ("P4", "Pé4")],
+    [("D2", "D2"), ("I3", "I3"), ("C4", "C4"), ("P1", "L1"), ("P4", "L4")],
 )
-def test_sensitivity_display_code_only_renames_perennite(stored: str, displayed: str) -> None:
+def test_sensitivity_display_code_only_renames_longevite(stored: str, displayed: str) -> None:
     assert sensitivity_display_code(stored) == displayed
 
 
@@ -123,24 +124,26 @@ def test_sensitivity_display_code_handles_none() -> None:
     assert sensitivity_display_code(None) == ""
 
 
-def test_catalogue_groups_the_four_criteria_under_dicpe_and_renames_risk(
+def test_catalogue_groups_the_four_criteria_under_dicl_and_renames_risk(
     tmp_path: Path,
 ) -> None:
     """Les quatre pastilles restent côte à côte dans une seule colonne,
-    renommée « Sensibilité DICPé » pour lever l'ambiguïté avec le DICP de
-    l'analyse de risques (P = Preuve)."""
+    renommée « Sensibilité DICL » pour lever l'ambiguïté avec le DICP de
+    l'analyse de risques (P = Preuve, T = Traçabilité)."""
     client = _logged_in_client(_create_test_app(tmp_path))
 
     html = client.get("/").get_data(as_text=True)
 
     assert "Classification (DICP)" not in html
-    assert "Sensibilité DICPé</th>" in html
-    assert "Pérennité attendue</th>" not in html
-    assert ">Pé3</span>" in html
+    assert "Sensibilité DICL</th>" in html
+    assert "Longévité attendue</th>" not in html
+    assert "DICPé" not in html
+    assert ">Pé3</span>" not in html
+    assert ">L3</span>" in html
     assert ">P3</span>" not in html
-    # Les quatre pastilles sont dans le même groupe, dans l'ordre D, I, C, Pé.
+    # Les quatre pastilles sont dans le même groupe, dans l'ordre D, I, C, L.
     group = html.split('<div class="d-flex flex-nowrap gap-2">', 1)[1].split("</div>", 1)[0]
-    positions = [group.index(f">{code}</span>") for code in ("D2", "I3", "C1", "Pé3")]
+    positions = [group.index(f">{code}</span>") for code in ("D2", "I3", "C1", "L3")]
     assert positions == sorted(positions)
     assert "Exposition dette" in html
     assert ">Risque <i" not in html
@@ -165,10 +168,10 @@ def test_application_forms_present_an_estimated_sensitivity_profile(
     html = client.get(path).get_data(as_text=True)
 
     assert "Classification de sécurité" not in html
-    assert "Criticité et sensibilité DICPé (estimation ADM)" in html
+    assert "Criticité et sensibilité DICL (estimation ADM)" in html
     assert DISCLAIMER in html
-    assert "DICPé : Disponibilité, Intégrité, Confidentialité, Pérennité attendue" in html
-    assert "Pérennité attendue (Pé) :" in html
+    assert "DICL : Disponibilité, Intégrité, Confidentialité, Longévité attendue" in html
+    assert "Longévité attendue (L) :" in html
     # Les valeurs soumises restent les codes stockés historiques.
     assert 'value="P3"' in html
 
@@ -179,9 +182,9 @@ def test_resume_groups_the_four_criteria_and_shows_the_disclaimer(tmp_path: Path
     html = client.get(f"/resume/{APP_NAME}").get_data(as_text=True)
 
     assert "Classification (DICP)" not in html
-    line = html.split("<strong>Sensibilité DICPé (estimation ADM) :</strong>", 1)[1]
+    line = html.split("<strong>Sensibilité DICL (estimation ADM) :</strong>", 1)[1]
     line = line.split("</p>", 1)[0]
-    for code in ("D2", "I3", "C1", "Pé3"):
+    for code in ("D2", "I3", "C1", "L3"):
         assert f">{code}</span>" in line, code
     assert "remplace pas la classification DICP" in html
     assert "Exposition dette :" in html
@@ -211,10 +214,10 @@ def test_csv_export_headers_mark_the_values_as_estimates(tmp_path: Path) -> None
         "Type",
         "RDA",
         "Criticité",
-        "DICPé - Disponibilité",
-        "DICPé - Intégrité",
-        "DICPé - Confidentialité",
-        "DICPé - Pérennité attendue",
+        "DICL - Disponibilité",
+        "DICL - Intégrité",
+        "DICL - Confidentialité",
+        "DICL - Longévité attendue",
         "Score",
         "Max Score",
         "Pourcentage",

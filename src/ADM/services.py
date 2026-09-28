@@ -37,7 +37,7 @@ MAX_OPTION_SCORE: Final = 3
 _RADAR_CHART_COLOR: Final = "#0e6b5c"
 
 # Niveaux DICP valides (1 à 4), utilisés pour valider disponibilité, intégrité,
-# confidentialité et pérennité avant le calcul du risque.
+# confidentialité et longévité avant le calcul du risque.
 _DICP_LEVELS: Final = frozenset({"1", "2", "3", "4"})
 
 # Libellés humains associés à chaque niveau DICP, identiques à ceux proposés par
@@ -52,15 +52,16 @@ _DICP_LEVEL_LABELS: Final[Mapping[str, str]] = {
 }
 
 # Préfixe affiché pour chaque critère du profil de sensibilité. Le code stocké
-# reste inchangé (`P3`), mais la pérennité est affichée `Pé3` pour ne pas être
-# confondue avec le critère « Preuve » de la classification DICP issue de
+# reste inchangé (`P3`), mais la longévité attendue est affichée `L3` : une
+# lettre distincte de P et de T, pour ne pas être confondue avec le critère
+# « Preuve » (DICP) ou « Traçabilité » (DICT) des classifications issues de
 # l'analyse de risques (voir docs/BUSINESS_RULES.md, « Profil de sensibilité
 # et analyse de risques »).
 _SENSITIVITY_DISPLAY_PREFIXES: Final[Mapping[str, str]] = {
     "D": "D",
     "I": "I",
     "C": "C",
-    "P": "Pé",
+    "P": "L",
 }
 
 
@@ -192,8 +193,9 @@ def dicp_level_label(value: object) -> str | None:
 def sensitivity_display_code(value: object) -> str:
     """Retourne le code affiché d'un critère du profil de sensibilité.
 
-    Seule la pérennité change d'apparence (``"P3"`` devient ``"Pé3"``), pour la
-    distinguer du critère « Preuve » de l'analyse de risques DICP. Une valeur
+    Seule la longévité attendue change d'apparence (``"P3"`` devient ``"L3"``),
+    pour la distinguer des critères « Preuve » (DICP) et « Traçabilité » (DICT)
+    de l'analyse de risques. Une valeur
     qui n'est pas un code valide est restituée telle quelle, sans tentative
     d'interprétation, comme le faisaient les gabarits avant ce filtre.
     """

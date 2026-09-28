@@ -237,9 +237,10 @@ def _register_web_components(app: Flask) -> None:
     # (ex. "D1") en libellé humain, réutilisé en infobulle par les templates
     # qui affichent encore le code brut (`index.html`, `resume.html`).
     app.jinja_env.filters["dicp_label"] = dicp_level_label
-    # Code affiché d'un critère du profil de sensibilité : la pérennité
-    # apparaît « Pé3 » plutôt que « P3 », pour ne pas être confondue avec le
-    # critère Preuve de l'analyse de risques DICP.
+    # Code affiché d'un critère du profil de sensibilité : la longévité
+    # attendue apparaît « L3 » plutôt que « P3 », pour ne pas être confondue
+    # avec les critères Preuve (DICP) ou Traçabilité (DICT) de l'analyse de
+    # risques.
     app.jinja_env.filters["sensitivity_code"] = sensitivity_display_code
 
     def protect_posts() -> None:
