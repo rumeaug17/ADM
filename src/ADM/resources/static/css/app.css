@@ -483,7 +483,7 @@ tr:hover {
 }
 
 /* ---------- Tableau du catalogue compact (index.html) ------------------
-   L'ajout des colonnes « Sensibilité DICPé » (4 badges côte à côte),
+   L'ajout des colonnes « Sensibilité DICL » (4 badges côte à côte),
    « Exposition dette » et « Évaluateur » avait élargi le tableau au-delà
    de la largeur du conteneur, d'où un ascenseur horizontal même sur un
    écran de bureau. Ces règles, limitées au catalogue via `.catalogue-card`
